@@ -1,7 +1,0 @@
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\bin\Debug\thinkgear.pdb
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\obj\Debug\ResolveAssemblyReference.cache
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\obj\Debug\thinkgear.csproj.GenerateResource.Cache
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\obj\Debug\thinkgear.pdb
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\bin\Debug\thinkgear.dll
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\obj\Debug\thinkgear.dll
-C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Projects\thinkgear\thinkgear\obj\Debug\NeuroSky.ThinkGear.Properties.Resources.resources
