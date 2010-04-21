@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NeuroSky.ThinkGear
+namespace NeuroSky.ThinkGear.Parser
 {
     public struct Parsed
     {
@@ -72,7 +72,7 @@ namespace NeuroSky.ThinkGear
         }
     }
 
-    class MindSetParser
+    public class MindSetParser
     {
        
         public Parsed Read(DataRow[] dataRowArray)

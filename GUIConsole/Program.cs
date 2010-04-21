@@ -8,7 +8,7 @@ using System.IO;
 using System.IO.Ports;
 
 using NeuroSky.ThinkGear;
-//using NeuroSky.ThinkGear.Parser;
+using NeuroSky.ThinkGear.Parser;
 
 namespace testprogram {
   class Program {
@@ -57,7 +57,7 @@ namespace testprogram {
       MindSetParser mindSetParser = new MindSetParser();
 
       parsedData = mindSetParser.Read(de.DataRowArray);
-#if false
+#if true
             foreach (TimeStampData tsd in parsedData.Raw)
             {
                 Console.WriteLine("Time: " + tsd.TimeStamp + " Raw Value: " + tsd.Value);
