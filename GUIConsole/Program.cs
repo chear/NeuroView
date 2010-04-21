@@ -7,66 +7,56 @@ using System.Threading;
 using System.IO;
 using System.IO.Ports;
 
-using System.Windows.Forms;
-
 using NeuroSky.ThinkGear;
 //using NeuroSky.ThinkGear.Parser;
 
+namespace testprogram {
+  class Program {
+
+    public static void Main(string[] args) {
+
+      Console.WriteLine("Hello EEG!");
+
+      Connector tg_Connector = new Connector();
+      tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
+
+      tg_Connector.Find();
+      while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
+
+      Thread.Sleep(500);
+
+      tg_Connector.Connect("COM10");
+
+      Thread.Sleep(5000);
+
+      System.Console.WriteLine("Goodbye.");
+
+      Environment.Exit(0);
+
+    }
 
 
+    static void OnDeviceConnected(object sender, EventArgs e) {
+      Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
-namespace testprogram
-{
-    class Program
-    {
+      Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
 
-        public static void Main( string[] args )
-        {
+      de.Device.DataReceived += new EventHandler(OnDataReceived);
 
-            Console.WriteLine("Hello EEG!");
+    }
 
-            Connector tg_Connector = new Connector();
-            tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
+    static void OnDataReceived(object sender, EventArgs e) {
+      Device d = (Device)sender;
+      Device.DataEventArgs de = (Device.DataEventArgs)e;
 
-            tg_Connector.Find();
-            while (tg_Connector.FindThreadIsAlive()){/*DO NOTHING*/}
+      DataRow[] tempDataRowArray = de.DataRowArray;
+      Parsed parsedData = new Parsed();
 
-            Thread.Sleep(500);
+      //Console.WriteLine("PortName: " + d.PortName + " HeadSetID: " + d.HeadsetID);
 
-            tg_Connector.Connect("COM10");
+      MindSetParser mindSetParser = new MindSetParser();
 
-            Thread.Sleep(5000);
-
-            System.Console.WriteLine("Goodbye.");
-
-            Environment.Exit(0);
-
-        }
-
-
-        static void OnDeviceConnected(object sender, EventArgs e)
-        {
-            Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
-
-            Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
-
-            de.Device.DataReceived +=new EventHandler(OnDataReceived);
-
-        }
-
-        static void OnDataReceived(object sender, EventArgs e)
-        {
-            Device d = (Device)sender;
-            Device.DataEventArgs de = (Device.DataEventArgs)e;
-
-            DataRow[] tempDataRowArray = de.DataRowArray;
-            Parsed parsedData = new Parsed(); 
-
-            //Console.WriteLine("PortName: " + d.PortName + " HeadSetID: " + d.HeadsetID);
-
-            MindSetParser mindSetParser = new MindSetParser();
-
-            parsedData = mindSetParser.Read(de.DataRowArray);
+      parsedData = mindSetParser.Read(de.DataRowArray);
 #if false
             foreach (TimeStampData tsd in parsedData.Raw)
             {
@@ -98,6 +88,6 @@ namespace testprogram
                                   "\nGamma2: " + ped.Gamma2);
             }
 #endif
-        }
     }
+  }
 }
