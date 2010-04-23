@@ -78,8 +78,14 @@ namespace NeuroSky.ThinkGear
 
         public event EventHandler DeviceConnected = delegate { };
 
+        //public FileInfo debugInfo = new FileInfo("Debug1.txt");
+        //public StreamWriter debugFile;
+
+        //public DateTime startTime = DateTime.UtcNow;
+
         public Connector()
         {
+            //debugFile = debugInfo.CreateText(); 
 
             availablePorts = new List<string>();
             mindSetPorts = new List<Connection>();
@@ -228,7 +234,7 @@ namespace NeuroSky.ThinkGear
 
         private void ReadThread()
         {
-            Console.WriteLine("Starting ReadThread.");
+            //Console.WriteLine("Starting ReadThread. " + (DateTime.UtcNow - startTime).TotalSeconds);
 
             bool allReturnNull = true;
 
@@ -241,9 +247,12 @@ namespace NeuroSky.ThinkGear
                     {
                         Packet returnPacket = port.ReadPacket();
 
+                        /* Checks if it received any packet from any of the connections.*/
                         if (returnPacket.DataRowArray.Length > 0) allReturnNull = false;
 
-                        //Pass the data to the devices.
+                        //debugFile.WriteLine("Length: " + returnPacket.DataRowArray.Length + " Right after the ReadPacket. " + (DateTime.UtcNow - startTime).TotalSeconds);
+
+                        /*Pass the data to the devices.*/
                         DeliverPacket(returnPacket);
 
                     }
@@ -254,9 +263,11 @@ namespace NeuroSky.ThinkGear
                 if (allReturnNull)
                 {
                     Thread.Sleep(2);
-                    //Console.WriteLine("Did not receive any DataRow.");
-
+                    
                 }
+
+                allReturnNull = true;
+                
             }
 
         }
@@ -372,14 +383,21 @@ namespace NeuroSky.ThinkGear
 
             public Byte[] parserBuffer = new Byte[0];
 
+            //public FileInfo debugInfo = new FileInfo("Debug0.txt");
+            //public StreamWriter debugFile;
+
+            //public DateTime startTime = DateTime.UtcNow;
+
             public Connection()
             {
+                //debugFile = debugInfo.CreateText(); 
                 parserBuffer = new Byte[0];
                 ReadTimeout = SERIALPORT_READ_TIMEOUT;
             }
 
             public Connection(String portName)
             {
+                //debugFile = debugInfo.CreateText(); 
                 PortName = portName;
                 BaudRate = 57600;
             }
@@ -499,6 +517,8 @@ namespace NeuroSky.ThinkGear
                 }
                 else { parserBuffer = new Byte[0]; }
 
+                //if( receivedDataRow.Count < 1 ) debugFile.WriteLine("Did not receive any packet.");
+
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
 
             }/*End of ReadPacket*/
@@ -560,6 +580,8 @@ namespace NeuroSky.ThinkGear
 
                     /*Gets the current time and inserts it into the tempDataRow*/
                     tempDataRow.Time = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
+
+                    //debugFile.WriteLine("TimeStamp: " + (DateTime.UtcNow - startTime).TotalSeconds);
 
                     /*Copies the data into the DataRow*/
                     tempDataRow.Data = new byte[numBytes];

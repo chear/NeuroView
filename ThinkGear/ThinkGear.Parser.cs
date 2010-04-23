@@ -101,7 +101,7 @@ namespace NeuroSky.ThinkGear.Parser
                         tempMeditation.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
                     case ((byte)Code.Raw):
-                        tempRaw.Add(new TimeStampData(d.Time, (short)(d.Data[0]<<8) + d.Data[1]));
+                        tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0]<<8) + d.Data[1])));
                         break;
                     case ((byte)Code.EEGPowerInt):
                         tempPowerEEGData.Add(new PowerEEGData(d.Time, d.Data));

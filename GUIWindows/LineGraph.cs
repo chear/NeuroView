@@ -34,7 +34,6 @@ namespace NeuroSky.NeuroView {
         private System.Windows.Forms.HScrollBar hScrollBar;
 
         public List<DataPair> dataPoints;
-        //public int frameWidth = 330;
         public int frameHeight = 240;
         public int frameWidth = 760;
         public int samplingRate = 10;
@@ -140,22 +139,24 @@ namespace NeuroSky.NeuroView {
                 {
                     d = i + graphStartIndex;
                     graphPoints[i] = Point2Pixel( dataPoints[d].timeStamp, dataPoints[d].data );
-
+#if false
                     Console.WriteLine("data: " + dataPoints[d].timeStamp + ", " + dataPoints[d].data +
                                       " graph: " + graphPoints[i].X + ", " + graphPoints[i].Y);
+#endif
                 }
 
                 drawingSurface.DrawLines(myPen, graphPoints);
             }
-
+#if false
             Console.WriteLine("StartPoint: " + graphStartIndex
                             + " FinishPoint: " + (d)
                             + " TotalDataPoints: " + dataPoints.Count
                             + " hScrollBarValue: " + hScrollBar.Value
                             + " hScrollBarMax: " + hScrollBar.Maximum);
            
-
+#endif
             myPen.Dispose();
+
         }
 
         public LineGraph()
@@ -177,6 +178,7 @@ namespace NeuroSky.NeuroView {
 
             temp.X = (int)( (xValue - xAxisMin)/(xAxisMax - xAxisMin) * frameWidth );
             temp.Y = (int)( (yValue - yAxisMin)/(yAxisMax - yAxisMin) * frameHeight );
+            temp.Y = frameHeight - temp.Y;
 
             return temp;
 
@@ -203,6 +205,7 @@ namespace NeuroSky.NeuroView {
             this.Name = "LineGraph";
             this.Size = defaultSize;
             this.BackColor = Color.White;
+            this.BorderStyle = BorderStyle.FixedSingle;
             
             scrollBarTop = frameHeight - this.hScrollBar.Height;
             this.hScrollBar.Location = new System.Drawing.Point(0, scrollBarTop);
