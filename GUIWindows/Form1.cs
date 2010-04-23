@@ -33,12 +33,14 @@ namespace NeuroSky.NeuroView
 
             InitializeComponent();
 
+            attGraphPanel.Label.Text = "attGraphPanel";
             attGraphPanel.LineGraph.samplingRate = 1;
             attGraphPanel.LineGraph.xAxisMax = 4;
             attGraphPanel.LineGraph.xAxisMin = 0;
             attGraphPanel.LineGraph.yAxisMax = 105;
             attGraphPanel.LineGraph.yAxisMin = -5;
 
+            attGraphPanel.Label.Text = "attGraphPanel";
             medGraphPanel.LineGraph.samplingRate = 1;
             medGraphPanel.LineGraph.xAxisMax = 4;
             medGraphPanel.LineGraph.xAxisMin = 0;
@@ -133,7 +135,6 @@ namespace NeuroSky.NeuroView
             // 
             // Form1
             // 
-            //this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
             this.ClientSize = new System.Drawing.Size(800, 740);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
