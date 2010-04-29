@@ -3,7 +3,14 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
-//using System.Data;
+
+using System.Collections.Generic;
+
+using System.IO;
+
+using System.Text.RegularExpressions;
+
+using System.Threading;
 
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Parser;
@@ -16,9 +23,14 @@ namespace NeuroSky.NeuroView
         public GraphPanel attGraphPanel;
         public GraphPanel medGraphPanel;
         public GraphPanel rawGraphPanel;
+        private TextBox portText;
+        private Label fileLabel;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button disconnectButton;
+        private System.Windows.Forms.Button stopButton;
+        private System.Windows.Forms.Button openButton;
 
         private Connector tg_Connector;
 
@@ -30,28 +42,56 @@ namespace NeuroSky.NeuroView
         {
             tg_Connector = new Connector();
             tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
+            tg_Connector.DeviceFound += new EventHandler(OnDeviceFound);
+            tg_Connector.DeviceNotFound += new EventHandler(OnDeviceNotFound);
+            tg_Connector.DeviceConnectFail += new EventHandler(OnDeviceNotFound);
 
             InitializeComponent();
 
-            attGraphPanel.Label.Text = "attGraphPanel";
+            attGraphPanel.Label.Text = "Attention";
             attGraphPanel.LineGraph.samplingRate = 1;
             attGraphPanel.LineGraph.xAxisMax = 4;
             attGraphPanel.LineGraph.xAxisMin = 0;
             attGraphPanel.LineGraph.yAxisMax = 105;
             attGraphPanel.LineGraph.yAxisMin = -5;
+            attGraphPanel.LineGraph.FileNameString = "Attention.csv";
+            attGraphPanel.LineGraph.FileHeaderString = "TimeStamp, Attention";
 
-            attGraphPanel.Label.Text = "attGraphPanel";
+            medGraphPanel.Label.Text = "Meditation";
             medGraphPanel.LineGraph.samplingRate = 1;
             medGraphPanel.LineGraph.xAxisMax = 4;
             medGraphPanel.LineGraph.xAxisMin = 0;
             medGraphPanel.LineGraph.yAxisMax = 105;
             medGraphPanel.LineGraph.yAxisMin = -5;
+            medGraphPanel.LineGraph.FileNameString = "Meditation.csv";
+            medGraphPanel.LineGraph.FileHeaderString = "TimeStamp, Meditation";
 
+
+            rawGraphPanel.Label.Text = "EEG (Time Domain)";
             rawGraphPanel.LineGraph.samplingRate = 512;
             rawGraphPanel.LineGraph.xAxisMax = 4;
             rawGraphPanel.LineGraph.xAxisMin = 0;
             rawGraphPanel.LineGraph.yAxisMax = 2047;
             rawGraphPanel.LineGraph.yAxisMin = -2048;
+            rawGraphPanel.LineGraph.FileNameString = "EEG (Time Domain).csv";
+            rawGraphPanel.LineGraph.FileHeaderString = "TimeStamp, Raw";
+
+#if false
+
+            rawGraphPanel.LineGraph.samplingRate = 10;
+            rawGraphPanel.LineGraph.xAxisMax = 2;
+            rawGraphPanel.LineGraph.xAxisMin = 0;
+            rawGraphPanel.LineGraph.yAxisMax = 1;
+            rawGraphPanel.LineGraph.yAxisMin = -1;
+
+#endif
+            disconnectButton.Visible = false;
+            disconnectButton.Enabled = false;
+
+            stopButton.Visible = false;
+            stopButton.Enabled = false;
+
+            fileLabel.TextAlign = ContentAlignment.MiddleCenter;
 
         }
 
@@ -80,6 +120,11 @@ namespace NeuroSky.NeuroView
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
+            this.disconnectButton = new System.Windows.Forms.Button();
+            this.stopButton = new System.Windows.Forms.Button();
+            this.openButton = new System.Windows.Forms.Button();
+            this.portText = new TextBox();
+            this.fileLabel = new Label();
             this.attGraphPanel = new NeuroSky.NeuroView.GraphPanel();
             this.medGraphPanel = new NeuroSky.NeuroView.GraphPanel();
             this.rawGraphPanel = new NeuroSky.NeuroView.GraphPanel();
@@ -87,7 +132,7 @@ namespace NeuroSky.NeuroView
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(20, 660);
+            this.button1.Location = new System.Drawing.Point(100, 15);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(80, 24);
             this.button1.TabIndex = 1;
@@ -96,7 +141,7 @@ namespace NeuroSky.NeuroView
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(140, 660);
+            this.button2.Location = new System.Drawing.Point(700, 510);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(80, 24);
             this.button2.TabIndex = 1;
@@ -105,40 +150,86 @@ namespace NeuroSky.NeuroView
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(260, 660);
+            this.button3.Location = new System.Drawing.Point(360, 15);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(80, 24);
             this.button3.TabIndex = 1;
             this.button3.Text = "Record";
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
+            // disconnectButton
+            // 
+            this.disconnectButton.Location = new System.Drawing.Point(100, 15);
+            this.disconnectButton.Name = "disconnectButton";
+            this.disconnectButton.Size = new System.Drawing.Size(80, 24);
+            this.disconnectButton.TabIndex = 1;
+            this.disconnectButton.Text = "Disconnect";
+            this.disconnectButton.Click += new System.EventHandler(this.disconnect_Click);
+            // 
+            // stopButton
+            //
+            this.stopButton.Location = new System.Drawing.Point(360, 15);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(80, 24);
+            this.stopButton.TabIndex = 1;
+            this.stopButton.Text = "Stop";
+            this.stopButton.Click += new System.EventHandler(this.stop_Click);
+            // 
+            // openButton
+            // 
+            this.openButton.Location = new System.Drawing.Point(15, 510);
+            this.openButton.Name = "openButton";
+            this.openButton.Size = new System.Drawing.Size(80, 24);
+            this.openButton.TabIndex = 1;
+            this.openButton.Text = "Open";
+            this.openButton.Click += new System.EventHandler(this.open_Click);
+            // 
+            // portText
+            // 
+            this.portText.Location = new System.Drawing.Point(10, 17);
+            this.portText.Name = "portText";
+            this.portText.Size = new System.Drawing.Size(80, 24);
+            this.portText.Text = "Auto";
+            // 
+            // fileLabel
+            // 
+            this.fileLabel.Location = new System.Drawing.Point(0, 15);
+            this.fileLabel.Name = "portText";
+            this.fileLabel.Size = new System.Drawing.Size(800, 24);
+            this.fileLabel.Text = "None";
+            // 
             // attGraphPanel
             // 
             this.attGraphPanel.Location = new System.Drawing.Point(0, 50);
             this.attGraphPanel.Name = "attGraphPanel";
-            this.attGraphPanel.Size = new System.Drawing.Size(800, 200);
+            this.attGraphPanel.Size = new System.Drawing.Size(800, 150);
             this.attGraphPanel.TabIndex = 0;
             // 
             // medGraphPanel
             // 
-            this.medGraphPanel.Location = new System.Drawing.Point(0, 250);
+            this.medGraphPanel.Location = new System.Drawing.Point(0, 199);
             this.medGraphPanel.Name = "medGraphPanel";
-            this.medGraphPanel.Size = new System.Drawing.Size(800, 200);
+            this.medGraphPanel.Size = new System.Drawing.Size(800, 150);
             this.medGraphPanel.TabIndex = 0;
             // 
             // rawGraphPanel
             // 
-            this.rawGraphPanel.Location = new System.Drawing.Point(0, 450);
+            this.rawGraphPanel.Location = new System.Drawing.Point(0, 348);
             this.rawGraphPanel.Name = "rawGraphPanel";
-            this.rawGraphPanel.Size = new System.Drawing.Size(800, 200);
+            this.rawGraphPanel.Size = new System.Drawing.Size(800, 150);
             this.rawGraphPanel.TabIndex = 0;
             // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(800, 740);
+            this.ClientSize = new System.Drawing.Size(800, 550);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button3);
+            this.Controls.Add(this.openButton);
+            this.Controls.Add(this.stopButton);
+            this.Controls.Add(this.disconnectButton);
+            this.Controls.Add(this.portText);
+            this.Controls.Add(this.fileLabel);
             this.Controls.Add(this.attGraphPanel);
             this.Controls.Add(this.medGraphPanel);
             this.Controls.Add(this.rawGraphPanel);
@@ -160,28 +251,154 @@ namespace NeuroSky.NeuroView
 
         public int i = 0;
 
+        /*Connect Button Clicked*/
         private void button1_Click(object sender, System.EventArgs e)
         {
+#if true
             this.button1.Enabled = false;
-            tg_Connector.Connect("COM4");
 
-#if false
+            rawGraphPanel.LineGraph.Clear();
+            medGraphPanel.LineGraph.Clear();
+            attGraphPanel.LineGraph.Clear();
+
+            string portName = portText.Text.ToUpper();
+            portName = portName.Trim();
+
+            if (portName != "AUTO")
+            {
+                Regex r = new Regex("COM[1-9][0-9]*");
+                portName = r.Match(portName).ToString();
+                tg_Connector.Connect(portName);
+            }
+            else
+            {
+                tg_Connector.Find();
+            }
+
+#else
             double tempData = 0;
 
-            tempData = Math.Sin(2*Math.PI*1*i/lineGraph0.samplingRate);
+            tempData = Math.Sin(2*Math.PI*1*i/rawGraphPanel.LineGraph.samplingRate);
             DataPair tempDataPair;
-            tempDataPair.timeStamp = (float)i/lineGraph0.samplingRate;
+            tempDataPair.timeStamp = (float)i/rawGraphPanel.LineGraph.samplingRate;
             tempDataPair.data      = (float)tempData;
 
 
-            lineGraph0.Add( tempDataPair );
+            rawGraphPanel.LineGraph.Add( tempDataPair );
 
             i++;
 
-            lineGraph0.Invalidate();
+            rawGraphPanel.LineGraph.Invalidate();
 #endif
         }
 
+        private void disconnect_Click(object sender, System.EventArgs e)
+        {
+            tg_Connector.Disconnect();
+            updateButton(false);
+        }
+
+        private void open_Click(object sender, System.EventArgs e)
+        {
+            FolderBrowserDialog fdlg = new FolderBrowserDialog();
+            fdlg.Description = "Choose the folder that includes the csv files:";
+            fdlg.ShowNewFolderButton = false;
+
+            if(fdlg.ShowDialog() == DialogResult.OK)
+            {
+                string attPath = System.IO.Path.Combine(fdlg.SelectedPath, attGraphPanel.LineGraph.FileNameString);
+                string medPath = System.IO.Path.Combine(fdlg.SelectedPath, medGraphPanel.LineGraph.FileNameString);
+                if (System.IO.File.Exists(attPath) && System.IO.File.Exists(medPath))
+                {
+
+                    Form1 newForm = new Form1();
+
+                    OpenAddData(newForm, fdlg.SelectedPath);
+
+                    newForm.fileLabel.Text = fdlg.SelectedPath;
+                    newForm.fileLabel.Visible = true;
+                    newForm.button1.Visible = false;
+                    newForm.portText.Visible = false;
+                    newForm.button3.Visible = false;
+                    newForm.Show();
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Path");
+                }
+            }
+   
+        }
+
+        /*Opens and adds data to the form*/
+        private void OpenAddData(Form1 tempForm, string dataPath)
+        {
+            string attPath = System.IO.Path.Combine(dataPath, attGraphPanel.LineGraph.FileNameString);
+            string medPath = System.IO.Path.Combine(dataPath, medGraphPanel.LineGraph.FileNameString);
+            string rawPath = System.IO.Path.Combine(dataPath, rawGraphPanel.LineGraph.FileNameString);
+
+            tempForm.attGraphPanel.LineGraph.RecordDataFlag = true;
+            tempForm.medGraphPanel.LineGraph.RecordDataFlag = true;
+            tempForm.rawGraphPanel.LineGraph.RecordDataFlag = true;
+
+            if (File.Exists(attPath))
+            {
+                DataPair[] tempDataPairArray = ParseCSVFile(attPath);
+
+                foreach (DataPair d in tempDataPairArray)
+                {
+                    tempForm.attGraphPanel.LineGraph.Add(d);
+                }
+            }
+
+            if (File.Exists(medPath))
+            {
+                DataPair[] tempDataPairArray = ParseCSVFile(medPath);
+
+                foreach (DataPair d in tempDataPairArray)
+                {
+                    tempForm.medGraphPanel.LineGraph.Add(d);
+                }
+            }
+
+            if (File.Exists(rawPath))
+            {
+                DataPair[] tempDataPairArray = ParseCSVFile(rawPath);
+
+                foreach (DataPair d in tempDataPairArray)
+                {
+                    tempForm.rawGraphPanel.LineGraph.Add(d);
+                }
+            }
+
+            tempForm.rawGraphPanel.Invalidate();
+            tempForm.medGraphPanel.Invalidate();
+            tempForm.attGraphPanel.Invalidate();
+
+        }
+
+        private DataPair[] ParseCSVFile(string filePath)
+        {
+            List<DataPair> tempDataPairList = new List<DataPair>();
+
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                /*Initialize the string and reads the first header line.*/
+                string line = sr.ReadLine();
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    string[] tempString = line.Split(new char[] { ',' });
+
+                    tempDataPairList.Add(new DataPair(Convert.ToDouble(tempString[0]), Convert.ToDouble(tempString[1])));
+                }
+
+                return tempDataPairList.ToArray();
+            }
+
+        }
+
+        /*Clear Button Clicked*/
         private void button2_Click(object sender, System.EventArgs e)
         {
             rawGraphPanel.LineGraph.Clear();
@@ -196,20 +413,69 @@ namespace NeuroSky.NeuroView
             attGraphPanel.LineGraph.Invalidate();
         }
 
+        /*Record Button Clicked*/
         private void button3_Click(object sender, System.EventArgs e)
         {
-#if false
-            if (!lineGraph0.recordDataFlag)
-            {
-                this.button3.Text = "Stop";
-                lineGraph0.recordDataFlag = true;
-            }
-            else
-            {
-                this.button3.Text = "Record";
-                lineGraph0.recordDataFlag = false;
-            }
-#endif
+            button3.Enabled = false;
+            button3.Visible = false;
+            
+            /*Clear Block*/
+            rawGraphPanel.LineGraph.Clear();
+            medGraphPanel.LineGraph.Clear();
+            attGraphPanel.LineGraph.Clear();
+            i = 0;
+            timeStampIndex = 0;
+
+            /*Turn on recording*/
+            rawGraphPanel.LineGraph.RecordDataFlag = true;
+            medGraphPanel.LineGraph.RecordDataFlag = true;
+            attGraphPanel.LineGraph.RecordDataFlag = true;
+
+            /*Specify the folder to be saved*/
+            string tempFolderName = DateTime.Now.ToString();
+            tempFolderName = tempFolderName.Replace(':', ' ');
+            tempFolderName = tempFolderName.Replace('/', '.');
+            Console.WriteLine(tempFolderName);
+
+
+            rawGraphPanel.LineGraph.FolderNameString = tempFolderName;
+            medGraphPanel.LineGraph.FolderNameString = tempFolderName;
+            attGraphPanel.LineGraph.FolderNameString = tempFolderName;
+
+            stopButton.Enabled = true;
+            stopButton.Visible = true;
+
+        }
+
+        private void stop_Click(object sender, System.EventArgs e)
+        {
+            stopButton.Enabled = false;
+            stopButton.Visible = false;
+
+            rawGraphPanel.LineGraph.RecordDataFlag = false;
+            medGraphPanel.LineGraph.RecordDataFlag = false;
+            attGraphPanel.LineGraph.RecordDataFlag = false;
+
+            rawGraphPanel.LineGraph.SaveDataFlag = true;
+            medGraphPanel.LineGraph.SaveDataFlag = true;
+            attGraphPanel.LineGraph.SaveDataFlag = true;
+
+            rawGraphPanel.LineGraph.Invalidate();
+            medGraphPanel.LineGraph.Invalidate();
+            attGraphPanel.LineGraph.Invalidate();
+
+            button3.Enabled = true;
+            button3.Visible = true;
+        }
+
+        void OnDeviceNotFound(object sender, EventArgs e)
+        {
+            updateButton(false);
+        }
+
+        void OnDeviceFound(object sender, EventArgs e)
+        {
+            tg_Connector.Connect(tg_Connector.mindSetPorts[0].PortName);
         }
 
         void OnDeviceConnected(object sender, EventArgs e)
@@ -219,6 +485,39 @@ namespace NeuroSky.NeuroView
             Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
 
             de.Device.DataReceived += new EventHandler(OnDataReceived);
+            updateButton(true);
+
+        }
+
+        delegate void updateButtonDelegate(bool connected);
+
+        private void updateButton(bool connected)
+        {
+            if (this.InvokeRequired)
+            {
+                updateButtonDelegate del = new updateButtonDelegate(updateButton);
+                this.Invoke(del, new object[] { connected });
+            }
+            else
+            {
+                if (connected)
+                {
+                    this.button1.Enabled = false;
+                    this.button1.Visible = false;
+
+                    this.disconnectButton.Enabled = true;
+                    this.disconnectButton.Visible = true;
+                }
+                else
+                {
+                    this.disconnectButton.Enabled = false;
+                    this.disconnectButton.Visible = false;
+
+                    this.button1.Enabled = true;
+                    this.button1.Visible = true;
+                }
+
+            }
 
         }
 
@@ -253,7 +552,7 @@ namespace NeuroSky.NeuroView
                 medGraphPanel.LineGraph.Add(new DataPair((timeStampIndex / (double)rawGraphPanel.LineGraph.samplingRate), tsd.Value));
             }
 #endif
-            if (i > 40)
+            if (i > 20)
             {
                 i = 0;
                 rawGraphPanel.LineGraph.Invalidate();

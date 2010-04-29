@@ -72,10 +72,16 @@ namespace NeuroSky.NeuroView
 
         protected override void OnSizeChanged(EventArgs e)
         {
-            System.Drawing.Size tempCurrentSize = this.Size;
+            //Adjust the Height
+            this.Label.Height = this.Size.Height;
+            this.LineGraph.Height = this.Size.Height;
 
+            //Adjust the Width
+            this.Label.Width = 101;
+            this.LineGraph.Width = this.Size.Width - 100;
+
+            base.OnSizeChanged(e);
             
-
         }
         
     }

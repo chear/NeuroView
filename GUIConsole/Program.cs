@@ -20,13 +20,13 @@ namespace testprogram {
       Connector tg_Connector = new Connector();
       tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
 
-      //tg_Connector.Find();
-      //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
+      tg_Connector.Find();
+      while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
 
       Thread.Sleep(500);
 
       //tg_Connector.Connect("COM10");
-      tg_Connector.Connect("COM4");
+     tg_Connector.Connect("COM1");
 
       Thread.Sleep(10000);
 

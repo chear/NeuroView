@@ -41,12 +41,18 @@ namespace NeuroSky.NeuroView {
         public double xAxisMax, xAxisMin; //In seconds 
         public double yAxisMax, yAxisMin;
 
-        public bool recordDataFlag = false;
+        public bool RecordDataFlag = false;
+        public bool SaveDataFlag = false;
+        public string DataFolderString = @"c:\Data";
+        public string FolderNameString = "Test";
+        public string FileNameString = "FileName";
+        public string FileHeaderString = "Test, Test";
+
         public bool hScrollBarInUse = false;
 
         private Size defaultSize;
         private int scrollBarTop;
-        private int hScrollBarMaximum;
+        //private int hScrollBarMaximum;
 
         private int numberOfPoints;
         private int graphStartIndex;
@@ -54,6 +60,7 @@ namespace NeuroSky.NeuroView {
 
         public void Add(DataPair p)
         {
+            
             dataPoints.Add(p);
         }
 
@@ -67,10 +74,11 @@ namespace NeuroSky.NeuroView {
             hScrollBar.Minimum = 0;
             hScrollBar.Value = hScrollBar.Maximum - 1;
             hScrollBarInUse = false;
-        }
+      }
 
         protected override void OnPaint(PaintEventArgs pe)
         {
+
             Graphics drawingSurface = pe.Graphics;
             Pen myPen = new Pen(Color.Blue, 1);
             Rectangle rect = this.ClientRectangle;
@@ -81,11 +89,18 @@ namespace NeuroSky.NeuroView {
             numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate)) + 1;
 
             int d = 0;
-
+            
+            /*Makes sures that the graph has at least two points to graph a line*/
             if ((dataPoints != null) && (dataPoints.Count > 1))
             {
-                if (!recordDataFlag)
+                /*If recording is not enable trim the excess values*/
+                if (!this.RecordDataFlag)
                 {
+                    if (this.SaveDataFlag)
+                    {
+                        this.SaveData();
+                    }
+
                     hScrollBar.Visible = false;
                     while (dataPoints.Count > numberOfPoints)
                     {
@@ -94,34 +109,38 @@ namespace NeuroSky.NeuroView {
                     }
                     dataPoints.TrimExcess();
 
-                }else 
+                } 
+                
+                /*If there is more points enable the scrollbar*/
+                if (dataPoints.Count > numberOfPoints )
                 {
-                    if (dataPoints.Count > numberOfPoints )
-                    {
-                        hScrollBar.Visible = true;
-                        frameHeight = frameHeight - hScrollBar.Height;
-                        hScrollBar.Maximum = dataPoints.Count - numberOfPoints + 9;
-                        hScrollBarMaximum = hScrollBar.Maximum - numberOfPoints + 1;
+                    hScrollBar.Visible = true;
+                    frameHeight = frameHeight - hScrollBar.Height;
+                    hScrollBar.Maximum = dataPoints.Count - numberOfPoints + 9;
 
-                        graphStartIndex = dataPoints.Count - numberOfPoints;
-
-                        if (!hScrollBarInUse)
-                        {
-                            if (hScrollBar.Maximum > (numberOfPoints - 1))
-                            {
-                                hScrollBar.Value = hScrollBarMaximum;
-                            }
-                        }else{
-                            graphStartIndex -= (hScrollBarMaximum - hScrollBar.Value);
-                        }
-                    }
-                    else
+                    if (!hScrollBarInUse)
                     {
-                        graphStartIndex = 0;
+                        hScrollBar.Value = dataPoints.Count - numberOfPoints;
                     }
+
+                    graphStartIndex = hScrollBar.Value;
+               
+#if false
+
+                    Console.WriteLine("hScrollBar.Maximum: " + hScrollBar.Maximum +
+                                      " hScrollBarMaximum: " + hScrollBarMaximum +
+                                      " dataPoints.Count: " + dataPoints.Count +
+                                      " numberOfPoints: " + numberOfPoints +
+                                      " hScrollBar.Value: " + hScrollBar.Value);
+#endif
+                }
+                else
+                {
+                    graphStartIndex = 0;
+                }
 
                     
-                }
+                
 
                 int numberOfPointsToGraph = 0;
 
@@ -138,11 +157,22 @@ namespace NeuroSky.NeuroView {
                 for (int i = 0; i < numberOfPointsToGraph; i++)
                 {
                     d = i + graphStartIndex;
-                    graphPoints[i] = Point2Pixel( dataPoints[d].timeStamp, dataPoints[d].data );
+
+                    try
+                    {
+                        graphPoints[i] = Point2Pixel(dataPoints[d].timeStamp, dataPoints[d].data);
+
+                    }
+                    catch (Exception e)
+                    {
+                        //Console.WriteLine("LineGraph: " + e.Message);
+                        //Console.WriteLine("d: " + d);
 #if false
-                    Console.WriteLine("data: " + dataPoints[d].timeStamp + ", " + dataPoints[d].data +
+                        Console.WriteLine("data: " + dataPoints[d].timeStamp + ", " + dataPoints[d].data +
                                       " graph: " + graphPoints[i].X + ", " + graphPoints[i].Y);
 #endif
+                    }
+
                 }
 
                 drawingSurface.DrawLines(myPen, graphPoints);
@@ -152,22 +182,54 @@ namespace NeuroSky.NeuroView {
                             + " FinishPoint: " + (d)
                             + " TotalDataPoints: " + dataPoints.Count
                             + " hScrollBarValue: " + hScrollBar.Value
-                            + " hScrollBarMax: " + hScrollBar.Maximum);
+                            + " hScrollBar.Maximum: " + hScrollBar.Maximum);
            
 #endif
             myPen.Dispose();
 
         }
 
+        private void SaveData()
+        {
+
+            string newPath = System.IO.Path.Combine(DataFolderString, FolderNameString);
+
+            System.IO.Directory.CreateDirectory(newPath);
+
+            newPath = System.IO.Path.Combine(newPath, FileNameString);
+
+            DataPair[] dataPointsCopy = dataPoints.ToArray();
+
+            if (!System.IO.File.Exists(newPath))
+            {
+                using( System.IO.StreamWriter fs = new System.IO.StreamWriter(newPath, false))
+                {
+                    /*Write the header to the csv file*/
+                    fs.WriteLine(FileHeaderString);
+
+                    /*Write the data to the csv file*/
+                    foreach (DataPair d in dataPointsCopy)
+                    {
+                        fs.WriteLine(d.timeStamp + ", " + d.data);
+                    }
+
+                }
+            }
+
+            SaveDataFlag = false;
+        }
+
         public LineGraph()
         {
             defaultSize = new Size(frameWidth, frameHeight);
             
-
             InitializeComponent();
 
+            this.DoubleBuffered = true;
+
             dataPoints = new List<DataPair>(10);
-            numberOfPoints = 20;
+            numberOfPoints = 512;
+
         }
 
         private Point Point2Pixel( double xValue, double yValue )
@@ -222,8 +284,23 @@ namespace NeuroSky.NeuroView {
         }
         #endregion
 
+        public int scrollCounter = 0;
+
         private void hScrollBar_ValueChanged(object sender, System.EventArgs e)
         {
+            //Console.WriteLine("HSCROLLBAR VALUE CHANGED. " + scrollCounter++ );
+
+            if (hScrollBar.Value >= Math.Ceiling((dataPoints.Count - numberOfPoints)*0.9))
+            {
+                hScrollBarInUse = false;
+            }
+            else
+            {
+                hScrollBarInUse = true;
+            }
+
+            this.Invalidate();
+#if false
 
             hScrollBarInUse = true;
 
@@ -235,9 +312,20 @@ namespace NeuroSky.NeuroView {
             {
                 this.Invalidate();
             }
+#endif
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+
+            /*Update Location and dimension*/
+            scrollBarTop = this.Height - this.hScrollBar.Height;
+            this.hScrollBar.Location = new System.Drawing.Point(0, scrollBarTop);
+            this.hScrollBar.Width = this.Width;
+
         }
 
 
-    }
+    }/*End of LinGraph Class*/
 
 }
