@@ -25,6 +25,8 @@ namespace NeuroSky.NeuroView
         public GraphPanel rawGraphPanel;
         private TextBox portText;
         private Label fileLabel;
+        private Label statusLabel;
+        private Label poorSignalLabel;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
@@ -92,6 +94,7 @@ namespace NeuroSky.NeuroView
             stopButton.Enabled = false;
 
             fileLabel.TextAlign = ContentAlignment.MiddleCenter;
+            fileLabel.Visible = false;
 
         }
 
@@ -124,6 +127,8 @@ namespace NeuroSky.NeuroView
             this.stopButton = new System.Windows.Forms.Button();
             this.openButton = new System.Windows.Forms.Button();
             this.portText = new TextBox();
+            this.statusLabel = new Label();
+            this.poorSignalLabel = new Label();
             this.fileLabel = new Label();
             this.attGraphPanel = new NeuroSky.NeuroView.GraphPanel();
             this.medGraphPanel = new NeuroSky.NeuroView.GraphPanel();
@@ -194,9 +199,23 @@ namespace NeuroSky.NeuroView
             // fileLabel
             // 
             this.fileLabel.Location = new System.Drawing.Point(0, 15);
-            this.fileLabel.Name = "portText";
+            this.fileLabel.Name = "fileLabel";
             this.fileLabel.Size = new System.Drawing.Size(800, 24);
             this.fileLabel.Text = "None";
+            // 
+            // statusLabel
+            // 
+            this.statusLabel.Location = new System.Drawing.Point(110, 515);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(400, 24);
+            this.statusLabel.Text = "Type COM port to connect (Ex. COM1) and Press Connect";
+            // 
+            // poorSignalLabel
+            // 
+            this.poorSignalLabel.Location = new System.Drawing.Point(740, 23);
+            this.poorSignalLabel.Name = "poorSignalLabel";
+            this.poorSignalLabel.Size = new System.Drawing.Size(50, 24);
+            this.poorSignalLabel.Text = "PQ:";
             // 
             // attGraphPanel
             // 
@@ -230,6 +249,8 @@ namespace NeuroSky.NeuroView
             this.Controls.Add(this.disconnectButton);
             this.Controls.Add(this.portText);
             this.Controls.Add(this.fileLabel);
+            this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.poorSignalLabel);
             this.Controls.Add(this.attGraphPanel);
             this.Controls.Add(this.medGraphPanel);
             this.Controls.Add(this.rawGraphPanel);
@@ -295,7 +316,7 @@ namespace NeuroSky.NeuroView
         private void disconnect_Click(object sender, System.EventArgs e)
         {
             tg_Connector.Disconnect();
-            updateButton(false);
+            updateConnectButton(false);
         }
 
         private void open_Click(object sender, System.EventArgs e)
@@ -470,32 +491,36 @@ namespace NeuroSky.NeuroView
 
         void OnDeviceNotFound(object sender, EventArgs e)
         {
-            updateButton(false);
+            updateConnectButton(false);
+            updateStatusLabel("Unable to connect.");
         }
 
         void OnDeviceFound(object sender, EventArgs e)
         {
-            tg_Connector.Connect(tg_Connector.mindSetPorts[0].PortName);
+            string tempPortName = tg_Connector.mindSetPorts[0].PortName;
+            updateStatusLabel("Device found and Connecting to " + tempPortName + ".");
+            tg_Connector.Connect(tempPortName);
+            
         }
 
         void OnDeviceConnected(object sender, EventArgs e)
         {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
-            Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
+            updateStatusLabel("Connected to a headset on " + de.Device.PortName + ".");
 
             de.Device.DataReceived += new EventHandler(OnDataReceived);
-            updateButton(true);
+            updateConnectButton(true);
 
         }
 
-        delegate void updateButtonDelegate(bool connected);
+        delegate void updateConnectButtonDelegate(bool connected);
 
-        private void updateButton(bool connected)
+        private void updateConnectButton(bool connected)
         {
             if (this.InvokeRequired)
             {
-                updateButtonDelegate del = new updateButtonDelegate(updateButton);
+                updateConnectButtonDelegate del = new updateConnectButtonDelegate(updateConnectButton);
                 this.Invoke(del, new object[] { connected });
             }
             else
@@ -520,6 +545,37 @@ namespace NeuroSky.NeuroView
             }
 
         }
+
+        delegate void updatePQLabelDelegate(string tempText);
+
+        private void updatePQLabel(string tempText)
+        {
+            if (this.InvokeRequired)
+            {
+                updatePQLabelDelegate del = new updatePQLabelDelegate(updatePQLabel);
+                this.Invoke(del, new object[] { tempText });
+            }
+            else
+            {
+                this.poorSignalLabel.Text = tempText;
+            }
+        }
+
+        delegate void updateStatusLabelDelegate(string tempText);
+
+        private void updateStatusLabel(string tempText)
+        {
+            if (this.InvokeRequired)
+            {
+                updateStatusLabelDelegate del = new updateStatusLabelDelegate(updateStatusLabel);
+                this.Invoke(del, new object[] { tempText });
+            }
+            else
+            {
+                this.statusLabel.Text = tempText;
+            }
+        }
+
 
         void OnDataReceived(object sender, EventArgs e)
         {
@@ -550,6 +606,11 @@ namespace NeuroSky.NeuroView
             foreach (TimeStampData tsd in parsedData.Meditation)
             {
                 medGraphPanel.LineGraph.Add(new DataPair((timeStampIndex / (double)rawGraphPanel.LineGraph.samplingRate), tsd.Value));
+            }
+
+            foreach (TimeStampData tsd in parsedData.PoorSignalQuality)
+            {
+                updatePQLabel("PQ: " + tsd.Value);
             }
 #endif
             if (i > 20)
