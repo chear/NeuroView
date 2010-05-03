@@ -66,6 +66,7 @@ namespace NeuroSky.ThinkGear
         public List<Connector.Connection> portsToConnect;
 
         private List<Connection> activePortsList;
+        private List<Connection> removePortsList;
         private List<Device> deviceList;
 
         private int defaultBaudRate;
@@ -73,33 +74,32 @@ namespace NeuroSky.ThinkGear
         private Thread findThread;
         private Thread readThread;
         private Thread addThread;
+        private Thread removeThread;
 
         private bool readThreadEnable = true;
+        private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
         public event EventHandler DeviceConnected = delegate { };
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceFound = delegate { };
         public event EventHandler DeviceNotFound = delegate { };
-        
-        //public FileInfo debugInfo = new FileInfo("Debug1.txt");
-        //public StreamWriter debugFile;
-
-        //public DateTime startTime = DateTime.UtcNow;
+        public event EventHandler DeviceDisconnected = delegate { };
 
         public Connector()
         {
-            //debugFile = debugInfo.CreateText(); 
 
             availablePorts = new List<string>();
             mindSetPorts = new List<Connection>();
             portsToConnect = new List<Connection>();
 
             activePortsList = new List<Connection>();
+            removePortsList = new List<Connection>();
             deviceList = new List<Device>();
 
             findThread = new Thread(FindThread);
             readThread = new Thread(ReadThread);
             addThread = new Thread(AddThread);
+            removeThread = new Thread(RemoveThread);
 
             defaultBaudRate = 57600;
 
@@ -113,6 +113,7 @@ namespace NeuroSky.ThinkGear
             Console.Write("\n");
 
             readThread.Start();
+            removeThread.Start();
 
         }
 
@@ -187,6 +188,7 @@ namespace NeuroSky.ThinkGear
             {
                 availablePorts.Add(r.Match(portName).ToString());
             }
+
         }
 
         private void FindThread()
@@ -277,9 +279,21 @@ namespace NeuroSky.ThinkGear
                         //debugFile.WriteLine("Length: " + returnPacket.DataRowArray.Length + " Right after the ReadPacket. " + (DateTime.UtcNow - startTime).TotalSeconds);
 
                         /*Pass the data to the devices.*/
-                        DeliverPacket(returnPacket);
-
+                        lock (deviceList)
+                        {
+                            DeliverPacket(returnPacket);
+                        }
+             
+                        //Check the TotalTimeout and add to the remove list if is not receiving
+                        if (port.TotalTimeoutTime > 1)
+                        {
+                            lock (removePortsList)
+                            {
+                                removePortsList.Add(port);
+                            }
+                        }
                     }
+
                 }
 
                 //Sleep when DataRow null.
@@ -294,6 +308,54 @@ namespace NeuroSky.ThinkGear
                 
             }
 
+        }
+
+        private void RemoveThread()
+        {
+
+            while (true)
+            {
+                //Console.WriteLine("Searching for bad ports..............");
+                lock (activePortsList)
+                {
+                    lock (removePortsList)
+                    {
+                        foreach (Connection port in removePortsList)
+                        {
+                            port.Close();
+                            activePortsList.Remove(port);
+                            Console.WriteLine(port.PortName + " Disconnected and removed.");
+
+                            Device tempDevice = new Device();
+
+                            lock (deviceList)
+                            {
+                                /*TODO: Currently it only finds one headset that is connected to that port.
+                                        Need to change to get multiple headset.*/
+
+                                /*Finds the index for the device that was connected to the port*/
+                                int index = deviceList.FindIndex(f => (f.PortName == port.PortName));
+
+                                /*Removes the Device from the list*/
+                                if (index >= 0)
+                                {
+                                    tempDevice = deviceList[index];
+                                    deviceList.RemoveAt(index);
+                                    Console.WriteLine("Removed device at index: " + index);
+                                }
+                                
+                            }
+
+                            DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
+
+                        }
+                        removePortsList.Clear();
+                    }
+
+                }
+
+                Thread.Sleep(500);
+            }
         }
 
         private void AddThread()
@@ -408,7 +470,8 @@ namespace NeuroSky.ThinkGear
             private const byte EXCODE_BYTE = 0x55;
             private const byte MULTI_BYTE = 0x80;
 
-            //public Type DeviceType = null;
+            public DateTime StartTimeoutTime = new DateTime(1970, 1, 1, 0, 0, 0);
+            public double TotalTimeoutTime = 0; //In milliseconds
 
             public enum STATE
             {
@@ -424,6 +487,7 @@ namespace NeuroSky.ThinkGear
 
             public Connection()
             {
+                PortName = " ";
                 parserBuffer = new Byte[0];
                 this.BaudRate = 57600;
                 this.ReadTimeout = SERIALPORT_READ_TIMEOUT;
@@ -472,8 +536,24 @@ namespace NeuroSky.ThinkGear
                     }
                     catch (TimeoutException te)
                     {
-                        Console.WriteLine("serialPort.Read TimeoutException: " + te.Message);
+                        //Console.WriteLine("serialPort.Read TimeoutException: " + te.Message);
+                        if (StartTimeoutTime == UNIXSTARTTIME)
+                        {
+                            StartTimeoutTime = DateTime.UtcNow;
+                        }
+                        else
+                        {
+                            TotalTimeoutTime = (DateTime.UtcNow-StartTimeoutTime).TotalMilliseconds;
+                        }
+
                         continue;
+                    }
+                    catch(Exception e)
+                    {
+                        //Console.WriteLine("ReadPackets:" + e.Message);
+                        //Console.WriteLine("temByte.Length: " + tempByte.Length);
+                        //Console.WriteLine("bufferIterator: " + bufferIterator);
+                        //Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
                     }
 
                     switch (state)
@@ -532,7 +612,7 @@ namespace NeuroSky.ThinkGear
                                 //Console.WriteLine("Parsing Payload");
                                 tempDataRowArray = ParsePayload(payload.ToArray());
                                 receivedBytes.Clear();
-
+                                StartTimeoutTime = UNIXSTARTTIME;
                             }
                             break;
                     }

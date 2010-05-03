@@ -32,6 +32,7 @@ namespace NeuroSky.NeuroView {
 
         private System.ComponentModel.Container components = null;
         private System.Windows.Forms.HScrollBar hScrollBar;
+        private Timer maxFrameRateTimer;
 
         public List<DataPair> dataPoints;
         public int frameHeight = 240;
@@ -105,9 +106,9 @@ namespace NeuroSky.NeuroView {
                     while (dataPoints.Count > numberOfPoints)
                     {
                         dataPoints.RemoveAt(0);
-                        dataPoints.TrimExcess();
+                        //dataPoints.TrimExcess();
                     }
-                    dataPoints.TrimExcess();
+                    //dataPoints.TrimExcess();
 
                 } 
                 
@@ -222,14 +223,26 @@ namespace NeuroSky.NeuroView {
         public LineGraph()
         {
             defaultSize = new Size(frameWidth, frameHeight);
-            
+
             InitializeComponent();
 
             this.DoubleBuffered = true;
 
-            dataPoints = new List<DataPair>(10);
+            dataPoints = new List<DataPair>();
             numberOfPoints = 512;
 
+            /*Setting up the timer for the max frame rate*/
+            maxFrameRateTimer = new Timer();
+            maxFrameRateTimer.Interval = 25; //In milliseconds
+            maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
+            maxFrameRateTimer.Start();
+
+
+        }
+
+        public void MaxFrameRateTimer_Tick(object sender, EventArgs e)
+        {
+            this.Invalidate();
         }
 
         private Point Point2Pixel( double xValue, double yValue )
@@ -290,7 +303,7 @@ namespace NeuroSky.NeuroView {
         {
             //Console.WriteLine("HSCROLLBAR VALUE CHANGED. " + scrollCounter++ );
 
-            if (hScrollBar.Value >= Math.Ceiling((dataPoints.Count - numberOfPoints)*0.9))
+            if (hScrollBar.Value >= Math.Ceiling((dataPoints.Count - numberOfPoints)*0.95))
             {
                 hScrollBarInUse = false;
             }

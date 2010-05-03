@@ -47,6 +47,7 @@ namespace NeuroSky.NeuroView
             tg_Connector.DeviceFound += new EventHandler(OnDeviceFound);
             tg_Connector.DeviceNotFound += new EventHandler(OnDeviceNotFound);
             tg_Connector.DeviceConnectFail += new EventHandler(OnDeviceNotFound);
+            tg_Connector.DeviceDisconnected += new EventHandler(OnDeviceDisconnected);
 
             InitializeComponent();
 
@@ -186,7 +187,7 @@ namespace NeuroSky.NeuroView
             this.openButton.Name = "openButton";
             this.openButton.Size = new System.Drawing.Size(80, 24);
             this.openButton.TabIndex = 1;
-            this.openButton.Text = "Open";
+            this.openButton.Text = "Open ...";
             this.openButton.Click += new System.EventHandler(this.open_Click);
             // 
             // portText
@@ -270,13 +271,12 @@ namespace NeuroSky.NeuroView
             Application.Run(new Form1());
         }
 
-        public int i = 0;
-
         /*Connect Button Clicked*/
         private void button1_Click(object sender, System.EventArgs e)
         {
 #if true
             this.button1.Enabled = false;
+            this.portText.Enabled = false;
 
             rawGraphPanel.LineGraph.Clear();
             medGraphPanel.LineGraph.Clear();
@@ -341,6 +341,8 @@ namespace NeuroSky.NeuroView
                     newForm.button1.Visible = false;
                     newForm.portText.Visible = false;
                     newForm.button3.Visible = false;
+                    newForm.openButton.Visible = false;
+                    newForm.statusLabel.Visible = false;
                     newForm.Show();
                 }
                 else
@@ -426,7 +428,6 @@ namespace NeuroSky.NeuroView
             medGraphPanel.LineGraph.Clear();
             attGraphPanel.LineGraph.Clear();
 
-            i = 0;
             timeStampIndex = 0;
 
             rawGraphPanel.LineGraph.Invalidate();
@@ -444,7 +445,6 @@ namespace NeuroSky.NeuroView
             rawGraphPanel.LineGraph.Clear();
             medGraphPanel.LineGraph.Clear();
             attGraphPanel.LineGraph.Clear();
-            i = 0;
             timeStampIndex = 0;
 
             /*Turn on recording*/
@@ -514,6 +514,16 @@ namespace NeuroSky.NeuroView
 
         }
 
+        void OnDeviceDisconnected(object sender, EventArgs e)
+        {
+            Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
+
+            updateStatusLabel("Disconnected from a headset on " + de.Device.PortName + ".");
+
+            updateConnectButton(false);
+
+        }
+
         delegate void updateConnectButtonDelegate(bool connected);
 
         private void updateConnectButton(bool connected)
@@ -530,6 +540,8 @@ namespace NeuroSky.NeuroView
                     this.button1.Enabled = false;
                     this.button1.Visible = false;
 
+                    this.portText.Enabled = false;
+
                     this.disconnectButton.Enabled = true;
                     this.disconnectButton.Visible = true;
                 }
@@ -537,6 +549,8 @@ namespace NeuroSky.NeuroView
                 {
                     this.disconnectButton.Enabled = false;
                     this.disconnectButton.Visible = false;
+
+                    this.portText.Enabled = true;
 
                     this.button1.Enabled = true;
                     this.button1.Visible = true;
@@ -593,7 +607,6 @@ namespace NeuroSky.NeuroView
             {
                 rawGraphPanel.LineGraph.Add(new DataPair((timeStampIndex / (double)rawGraphPanel.LineGraph.samplingRate), tsd.Value));
                 timeStampIndex++;
-                i++;
             }
 #endif
 
@@ -613,13 +626,6 @@ namespace NeuroSky.NeuroView
                 updatePQLabel("PQ: " + tsd.Value);
             }
 #endif
-            if (i > 20)
-            {
-                i = 0;
-                rawGraphPanel.LineGraph.Invalidate();
-                attGraphPanel.LineGraph.Invalidate();
-                medGraphPanel.LineGraph.Invalidate();
-            }
 
 #if false
             foreach(PowerEEGData ped in parsedData.PowerEEGData)
