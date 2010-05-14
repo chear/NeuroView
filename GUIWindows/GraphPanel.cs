@@ -7,20 +7,48 @@ using System.Drawing;
 
 using System.Windows.Forms;
 
-namespace NeuroSky.NeuroView
+namespace NeuroSky.MindView
 {
     public class GraphPanel: Panel
     {
         public LineGraph LineGraph;
         public Label Label;
+        public Label ValueLabel;
 
         private System.ComponentModel.Container components = null;
+        private Timer ValueUpdateTimer;
+
+        public event EventHandler DataSavingFinished = delegate { };
 
         public GraphPanel()
         {
             InitializeComponent();
+
+            LineGraph.DataSavingFinished += new EventHandler(LineGraph_DataSavingFinished);
+
+            ValueUpdateTimer = new Timer();
+            ValueUpdateTimer.Interval = 200; //In milliseconds.
+            ValueUpdateTimer.Tick += new EventHandler(ValueUpdateTimer_Tick);
         }
 
+        public void EnableValueDisplay()
+        {
+            ValueUpdateTimer.Start();
+        }
+
+        void LineGraph_DataSavingFinished(object sender, EventArgs e)
+        {
+            DataSavingFinished(this, EventArgs.Empty);
+        }
+
+        public void ValueUpdateTimer_Tick(object sender, EventArgs e)
+        {
+            int lastIndex = this.LineGraph.data0.Count - 1;
+            if (lastIndex >= 0)
+            {
+                this.ValueLabel.Text = this.LineGraph.data0[lastIndex].data.ToString();
+            }
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -36,8 +64,9 @@ namespace NeuroSky.NeuroView
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
-            this.LineGraph = new NeuroSky.NeuroView.LineGraph();
+            this.LineGraph = new NeuroSky.MindView.LineGraph();
             this.Label = new System.Windows.Forms.Label();
+            this.ValueLabel = new System.Windows.Forms.Label(); 
             this.SuspendLayout();
             // 
             // lineGraph
@@ -48,7 +77,7 @@ namespace NeuroSky.NeuroView
             this.LineGraph.Size = new System.Drawing.Size(700, 200);
             this.LineGraph.TabIndex = 0;
             // 
-            // label
+            // Label
             // 
             this.Label.Location = new System.Drawing.Point(0, 0);
             this.Label.Name = "label";
@@ -59,10 +88,18 @@ namespace NeuroSky.NeuroView
             this.Label.Text = "Label";
             this.Label.BorderStyle = BorderStyle.FixedSingle;
             // 
+            // ValueLabel
+            // 
+            this.ValueLabel.Location = new System.Drawing.Point(10,100);
+            this.ValueLabel.Text = " ";
+            this.ValueLabel.Size = new System.Drawing.Size(80, 30);
+            this.ValueLabel.TextAlign = ContentAlignment.MiddleCenter;
+            // 
             // GraphPanel
             // 
             this.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.Size = new System.Drawing.Size(800, 200);
+            this.Controls.Add(this.ValueLabel);
             this.Controls.Add(this.Label);
             this.Controls.Add(this.LineGraph);
             this.ResumeLayout(false);
@@ -79,6 +116,10 @@ namespace NeuroSky.NeuroView
             //Adjust the Width
             this.Label.Width = 101;
             this.LineGraph.Width = this.Size.Width - 100;
+
+            //Adjust location of ValueLabel
+            this.ValueLabel.Left = 10;
+            this.ValueLabel.Top = this.Size.Height*2/3;
 
             base.OnSizeChanged(e);
             
