@@ -118,14 +118,6 @@ namespace NeuroSky.ThinkGear
 
         }
 
-        public void Display()
-        {
-            foreach (Connection c in mindSetPorts)
-            {
-                Console.WriteLine("Inside Connector: Found " + c.PortName);
-            }
-        }
-
         public void Connect(string portName)
         {
             Connection tempConnection = new Connection(portName);

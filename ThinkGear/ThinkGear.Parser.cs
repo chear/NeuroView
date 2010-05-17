@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NeuroSky.ThinkGear.Parser
 {
-    public struct ParsedData
+    public struct Parsed
     {
         public TimeStampData[] PoorSignalQuality;
         public TimeStampData[] Attention;
@@ -75,9 +75,9 @@ namespace NeuroSky.ThinkGear.Parser
     public class MindSetParser
     {
        
-        public ParsedData Read(DataRow[] dataRowArray)
+        public Parsed Read(DataRow[] dataRowArray)
         {
-            ParsedData tempParsed = new ParsedData();
+            Parsed tempParsed = new Parsed();
 
             List<TimeStampData> tempPoorSignal = new List<TimeStampData>();
             List<TimeStampData> tempAttention = new List<TimeStampData>();
