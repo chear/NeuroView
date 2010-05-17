@@ -25,8 +25,10 @@ namespace testprogram {
 
       Thread.Sleep(500);
 
-      //tg_Connector.Connect("COM10");
-     tg_Connector.Connect("COM1");
+      foreach (NeuroSky.ThinkGear.Connector.Connection c in tg_Connector.mindSetPorts)
+      {
+          Console.WriteLine("Found" + c.PortName);
+      }
 
       Thread.Sleep(10000);
 

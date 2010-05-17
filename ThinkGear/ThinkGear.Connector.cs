@@ -76,7 +76,9 @@ namespace NeuroSky.ThinkGear
         private Thread addThread;
         private Thread removeThread;
 
-        private bool readThreadEnable = true;
+        private bool ReadThreadEnable = true;
+        private bool RemoveThreadEnable = true;
+
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
         public event EventHandler DeviceConnected = delegate { };
@@ -84,6 +86,7 @@ namespace NeuroSky.ThinkGear
         public event EventHandler DeviceFound = delegate { };
         public event EventHandler DeviceNotFound = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
+        public event EventHandler DeviceValidating = delegate { };
 
         public Connector()
         {
@@ -101,20 +104,26 @@ namespace NeuroSky.ThinkGear
             addThread = new Thread(AddThread);
             removeThread = new Thread(RemoveThread);
 
+            findThread.Name = "FindThread";
+            readThread.Name = "ReadThread";
+            readThread.Priority = ThreadPriority.Highest;
+            addThread.Name = "AddThread";
+            removeThread.Name = "RemoveThread";
+            removeThread.Priority = ThreadPriority.Lowest;
+
             defaultBaudRate = 57600;
-
-            FindAvailablePorts();
-
-            Console.Write("Available ports on this computer is: ");
-            foreach (string port in availablePorts)
-            {
-                Console.Write(port + " ");
-            }
-            Console.Write("\n");
 
             readThread.Start();
             removeThread.Start();
 
+        }
+
+        public void Display()
+        {
+            foreach (Connection c in mindSetPorts)
+            {
+                Console.WriteLine("Inside Connector: Found " + c.PortName);
+            }
         }
 
         public void Connect(string portName)
@@ -132,6 +141,14 @@ namespace NeuroSky.ThinkGear
                 addThread.Start();
             }
             if (!readThread.IsAlive) readThread.Start();
+        }
+
+        public void Close()
+        {
+            this.Disconnect();
+
+            ReadThreadEnable = false;
+            RemoveThreadEnable = false;
         }
 
         public void Disconnect()
@@ -183,25 +200,53 @@ namespace NeuroSky.ThinkGear
 
             Regex r = new Regex("COM[1-9][0-9]*");
 
-            availablePorts.Clear();
+            Console.Write("Available ports on this computer is before rmatch: ");
+            foreach(string portName in temp)
+            {
+                Console.Write(portName + " ");
+            }
+            Console.Write("\n");
+#if false
+            
             foreach (string portName in temp)
             {
                 availablePorts.Add(r.Match(portName).ToString());
             }
+#endif
+
+            availablePorts.Clear();
+            for (int i = 1; i < 100; i++)
+            {
+                availablePorts.Add("COM"+i);
+            }
+
+            Console.Write("Available ports on this computer is: ");
+            foreach (string port in availablePorts)
+            {
+                Console.Write(port + " ");
+            }
+            Console.Write("\n");
 
         }
 
         private void FindThread()
         {
-            Connection tempPort = new Connection();
+            FindAvailablePorts();
+
+            Connection tempPort;
             lock (mindSetPorts)
             {
                 mindSetPorts.Clear();
                 foreach (string portName in availablePorts)
                 {
-                    Console.WriteLine("Trying " + portName);
+                    tempPort = new Connection();
+
                     tempPort.PortName = portName;
                     tempPort.BaudRate = defaultBaudRate;
+
+                    Console.WriteLine("Trying " + portName);
+                    DeviceValidating(this, new ConnectionEventArgs(tempPort));
+
                     try
                     {
                         tempPort.Open();
@@ -235,6 +280,8 @@ namespace NeuroSky.ThinkGear
                             Console.Write("\n");
                         }
 
+                        tempPort.Close();
+
                         if (returnPacket.DataRowArray.Length > 0)
                         {
 
@@ -242,8 +289,6 @@ namespace NeuroSky.ThinkGear
                             mindSetPorts.Add(tempPort);
                             //TODO: Create Scan Connect
                         }
-
-                        tempPort.Close();
                     }
                     else
                     {
@@ -265,7 +310,7 @@ namespace NeuroSky.ThinkGear
             bool allReturnNull = true;
 
             //Exits if readThreadEnable is false. 
-            while (readThreadEnable)
+            while (ReadThreadEnable)
             {
                 lock (activePortsList)
                 {
@@ -313,7 +358,7 @@ namespace NeuroSky.ThinkGear
         private void RemoveThread()
         {
 
-            while (true)
+            while (RemoveThreadEnable)
             {
                 //Console.WriteLine("Searching for bad ports..............");
                 lock (activePortsList)
@@ -322,7 +367,17 @@ namespace NeuroSky.ThinkGear
                     {
                         foreach (Connection port in removePortsList)
                         {
-                            port.Close();
+                            if (port.IsOpen)
+                            {
+                                try
+                                {
+                                    port.Close();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine("RemoveThread: " + e.Message);
+                                }
+                            }
                             activePortsList.Remove(port);
                             Console.WriteLine(port.PortName + " Disconnected and removed.");
 
@@ -458,6 +513,16 @@ namespace NeuroSky.ThinkGear
             }
         }
 
+        public class ConnectionEventArgs : EventArgs
+        {
+            public Connection Connection;
+
+            public ConnectionEventArgs(Connection connection)
+            {
+                this.Connection = connection;
+            }
+        }
+
 
         public class Connection : SerialPort
         {
@@ -524,6 +589,15 @@ namespace NeuroSky.ThinkGear
                 {
                     try
                     {
+                        if (parserBuffer.Length > bufferIterator)
+                        {
+                            tempByte[0] = parserBuffer[bufferIterator++];
+                        }
+                        else
+                        {
+                            Read(tempByte, 0, 1);
+                        }
+#if false
                         if (parserBuffer.Length == 0 && bufferIterator == parserBuffer.Length)
                         {
                             Read(tempByte, 0, 1);
@@ -532,6 +606,7 @@ namespace NeuroSky.ThinkGear
                         {
                             tempByte[0] = parserBuffer[bufferIterator++];
                         }
+#endif
                         receivedBytes.Add(tempByte[0]);
                     }
                     catch (TimeoutException te)
@@ -543,17 +618,19 @@ namespace NeuroSky.ThinkGear
                         }
                         else
                         {
-                            TotalTimeoutTime = (DateTime.UtcNow-StartTimeoutTime).TotalMilliseconds;
+                            TotalTimeoutTime = (DateTime.UtcNow - StartTimeoutTime).TotalMilliseconds;
                         }
 
                         continue;
                     }
-                    catch(Exception e)
+                    catch (IndexOutOfRangeException ie)
                     {
-                        //Console.WriteLine("ReadPackets:" + e.Message);
-                        //Console.WriteLine("temByte.Length: " + tempByte.Length);
-                        //Console.WriteLine("bufferIterator: " + bufferIterator);
-                        //Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
+                        Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
+                        Console.WriteLine("bufferIterator: " + bufferIterator);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("ReadPackets: " + e.Message);
                     }
 
                     switch (state)

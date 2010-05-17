@@ -1,6 +1,6 @@
 [Setup]
 AppName=MindView
-AppVerName=MindView v0.5
+AppVerName=MindView v0.6
 AppPublisher=NeuroSky, Inc.
 DefaultDirName={pf}\NeuroSky\MindView
 DefaultGroupName=NeuroSky
@@ -23,3 +23,5 @@ Source: "C:\Documents and Settings\Developer\My Documents\Visual Studio 2008\Pro
 [Icons]
 Name: "{group}\MindView"; Filename: "{app}\GUIWindows.exe"
 Name: "{userdesktop}\MindView"; Filename: "{app}\GUIWindows.exe"; Tasks: desktopicon
+
+
