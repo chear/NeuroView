@@ -21,7 +21,7 @@
                 
             }
 
-            TGC.Close();
+            connector.Close();
 
             base.Dispose(disposing);
         }

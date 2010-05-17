@@ -17,7 +17,7 @@ namespace NeuroSky.MindView
 {
     public partial class Launcher : Form
     {
-        private Connector TGC;
+        private Connector connector;
 
         MainForm mainForm;
 
@@ -25,13 +25,13 @@ namespace NeuroSky.MindView
         {
             mainForm = new MainForm();
 
-            TGC = new Connector();
-            TGC.DeviceConnected += new EventHandler(OnDeviceConnected);
-            TGC.DeviceFound += new EventHandler(OnDeviceFound);
-            TGC.DeviceNotFound += new EventHandler(OnDeviceNotFound);
-            TGC.DeviceConnectFail += new EventHandler(OnDeviceNotFound);
-            TGC.DeviceDisconnected += new EventHandler(OnDeviceDisconnected);
-            TGC.DeviceValidating += new EventHandler(OnDeviceValidating);
+            connector = new Connector();
+            connector.DeviceConnected += new EventHandler(OnDeviceConnected);
+            connector.DeviceFound += new EventHandler(OnDeviceFound);
+            connector.DeviceNotFound += new EventHandler(OnDeviceNotFound);
+            connector.DeviceConnectFail += new EventHandler(OnDeviceNotFound);
+            connector.DeviceDisconnected += new EventHandler(OnDeviceDisconnected);
+            connector.DeviceValidating += new EventHandler(OnDeviceValidating);
 
             mainForm.ConnectButtonClicked += new EventHandler(OnConnectButtonClicked);
             mainForm.DisconnectButtonClicked += new EventHandler(OnDisconnectButtonClicked);
@@ -63,7 +63,7 @@ namespace NeuroSky.MindView
             //Comment this line out if you want the splash screen to wait for good connection.
             UpdateVisibility(false);
 
-            TGC.Find();
+            connector.Find();
             
         }
 
@@ -77,13 +77,13 @@ namespace NeuroSky.MindView
 
         void OnDeviceFound(object sender, EventArgs e)
         {
-            Console.WriteLine("At Launcher: Found " + TGC.mindSetPorts[0].PortName);
-            TGC.Display();
-            string tempPortName = TGC.mindSetPorts[0].PortName;
+            Console.WriteLine("At Launcher: Found " + connector.mindSetPorts[0].PortName);
+            connector.Display();
+            string tempPortName = connector.mindSetPorts[0].PortName;
             UpdateStatusLabel("Device found on " + tempPortName + ". Connecting...");
             mainForm.updateStatusLabel("Device found on " + tempPortName + ". Connecting...");
 
-            TGC.Connect(tempPortName);
+            connector.Connect(tempPortName);
 
         }
 
@@ -128,7 +128,7 @@ namespace NeuroSky.MindView
             Device.DataEventArgs de = (Device.DataEventArgs)e;
 
             ThinkGear.DataRow[] tempDataRowArray = de.DataRowArray;
-            Parsed parsedData = new Parsed();
+            ParsedData parsedData = new ParsedData();
 
             MindSetParser mindSetParser = new MindSetParser();
 
@@ -180,7 +180,7 @@ namespace NeuroSky.MindView
 
             if (portName == "AUTO")
             {
-                TGC.Find();
+                connector.Find();
                 mainForm.updateStatusLabel("Searching for MindSet...");
                 return;
             }
@@ -207,7 +207,7 @@ namespace NeuroSky.MindView
 
             if (portName != "")
             {
-                TGC.Connect(portName);
+                connector.Connect(portName);
                 mainForm.updateStatusLabel("Connecting to " + portName);
                 return;
             }
@@ -221,7 +221,7 @@ namespace NeuroSky.MindView
 
         void OnDisconnectButtonClicked(object sender, EventArgs e)
         {
-            TGC.Disconnect();
+            connector.Disconnect();
             mainForm.updateConnectButton(false);
         }
 
