@@ -89,6 +89,7 @@ namespace NeuroSky.ThinkGear
 
         private bool ReadThreadEnable = true;
         private bool RemoveThreadEnable = true;
+        public bool ScanConnectEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -140,6 +141,13 @@ namespace NeuroSky.ThinkGear
 
             ReadThreadEnable = false;
             RemoveThreadEnable = false;
+
+            Thread.Sleep(50);
+
+            readThread.Abort();
+            findThread.Abort();
+            addThread.Abort();
+            removeThread.Abort();
         }
 
         public void Disconnect()
@@ -257,15 +265,22 @@ namespace NeuroSky.ThinkGear
                             Console.Write("\n");
                         }
 
-                        tempPort.Close();
-
                         if (returnPacket.DataRowArray.Length > 0)
                         {
 
                             Console.WriteLine("Adding " + tempPort.PortName + " to mindSetPorts.");
                             mindSetPorts.Add(tempPort);
-                            //TODO: Create Scan Connect
+
+                            //Connects to the First MindSet it found.
+                            if (ScanConnectEnable)
+                            {
+                                Console.WriteLine(tempPort.PortName + " validated in FindThread.");
+                                lock (activePortsList) activePortsList.Add(tempPort);
+                                return;
+                            }
                         }
+
+                        tempPort.Close();
                     }
                     else
                     {
