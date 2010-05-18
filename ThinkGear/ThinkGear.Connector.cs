@@ -119,14 +119,6 @@ namespace NeuroSky.ThinkGear
 
         }
 
-        public void Display()
-        {
-            foreach (Connection c in mindSetPorts)
-            {
-                Console.WriteLine("Inside Connector: Found " + c.PortName);
-            }
-        }
-
         public void Connect(string portName)
         {
             Connection tempConnection = new Connection(portName);
@@ -183,18 +175,6 @@ namespace NeuroSky.ThinkGear
                 findThread = new Thread(FindThread);
                 findThread.Start();
             }
-        }
-
-        public void FindThreadStart(int baudRate)
-        {
-            defaultBaudRate = baudRate;
-
-            if (!findThread.IsAlive)
-            {
-                findThread = new Thread(FindThread);
-                findThread.Start();
-            }
-
         }
 
         public bool FindThreadIsAlive()
@@ -264,8 +244,6 @@ namespace NeuroSky.ThinkGear
                     {
                         Console.WriteLine("tempPort.Open Exception: " + e.Message);
                     }
-
-
 
                     if (tempPort.IsOpen)
                     {
@@ -553,14 +531,14 @@ namespace NeuroSky.ThinkGear
             public DateTime StartTimeoutTime = new DateTime(1970, 1, 1, 0, 0, 0);
             public double TotalTimeoutTime = 0; //In milliseconds
 
-            public enum STATE
+            public enum ParserState
             {
-                NULL = 0,
-                SYNC0 = 1,
-                SYNC1 = 2,
-                PAYLOADLENGTH = 3,
-                PAYLOAD = 4,
-                CHECKSUM = 5
+                Invalid = 0,
+                Sync0 = 1,
+                Sync1 = 2,
+                PayloadLength = 3,
+                Payload = 4,
+                Checksum = 5
             };
 
             public Byte[] parserBuffer = new Byte[0];
@@ -589,7 +567,7 @@ namespace NeuroSky.ThinkGear
                 List<byte> receivedBytes = new List<byte>();
                 List<DataRow> receivedDataRow = new List<DataRow>();
 
-                int state = (int)STATE.SYNC0;
+                int state = (int)ParserState.Sync0;
                 int payloadLength = 0;
                 int payloadSum = 0;
                 int checkSum = 0;
@@ -651,54 +629,54 @@ namespace NeuroSky.ThinkGear
                     switch (state)
                     {
                         /*Waiting for the first SYNC_BYTE*/
-                        case ((int)STATE.SYNC0):
+                        case ((int)ParserState.Sync0):
                             if (tempByte[0] == SYNC_BYTE)
                             {
-                                state = (int)STATE.SYNC1;
+                                state = (int)ParserState.Sync1;
                             }
                             break;
 
                         /*Waiting for the second SYNC_BYTE*/
-                        case ((int)STATE.SYNC1):
+                        case ((int)ParserState.Sync1):
                             if (tempByte[0] == SYNC_BYTE)
                             {
-                                state = (int)STATE.PAYLOADLENGTH;
+                                state = (int)ParserState.PayloadLength;
                             }
                             else
                             {
-                                state = (int)STATE.SYNC0;
+                                state = (int)ParserState.Sync0;
                             }
                             break;
 
                         /* Waiting for payload length */
-                        case ((int)STATE.PAYLOADLENGTH):
+                        case ((int)ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if (payloadLength >= 170)
                             {
-                                state = (int)STATE.SYNC0;
+                                state = (int)ParserState.Sync0;
                             }
                             else
                             {
                                 payload.Clear();
                                 payloadSum = 0;
-                                state = (int)STATE.PAYLOAD;
+                                state = (int)ParserState.Payload;
                             }
                             break;
 
                         /* Waiting for Payload bytes */
-                        case ((int)STATE.PAYLOAD):
+                        case ((int)ParserState.Payload):
                             payload.Add(tempByte[0]);
                             payloadSum += tempByte[0];
                             if (payload.Count >= payloadLength)
                             {
-                                state = (int)STATE.CHECKSUM;
+                                state = (int)ParserState.Checksum;
                             }
                             break;
 
                         /* Waiting for checksum byte */
-                        case ((int)STATE.CHECKSUM):
+                        case ((int)ParserState.Checksum):
                             checkSum = tempByte[0];
-                            state = (int)STATE.SYNC0;
+                            state = (int)ParserState.Sync0;
                             if (checkSum == ((~payloadSum) & 0xFF))
                             {
                                 //Console.WriteLine("Parsing Payload");
