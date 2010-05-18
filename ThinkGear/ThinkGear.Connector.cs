@@ -61,9 +61,20 @@ namespace NeuroSky.ThinkGear
     // The main controller that connects the connections to a specific device.  This is the controller who initiates the read.
     public class Connector
     {
-        private List<string> availablePorts;
         public List<Connector.Connection> mindSetPorts;
-        public List<Connector.Connection> portsToConnect;
+
+        // devicelist refresh events
+        public event EventHandler DeviceFound = delegate { };
+        public event EventHandler DeviceNotFound = delegate { };
+        public event EventHandler DeviceValidating = delegate { };
+
+        // device connection events
+        public event EventHandler DeviceConnected = delegate { };
+        public event EventHandler DeviceConnectFail = delegate { };
+        public event EventHandler DeviceDisconnected = delegate { };
+
+        private List<string> availablePorts;
+        private List<Connector.Connection> portsToConnect;
 
         private List<Connection> activePortsList;
         private List<Connection> removePortsList;
@@ -81,13 +92,6 @@ namespace NeuroSky.ThinkGear
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
-        public event EventHandler DeviceConnected = delegate { };
-        public event EventHandler DeviceConnectFail = delegate { };
-        public event EventHandler DeviceFound = delegate { };
-        public event EventHandler DeviceNotFound = delegate { };
-        public event EventHandler DeviceDisconnected = delegate { };
-        public event EventHandler DeviceValidating = delegate { };
-
         public Connector()
         {
 
@@ -101,14 +105,9 @@ namespace NeuroSky.ThinkGear
 
             findThread = new Thread(FindThread);
             readThread = new Thread(ReadThread);
-            addThread = new Thread(AddThread);
             removeThread = new Thread(RemoveThread);
 
-            findThread.Name = "FindThread";
-            readThread.Name = "ReadThread";
             readThread.Priority = ThreadPriority.Highest;
-            addThread.Name = "AddThread";
-            removeThread.Name = "RemoveThread";
             removeThread.Priority = ThreadPriority.Lowest;
 
             defaultBaudRate = 57600;
@@ -276,8 +275,10 @@ namespace NeuroSky.ThinkGear
 
                 Thread.Sleep(1000);
 
-                if (mindSetPorts.Count > 0) DeviceFound(this, EventArgs.Empty);
-                else DeviceNotFound(this, EventArgs.Empty);
+                if (mindSetPorts.Count > 0) 
+                    DeviceFound(this, EventArgs.Empty);
+                else 
+                    DeviceNotFound(this, EventArgs.Empty);
             }
         }
 

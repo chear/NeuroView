@@ -72,15 +72,15 @@ namespace NeuroSky.MindView
             UpdateConnectButton(false);
             mainForm.updateConnectButton(false);
             mainForm.updateStatusLabel("Unable to connect.");
-            UpdateStatusLabel("Unable to connect.  Make sure the headset is turned on and paired.");
+            UpdateStatusLabel("Unable to connect. Make sure the headset is turned on and paired.");
         }
 
         void OnDeviceFound(object sender, EventArgs e)
         {
             Console.WriteLine("At Launcher: Found " + connector.mindSetPorts[0].PortName);
-
+            
             foreach(Connector.Connection c in connector.mindSetPorts)
-                Console.WriteLine("Found " + c.PortName);
+                Console.WriteLine("Found " + c.PortName;
 
             string tempPortName = connector.mindSetPorts[0].PortName;
             UpdateStatusLabel("Device found on " + tempPortName + ". Connecting...");
