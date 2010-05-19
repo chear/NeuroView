@@ -193,7 +193,6 @@ namespace NeuroSky.ThinkGear {
                 }
 
                 activePortsList.Clear();
-                deviceList.Clear();
             }
         }
 
@@ -379,42 +378,42 @@ namespace NeuroSky.ThinkGear {
         private void RemoveThread() {
 
             while(RemoveThreadEnable) {
-                //Console.WriteLine("Searching for bad ports..............");
-                lock(activePortsList) {
-                    lock(removePortsList) {
-                        foreach(Connection port in removePortsList) {
-                            if(port.IsOpen) {
-                                try {
-                                    port.Close();
-                                }
-                                catch(Exception e) {
-                                    Console.WriteLine("RemoveThread: " + e.Message);
-                                }
+                lock(removePortsList) {
+                    foreach(Connection port in removePortsList) {
+                        if(port.IsOpen) {
+                            try {
+                                port.Close();
                             }
-                            activePortsList.Remove(port);
-
-                            Device tempDevice = new Device();
-
-                            lock(deviceList) {
-                                /*TODO: Currently it only finds one headset that is connected to that port.
-                                        Need to change to get multiple headset.*/
-
-                                /*Finds the index for the device that was connected to the port*/
-                                int index = deviceList.FindIndex(f => (f.PortName == port.PortName));
-
-                                /*Removes the Device from the list*/
-                                if(index >= 0) {
-                                    tempDevice = deviceList[index];
-                                    deviceList.RemoveAt(index);
-                                }
-
+                            catch(Exception e) {
+                                Console.WriteLine("RemoveThread: " + e.Message);
                             }
-
-                            DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
                         }
 
-                        removePortsList.Clear();
+                        lock(activePortsList) {
+                            activePortsList.Remove(port);
+                        }
+
+                        Device tempDevice = new Device();
+
+                        lock(deviceList) {
+                            /*TODO: Currently it only finds one headset that is connected to that port.
+                                    Need to change to get multiple headset.*/
+
+                            /*Finds the index for the device that was connected to the port*/
+                            int index = deviceList.FindIndex(f => (f.PortName == port.PortName));
+
+                            /*Removes the Device from the list*/
+                            if(index >= 0) {
+                                tempDevice = deviceList[index];
+                                deviceList.RemoveAt(index);
+                            }
+
+                        }
+
+                        DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
                     }
+
+                    removePortsList.Clear();
                 }
 
                 Thread.Sleep(500);
