@@ -318,9 +318,6 @@ namespace NeuroSky.ThinkGear {
 
                         tempPort.Close();
                     }
-                    else {
-                        Console.WriteLine(tempPort.PortName + " is not opened.");
-                    }
                 }
 
                 Thread.Sleep(1000);
