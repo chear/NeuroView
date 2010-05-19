@@ -120,7 +120,9 @@ namespace NeuroSky.ThinkGear {
                 addThread = new Thread(AddThread);
                 addThread.Start();
             }
-            if(!readThread.IsAlive) readThread.Start();
+
+            if(!readThread.IsAlive) 
+                readThread.Start();
         }
 
         /**
@@ -130,6 +132,8 @@ namespace NeuroSky.ThinkGear {
          * 
          *      DeviceConnected - A connection was successfully opened
          *      DeviceConnectFail - The connection attempt was unsuccessful
+         *      
+         * TODO: Overload to take a preferred initial port to scan
          */
         public void ConnectScan() {
             ScanConnectEnable = true;
@@ -139,8 +143,7 @@ namespace NeuroSky.ThinkGear {
         /**
          * Performs cleanup of the ThinkGear Connector instance.
          * 
-         * TODO: Move this stuff into a destructor, so that an application that uses
-         * the Connector doesn't have to explicitly call this.
+         * TODO: Move this stuff into a destructor, so that an application that uses the Connector doesn't have to explicitly call this.
          */
         public void Close() {
             this.Disconnect();
@@ -209,6 +212,7 @@ namespace NeuroSky.ThinkGear {
         }
 
 
+        // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
             defaultBaudRate = 57600;
 
@@ -218,10 +222,12 @@ namespace NeuroSky.ThinkGear {
             }
         }
 
+        // TODO: Deprecate this method (replaced by IsRefreshing and IsScanning properties)
         public bool FindThreadIsAlive() {
             return findThread.IsAlive;
         }
 
+        // TODO: Deprecate this method. Not sure if we need this anymore.
         public void FindAvailablePorts() {
             string[] temp = SerialPort.GetPortNames();
 
@@ -317,7 +323,7 @@ namespace NeuroSky.ThinkGear {
         private void ReadThread() {
             bool allReturnNull = true;
 
-            //Exits if readThreadEnable is false. 
+            // Exits if readThreadEnable is false. 
             while(ReadThreadEnable) {
                 lock(activePortsList) {
                     foreach(Connection port in activePortsList) {
@@ -331,7 +337,7 @@ namespace NeuroSky.ThinkGear {
                             DeliverPacket(returnPacket);
                         }
 
-                        //Check the TotalTimeout and add to the remove list if is not receiving
+                        // Check the TotalTimeout and add to the remove list if is not receiving
                         if(port.TotalTimeoutTime > 1) {
                             lock(removePortsList) {
                                 removePortsList.Add(port);
@@ -340,8 +346,8 @@ namespace NeuroSky.ThinkGear {
                     }
                 }
 
-                //Sleep when DataRow null.
-                //TODO: Make a dynamic sleep thread.
+                // Sleep when DataRow null.
+                // TODO: Make a dynamic sleep thread. (What does this mean? -HK)
                 if(allReturnNull) {
                     Thread.Sleep(2);
                 }
@@ -373,8 +379,7 @@ namespace NeuroSky.ThinkGear {
                         Device tempDevice = new Device();
 
                         lock(deviceList) {
-                            /*TODO: Currently it only finds one headset that is connected to that port.
-                                    Need to change to get multiple headset.*/
+                            // TODO: Implement the case where multiple Devices are connected to the Connection. Currently only removes the first Device.
 
                             /*Finds the index for the device that was connected to the port*/
                             int index = deviceList.FindIndex(f => (f.PortName == port.PortName));

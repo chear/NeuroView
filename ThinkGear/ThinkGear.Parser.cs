@@ -5,6 +5,7 @@ using System.Text;
 
 namespace NeuroSky.ThinkGear.Parser
 {
+    // TODO: Really have to rename this guy. Yikes. Recommend "ParsedData".
     public struct Parsed
     {
         public TimeStampData[] PoorSignalQuality;
@@ -74,7 +75,7 @@ namespace NeuroSky.ThinkGear.Parser
 
     public class MindSetParser
     {
-       
+        // TODO: Make this Read method a static method so that we don't have to instantiate an object to use it.
         public Parsed Read(DataRow[] dataRowArray)
         {
             Parsed tempParsed = new Parsed();

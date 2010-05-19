@@ -61,7 +61,7 @@ namespace NeuroSky.ThinkGear
 
             if ((DateTime.UtcNow - lastUpdate).TotalMilliseconds > DataReceivedRate)
             {
-                //TODO: Make the DataReceived Event be triggered only when certain data is received.
+                // TODO: Trigger the DataReceived event only when certain data is received.
                 DataReceived(this, new DataEventArgs(DataRowList.ToArray()));
 
                 DataRowList.Clear();
