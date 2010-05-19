@@ -91,19 +91,19 @@ namespace NeuroSky.ThinkGear.Parser
             {
                 switch (d.Type)
                 {
-                    case((byte)Code.PoorSignal):
+                    case(Code.PoorSignal):
                         tempPoorSignal.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case((byte)Code.Attention):
+                    case(Code.Attention):
                         tempAttention.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case((byte)Code.Meditation):
+                    case(Code.Meditation):
                         tempMeditation.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case ((byte)Code.Raw):
+                    case(Code.Raw):
                         tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0]<<8) + d.Data[1])));
                         break;
-                    case ((byte)Code.EEGPowerInt):
+                    case(Code.EEGPowerInt):
                         tempPowerEEGData.Add(new PowerEEGData(d.Time, d.Data));
                         break;
 

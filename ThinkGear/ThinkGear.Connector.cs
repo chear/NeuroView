@@ -26,9 +26,23 @@ namespace NeuroSky.ThinkGear {
      */
     public struct DataRow {
         public double Time;
-        public byte Type;
+        public Code Type;
         public byte[] Data;
     }
+
+    /*
+     * The raw CODE used in the packet
+     */
+    public enum Code: byte {
+        Battery = 0x01,
+        PoorSignal = 0x02,
+        Attention = 0x04,
+        Meditation = 0x05,
+        Raw = 0x80,
+        EEGPowerFloat = 0x81,
+        EEGPowerInt = 0x83,
+        HeadsetID = 0x7F,
+    };
 
     /*
      * The different types of data represented by the data row
@@ -48,20 +62,6 @@ namespace NeuroSky.ThinkGear {
         Gamma1,
         Gamma2,
         HeadsetID
-    };
-
-    /*
-     * The raw CODE used in the packet
-     */
-    public enum Code: byte {
-        Battery = 0x01,
-        PoorSignal = 0x02,
-        Attention = 0x04,
-        Meditation = 0x05,
-        Raw = 0x80,
-        EEGPowerFloat = 0x81,
-        EEGPowerInt = 0x83,
-        HeadsetID = 0x7F,
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -651,7 +651,7 @@ namespace NeuroSky.ThinkGear {
                 tempPacket.PortName = portName;
 
                 for(int i = 0;i < dataRow.Length;i++) {
-                    if(dataRow[i].Type == (int)DataType.HeadsetID) {
+                    if(dataRow[i].Type == Code.HeadsetID) {
                         tempPacket.HeadsetID = (int)dataRow[i].Data[0];
                     }
                     else {
@@ -690,7 +690,7 @@ namespace NeuroSky.ThinkGear {
                     else numBytes = 1;
 
                     /*Copies the Code to the tempDataRow*/
-                    tempDataRow.Type = code;
+                    tempDataRow.Type = (Code)code;
 
                     /*Gets the current time and inserts it into the tempDataRow*/
                     tempDataRow.Time = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
