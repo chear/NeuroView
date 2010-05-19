@@ -189,7 +189,7 @@ namespace NeuroSky.ThinkGear {
         public void Disconnect() {
             lock(activePortsList) {
                 foreach(Connection c in activePortsList) {
-                    c.Close();
+                    removePortsList.Add(c);
                 }
 
                 activePortsList.Clear();
@@ -257,7 +257,7 @@ namespace NeuroSky.ThinkGear {
 
             availablePorts.Clear();
 
-            for(int i = 1;i < 100;i++) {
+            for(int i = 1; i < 100; i++) {
                 availablePorts.Add("COM" + i);
             }
         }
