@@ -44,26 +44,6 @@ namespace NeuroSky.ThinkGear {
         HeadsetID = 0x7F,
     };
 
-    /*
-     * The different types of data represented by the data row
-     */
-    public enum DataType {
-        Battery,
-        PoorSignal,
-        Attention,
-        Meditation,
-        Raw,
-        Delta,
-        Theta,
-        Alpha1,
-        Alpha2,
-        Beta1,
-        Beta2,
-        Gamma1,
-        Gamma2,
-        HeadsetID
-    };
-
     // The main controller that connects the connections to a specific device.  
     // This is the controller who initiates the read.
     public class Connector {
