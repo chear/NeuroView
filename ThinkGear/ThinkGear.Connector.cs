@@ -118,6 +118,14 @@ namespace NeuroSky.ThinkGear
 
         }
 
+        /**
+         * Attempts to open a connection to a Device on the serial port named portName.
+         * 
+         * Calling this method results in one of two events being broadcasted:
+         * 
+         *      DeviceConnected - A connection was successfully opened on portName
+         *      DeviceConnectFail - The connection attempt was unsuccessful
+         */
         public void Connect(string portName)
         {
             Connection tempConnection = new Connection(portName);
@@ -135,6 +143,25 @@ namespace NeuroSky.ThinkGear
             if (!readThread.IsAlive) readThread.Start();
         }
 
+        /**
+         * Attempts to open a connection to the first Device seen by the Connector.
+         * 
+         * Calling this method results in one of two events being broadcasted:
+         * 
+         *      DeviceConnected - A connection was successfully opened
+         *      DeviceConnectFail - The connection attempt was unsuccessful
+         */
+        public void ConnectScan() {
+            ScanConnectEnable = true;
+            Find();
+        }
+
+        /**
+         * Performs cleanup of the ThinkGear Connector instance.
+         * 
+         * TODO: Move this stuff into a destructor, so that an application that uses
+         * the Connector doesn't have to explicitly call this.
+         */
         public void Close()
         {
             this.Disconnect();
@@ -150,6 +177,14 @@ namespace NeuroSky.ThinkGear
             removeThread.Abort();
         }
 
+        /**
+         * Closes all open connections.
+         * 
+         * Calling this method will result in the following event being broadcasted for
+         * all open devices:
+         * 
+         *      DeviceDisconnected - The device was disconnected
+         */
         public void Disconnect()
         {
             lock (activePortsList)
@@ -162,6 +197,31 @@ namespace NeuroSky.ThinkGear
                 activePortsList.Clear();
                 deviceList.Clear();
             }
+        }
+
+        /**
+         * Provides a collection of Devices that can be connected to. Note that this is
+         * *not* a collection of devices that are currently connected.
+         */
+        public Device[] DeviceList {
+            get { return mindSetPorts.ToArray(); }
+        }
+
+        /**
+         * Refreshes the DeviceList
+         */
+        public void RefreshDeviceList() {
+            ScanConnectEnable = false;
+            Find();
+        }
+
+        /**
+         * Indicates whether the DeviceList is in the middle of refreshing. Note that
+         * while this property returns "true", the contents of the DeviceList property
+         * are invalid.
+         */
+        public bool IsRefreshing {
+            get { return findThread.IsAlive; }
         }
 
 
