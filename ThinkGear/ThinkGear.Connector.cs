@@ -200,17 +200,17 @@ namespace NeuroSky.ThinkGear
         }
 
         /**
-         * Provides a collection of Devices that can be connected to. Note that this is
-         * *not* a collection of devices that are currently connected.
+         * Provides a collection of Connections that have ThinkGear devices. Note that this is
+         * *not* a collection of active Connections.
          */
-        public Device[] DeviceList {
+        public Connection[] AvailableConnections {
             get { return mindSetPorts.ToArray(); }
         }
 
         /**
          * Refreshes the DeviceList
          */
-        public void RefreshDeviceList() {
+        public void RefreshAvailableConnections() {
             ScanConnectEnable = false;
             Find();
         }
