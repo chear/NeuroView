@@ -153,10 +153,17 @@ namespace NeuroSky.ThinkGear {
 
             Thread.Sleep(50);
 
-            if(readThread != null) readThread.Abort();
-            if(findThread != null )findThread.Abort();
-            if(addThread != null ) addThread.Abort();
-            if(removeThread != null) removeThread.Abort();
+            if(readThread != null) 
+                readThread.Abort();
+
+            if(findThread != null )
+                findThread.Abort();
+
+            if(addThread != null ) 
+                addThread.Abort();
+
+            if(removeThread != null) 
+                removeThread.Abort();
         }
 
         /**
@@ -389,7 +396,6 @@ namespace NeuroSky.ThinkGear {
                                 tempDevice = deviceList[index];
                                 deviceList.RemoveAt(index);
                             }
-
                         }
 
                         DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
@@ -509,7 +515,7 @@ namespace NeuroSky.ThinkGear {
                 List<byte> receivedBytes = new List<byte>();
                 List<DataRow> receivedDataRow = new List<DataRow>();
 
-                int state = (int)ParserState.Sync0;
+                ParserState state = ParserState.Sync0;
                 int payloadLength = 0;
                 int payloadSum = 0;
                 int checkSum = 0;
@@ -559,48 +565,48 @@ namespace NeuroSky.ThinkGear {
 
                     switch(state) {
                         /*Waiting for the first SYNC_BYTE*/
-                        case ((int)ParserState.Sync0):
+                        case (ParserState.Sync0):
                             if(tempByte[0] == SYNC_BYTE) {
-                                state = (int)ParserState.Sync1;
+                                state = ParserState.Sync1;
                             }
                             break;
 
                         /*Waiting for the second SYNC_BYTE*/
-                        case ((int)ParserState.Sync1):
+                        case (ParserState.Sync1):
                             if(tempByte[0] == SYNC_BYTE) {
-                                state = (int)ParserState.PayloadLength;
+                                state = ParserState.PayloadLength;
                             }
                             else {
-                                state = (int)ParserState.Sync0;
+                                state = ParserState.Sync0;
                             }
                             break;
 
                         /* Waiting for payload length */
-                        case ((int)ParserState.PayloadLength):
+                        case (ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if(payloadLength >= 170) {
-                                state = (int)ParserState.Sync0;
+                                state = ParserState.Sync0;
                             }
                             else {
                                 payload.Clear();
                                 payloadSum = 0;
-                                state = (int)ParserState.Payload;
+                                state = ParserState.Payload;
                             }
                             break;
 
                         /* Waiting for Payload bytes */
-                        case ((int)ParserState.Payload):
+                        case (ParserState.Payload):
                             payload.Add(tempByte[0]);
                             payloadSum += tempByte[0];
                             if(payload.Count >= payloadLength) {
-                                state = (int)ParserState.Checksum;
+                                state = ParserState.Checksum;
                             }
                             break;
 
                         /* Waiting for checksum byte */
-                        case ((int)ParserState.Checksum):
+                        case (ParserState.Checksum):
                             checkSum = tempByte[0];
-                            state = (int)ParserState.Sync0;
+                            state = ParserState.Sync0;
                             if(checkSum == ((~payloadSum) & 0xFF)) {
                                 //Console.WriteLine("Parsing Payload");
                                 tempDataRowArray = ParsePayload(payload.ToArray());
