@@ -144,10 +144,10 @@ namespace NeuroSky.ThinkGear
 
             Thread.Sleep(50);
 
-            readThread.Abort();
-            findThread.Abort();
-            addThread.Abort();
-            removeThread.Abort();
+            if(readThread != null) readThread.Abort();
+            if(findThread != null )findThread.Abort();
+            if(addThread != null ) addThread.Abort();
+            if(removeThread != null) removeThread.Abort();
         }
 
         public void Disconnect()
