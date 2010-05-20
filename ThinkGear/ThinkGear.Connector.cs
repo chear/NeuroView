@@ -484,12 +484,12 @@ namespace NeuroSky.ThinkGear {
             public double TotalTimeoutTime = 0; //In milliseconds
 
             public enum ParserState {
-                Invalid = 0,
-                Sync0 = 1,
-                Sync1 = 2,
-                PayloadLength = 3,
-                Payload = 4,
-                Checksum = 5
+                Invalid,
+                Sync0,
+                Sync1,
+                PayloadLength,
+                Payload,
+                Checksum
             };
 
             public Byte[] parserBuffer = new Byte[0];
