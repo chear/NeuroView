@@ -227,13 +227,13 @@ namespace NeuroSky.ThinkGear {
             return findThread.IsAlive;
         }
 
-        // TODO: Deprecate this method. Not sure if we need this anymore.
+        // TODO: Make this method priate, or refactor it into FindThread.
         public void FindAvailablePorts() {
+            /*
             string[] temp = SerialPort.GetPortNames();
 
             Regex r = new Regex("COM[1-9][0-9]*");
 
-            /*
             foreach (string portName in temp)
             {
                 availablePorts.Add(r.Match(portName).ToString());
