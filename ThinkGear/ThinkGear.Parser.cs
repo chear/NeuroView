@@ -5,6 +5,7 @@ using System.Text;
 
 namespace NeuroSky.ThinkGear.Parser
 {
+    // TODO: Really have to rename this guy. Yikes. Recommend "ParsedData".
     public struct Parsed
     {
         public TimeStampData[] PoorSignalQuality;
@@ -74,7 +75,7 @@ namespace NeuroSky.ThinkGear.Parser
 
     public class MindSetParser
     {
-       
+        // TODO: Make this Read method a static method so that we don't have to instantiate an object to use it.
         public Parsed Read(DataRow[] dataRowArray)
         {
             Parsed tempParsed = new Parsed();
@@ -91,19 +92,19 @@ namespace NeuroSky.ThinkGear.Parser
             {
                 switch (d.Type)
                 {
-                    case((byte)Code.PoorSignal):
+                    case(Code.PoorSignal):
                         tempPoorSignal.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case((byte)Code.Attention):
+                    case(Code.Attention):
                         tempAttention.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case((byte)Code.Meditation):
+                    case(Code.Meditation):
                         tempMeditation.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case ((byte)Code.Raw):
+                    case(Code.Raw):
                         tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0]<<8) + d.Data[1])));
                         break;
-                    case ((byte)Code.EEGPowerInt):
+                    case(Code.EEGPowerInt):
                         tempPowerEEGData.Add(new PowerEEGData(d.Time, d.Data));
                         break;
 

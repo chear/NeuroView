@@ -61,7 +61,7 @@ namespace NeuroSky.ThinkGear
 
             if ((DateTime.UtcNow - lastUpdate).TotalMilliseconds > DataReceivedRate)
             {
-                //TODO: Make the DataReceived Event be triggered only when certain data is received.
+                // TODO: Trigger the DataReceived event only when certain data is received.
                 DataReceived(this, new DataEventArgs(DataRowList.ToArray()));
 
                 DataRowList.Clear();
@@ -73,14 +73,11 @@ namespace NeuroSky.ThinkGear
 
         public bool Equals(Device other)
         {
-            if (this.HeadsetID == other.HeadsetID && this.PortName == other.PortName)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return this.HeadsetID == other.HeadsetID && this.PortName == other.PortName;
+        }
+
+        public override string ToString() {
+            return "Port: " + this.PortName + ", HeadsetID: " + this.HeadsetID;
         }
 
         public class DataEventArgs : EventArgs
@@ -92,8 +89,6 @@ namespace NeuroSky.ThinkGear
                 this.DataRowArray = dataRowArray;
             }
         }
-
     }
-
 }
 
