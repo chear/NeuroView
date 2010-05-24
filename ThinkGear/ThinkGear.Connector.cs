@@ -204,7 +204,7 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * Indicates whether the AvailableConnections collection is in the middle of refreshing. 
-         * Note that while this property returns "true", the contents of the AvailableConnections
+         * While this property returns "true", the contents of the AvailableConnections
          * collection are invalid.
          */
         public bool IsRefreshing {
@@ -234,7 +234,7 @@ namespace NeuroSky.ThinkGear {
             return findThread.IsAlive;
         }
 
-        // TODO: Make this method priate, or refactor it into FindThread.
+        // TODO: Make this method private, or refactor it into FindThread.
         public void FindAvailablePorts() {
             /*
             string[] temp = SerialPort.GetPortNames();
