@@ -38,6 +38,7 @@ namespace NeuroSky.ThinkGear {
         PoorSignal = 0x02,
         Attention = 0x04,
         Meditation = 0x05,
+        Blink = 0x16,
         Raw = 0x80,
         EEGPowerFloat = 0x81,
         EEGPowerInt = 0x83,
