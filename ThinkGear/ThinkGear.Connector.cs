@@ -9,6 +9,8 @@ using System.IO.Ports;
 
 using System.Threading;
 
+using NeuroSky.ThinkGear.Algorithms;
+
 namespace NeuroSky.ThinkGear {
 
     /*
@@ -67,7 +69,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private int defaultBaudRate;
+        private int defaultBaudRate = 57600;
 
         private Thread findThread;
         private Thread readThread;
@@ -338,7 +340,8 @@ namespace NeuroSky.ThinkGear {
                         Packet returnPacket = port.ReadPacket();
 
                         /* Checks if it received any packet from any of the connections.*/
-                        if(returnPacket.DataRowArray.Length > 0) allReturnNull = false;
+                        if(returnPacket.DataRowArray.Length > 0) 
+                            allReturnNull = false;
 
                         /*Pass the data to the devices.*/
                         lock(deviceList) {
@@ -484,6 +487,9 @@ namespace NeuroSky.ThinkGear {
             public DateTime StartTimeoutTime = new DateTime(1970, 1, 1, 0, 0, 0);
             public double TotalTimeoutTime = 0; //In milliseconds
 
+            private BlinkDetector blinkDetector;
+            private byte poorSignal = 200;
+
             public enum ParserState {
                 Invalid,
                 Sync0,
@@ -495,20 +501,16 @@ namespace NeuroSky.ThinkGear {
 
             public Byte[] parserBuffer = new Byte[0];
 
-            public Connection() {
-                PortName = " ";
-                parserBuffer = new Byte[0];
-                this.BaudRate = 57600;
-                this.ReadTimeout = SERIALPORT_READ_TIMEOUT;
+            public Connection() : this(" ") {
             }
 
             public Connection(String portName) {
-                parserBuffer = new Byte[0];
-                this.BaudRate = 57600;
-                this.ReadTimeout = SERIALPORT_READ_TIMEOUT;
+                parserBuffer = new byte[0];
+                BaudRate = 57600;
+                ReadTimeout = SERIALPORT_READ_TIMEOUT;
 
-                this.PortName = portName;
-
+                PortName = portName;
+                blinkDetector = new BlinkDetector();
             }
 
             public Packet ReadPacket() {
@@ -529,12 +531,10 @@ namespace NeuroSky.ThinkGear {
 
                 while(DateTime.Now < readPacketTimeOut && tempDataRowArray == null) {
                     try {
-                        if(parserBuffer.Length > bufferIterator) {
+                        if(parserBuffer.Length > bufferIterator)
                             tempByte[0] = parserBuffer[bufferIterator++];
-                        }
-                        else {
+                        else
                             Read(tempByte, 0, 1);
-                        }
 
                         /*
                         if (parserBuffer.Length == 0 && bufferIterator == parserBuffer.Length)
@@ -608,6 +608,7 @@ namespace NeuroSky.ThinkGear {
                         case (ParserState.Checksum):
                             checkSum = tempByte[0];
                             state = ParserState.Sync0;
+
                             if(checkSum == ((~payloadSum) & 0xFF)) {
                                 //Console.WriteLine("Parsing Payload");
                                 tempDataRowArray = ParsePayload(payload.ToArray());
@@ -625,10 +626,7 @@ namespace NeuroSky.ThinkGear {
 
                 }
 
-                if(receivedBytes.Count > 0) {
-                    parserBuffer = receivedBytes.ToArray();
-                }
-                else { parserBuffer = new Byte[0]; }
+                parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
 
                 //if( receivedDataRow.Count < 1 ) debugFile.WriteLine("Did not receive any packet.");
 
@@ -657,7 +655,6 @@ namespace NeuroSky.ThinkGear {
             }/*End of PackagePacket*/
 
             private DataRow[] ParsePayload(byte[] payload) {
-
                 List<DataRow> tempDataRowList = new List<DataRow>();
                 DataRow tempDataRow = new DataRow();
                 int i = 0;
@@ -667,7 +664,6 @@ namespace NeuroSky.ThinkGear {
 
                 /* Parse all bytes from the payload[] */
                 while(i < payload.Length) {
-
                     /* Parse possible Extended CODE bytes */
                     while(payload[i] == EXCODE_BYTE) {
                         extendedCodeLevel++;
@@ -678,25 +674,48 @@ namespace NeuroSky.ThinkGear {
                     code = payload[i++];
 
                     /* Parse value length */
-                    if(code >= 0x80) numBytes = payload[i++];
-                    else numBytes = 1;
+                    numBytes = code >= 0x80 ? payload[i++] : 1;
 
                     /*Copies the Code to the tempDataRow*/
                     tempDataRow.Type = (Code)code;
 
-                    /*Gets the current time and inserts it into the tempDataRow*/
-                    tempDataRow.Time = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
+                    double currentTime = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
 
-                    //debugFile.WriteLine("TimeStamp: " + (DateTime.UtcNow - startTime).TotalSeconds);
+                    /*Gets the current time and inserts it into the tempDataRow*/
+                    tempDataRow.Time = currentTime;
 
                     /*Copies the data into the DataRow*/
                     tempDataRow.Data = new byte[numBytes];
-                    for(int t = 0;t < numBytes;t++) {
-                        tempDataRow.Data[t] = payload[i++];
-                    }
+
+                    Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
+
+                    i += numBytes;
 
                     /*Appends the data row to list*/
                     tempDataRowList.Add(tempDataRow);
+
+                    /*
+                     * Now let's apply some processing to figure out blinks
+                     */
+
+                    // look for a poorSignal data row
+                    if(tempDataRow.Type == Code.PoorSignal)
+                        poorSignal = tempDataRow.Data[0];
+
+                    // check if a blink was detected
+                    if(tempDataRow.Type == Code.Raw) {
+                        short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
+
+                        byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
+
+                        if(blinkStrength > 0) {
+                            //Console.WriteLine("Blink detected! " + blinkStrength);
+                            DataRow d = new DataRow { Type = Code.Blink, 
+                                                      Time = currentTime, 
+                                                      Data = new byte[1] { blinkStrength } };
+                            tempDataRowList.Add(d);
+                        }
+                    }
                 }
 
                 return tempDataRowList.ToArray();

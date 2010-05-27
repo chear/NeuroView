@@ -18,23 +18,23 @@ namespace NeuroSky.ThinkGear.Algorithms {
         private const int LOWER_BLINK_MIN_TIME = 10;
         private const int LOWER_BLINK_MAX_TIME = 110;
 
-        private const int PQ_THRESHOLD = 27;
+        private const byte PQ_THRESHOLD = 27;
 
         private const int SHIFTING_TERM = 4;
 
-        private enum BlinkState {
+        private enum BlinkStates {
             NoBlink,
             UpperBlink,
             MiddleBlink,
             LowerBlink
         }
 
-        private BlinkState state = BlinkState.NoBlink;
+        private BlinkStates state = BlinkStates.NoBlink;
 
-        private int aboveCount = 0;
-        private int blinkCount0 = 0;
-        private int blinkCount1 = 0;
-        private int blinkCount2 = 0;
+        private uint aboveCount = 0;
+        private uint blinkCount0 = 0;
+        private uint blinkCount1 = 0;
+        private uint blinkCount2 = 0;
         private int blinkMin = 0;
         private int blinkMax = 0;
 
@@ -42,19 +42,19 @@ namespace NeuroSky.ThinkGear.Algorithms {
          * This method returns a 0 if no blink was detected, and a non-zero value (1 to 255)
          * indicating the blink strength otherwise.
          */
-        public byte Detect(byte poorSignalValue, short eegValue) {
+        public byte Detect(byte poorSignalValue, int eegValue) {
             if(poorSignalValue < PQ_THRESHOLD){
                 switch(state) {
-                    case (BlinkState.NoBlink):
+                    case (BlinkStates.NoBlink):
                         if(eegValue > BLINK_DETECT_UPPER_THRESHOLD) {
                             aboveCount = 1;
-                            state = BlinkState.UpperBlink;
+                            state = BlinkStates.UpperBlink;
                             blinkMax = eegValue;
                         }
 
                         break;
 
-                    case (BlinkState.UpperBlink):
+                    case (BlinkStates.UpperBlink):
                         if(eegValue > BLINK_DETECT_UPPER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
                             if(eegValue > blinkMax) blinkMax = eegValue;
@@ -63,39 +63,41 @@ namespace NeuroSky.ThinkGear.Algorithms {
                         }
                         else {
                             if(aboveCount > UPPER_BLINK_MIN_TIME && aboveCount < UPPER_BLINK_MAX_TIME) {
-                                state = BlinkState.MiddleBlink;
+                                state = BlinkStates.MiddleBlink;
                                 blinkCount0 = aboveCount;
                                 aboveCount = 1;
                             }
                             else {
-                                state = BlinkState.NoBlink;
+                                state = BlinkStates.NoBlink;
                                 aboveCount = 0;
                             }
                         }
                         break;
 
-                    case (BlinkState.MiddleBlink):
+                    case (BlinkStates.MiddleBlink):
                         if(eegValue < BLINK_DETECT_UPPER_THRESHOLD && eegValue > BLINK_DETECT_LOWER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
                         }
                         else {
                             if(aboveCount > MIDDLE_BLINK_MIN_TIME && aboveCount < MIDDLE_BLINK_MAX_TIME) {
-                                state = BlinkState.LowerBlink;
+                                state = BlinkStates.LowerBlink;
                                 blinkCount1 = aboveCount;
                                 aboveCount = 1;
                                 blinkMin = eegValue;
                             }
                             else {
-                                state = BlinkState.NoBlink;
+                                state = BlinkStates.NoBlink;
                                 aboveCount = 0;
                             }
                         }
                         break;
 
-                    case (BlinkState.LowerBlink):
+                    case (BlinkStates.LowerBlink):
                         if(eegValue < BLINK_DETECT_LOWER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
-                            if(eegValue < blinkMin) blinkMin = eegValue;
+                            
+                            if(eegValue < blinkMin) 
+                                blinkMin = eegValue;
 
                             /* Else this sample is no longer above the blink threshold...*/
                         }
@@ -110,7 +112,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
                                     blinkSize = 0xFF;
 
                                 /*Initializes the state and counter for next blink*/
-                                state = BlinkState.NoBlink;
+                                state = BlinkStates.NoBlink;
                                 aboveCount = 0;
                                 blinkMax = 0;
                                 blinkMin = 0;
@@ -124,19 +126,19 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             }
 
                             /*Initializes the state and counter for next blink*/
-                            state = BlinkState.NoBlink;
+                            state = BlinkStates.NoBlink;
                             aboveCount = 0;
                         }
                         break;
 
                     default:
-                        state = BlinkState.NoBlink;
+                        state = BlinkStates.NoBlink;
                         aboveCount = 0;
                         break;
                 }
             }
             else {
-                state = BlinkState.NoBlink;
+                state = BlinkStates.NoBlink;
                 aboveCount = 0;
             }
 
