@@ -45,7 +45,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
         public byte Detect(byte poorSignalValue, int eegValue) {
             if(poorSignalValue < PQ_THRESHOLD){
                 switch(state) {
-                    case (BlinkStates.NoBlink):
+                    case BlinkStates.NoBlink:
                         if(eegValue > BLINK_DETECT_UPPER_THRESHOLD) {
                             aboveCount = 1;
                             state = BlinkStates.UpperBlink;
@@ -54,7 +54,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
                         break;
 
-                    case (BlinkStates.UpperBlink):
+                    case BlinkStates.UpperBlink:
                         if(eegValue > BLINK_DETECT_UPPER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
                             if(eegValue > blinkMax) blinkMax = eegValue;
@@ -74,7 +74,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
                         }
                         break;
 
-                    case (BlinkStates.MiddleBlink):
+                    case BlinkStates.MiddleBlink:
                         if(eegValue < BLINK_DETECT_UPPER_THRESHOLD && eegValue > BLINK_DETECT_LOWER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
                         }
@@ -92,7 +92,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
                         }
                         break;
 
-                    case (BlinkStates.LowerBlink):
+                    case BlinkStates.LowerBlink:
                         if(eegValue < BLINK_DETECT_LOWER_THRESHOLD) {
                             aboveCount = aboveCount + 1;
                             

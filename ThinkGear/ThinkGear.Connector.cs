@@ -239,21 +239,21 @@ namespace NeuroSky.ThinkGear {
 
         // TODO: Make this method private, or refactor it into FindThread.
         public void FindAvailablePorts() {
-            /*
-            string[] temp = SerialPort.GetPortNames();
-
-            Regex r = new Regex("COM[1-9][0-9]*");
-
-            foreach (string portName in temp)
-            {
-                availablePorts.Add(r.Match(portName).ToString());
-            }
-             */
+            string[] rawNames = SerialPort.GetPortNames();
 
             availablePorts.Clear();
 
-            for(int i = 1; i < 100; i++) {
-                availablePorts.Add("COM" + i);
+            Regex r = new Regex("COM[1-9][0-9]*");
+
+            // iterate over each of the raw COM port names and then
+            // scrub them
+            for(int i = 0; i < rawNames.Length; i++) {
+                Console.WriteLine("Port: " + rawNames[i]);
+                string portName = r.Match(rawNames[i]).ToString();
+
+                if(portName.Length != 0) {
+                    availablePorts.Add(portName);
+                }
             }
         }
 
@@ -307,7 +307,7 @@ namespace NeuroSky.ThinkGear {
                                 lock(activePortsList) {
                                     activePortsList.Add(tempPort);
                                 }
-                                
+
                                 return;
                             }
                         }
@@ -628,8 +628,6 @@ namespace NeuroSky.ThinkGear {
 
                 parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
 
-                //if( receivedDataRow.Count < 1 ) debugFile.WriteLine("Did not receive any packet.");
-
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
 
             }/*End of ReadPacket*/
@@ -698,7 +696,8 @@ namespace NeuroSky.ThinkGear {
                      * Now let's apply some processing to figure out blinks
                      */
 
-                    // look for a poorSignal data row
+                    // look for a poorSignal data row. the blink detector needs
+                    // this value
                     if(tempDataRow.Type == Code.PoorSignal)
                         poorSignal = tempDataRow.Data[0];
 
@@ -709,7 +708,6 @@ namespace NeuroSky.ThinkGear {
                         byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
 
                         if(blinkStrength > 0) {
-                            //Console.WriteLine("Blink detected! " + blinkStrength);
                             DataRow d = new DataRow { Type = Code.Blink, 
                                                       Time = currentTime, 
                                                       Data = new byte[1] { blinkStrength } };
