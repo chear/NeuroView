@@ -248,7 +248,6 @@ namespace NeuroSky.ThinkGear {
             // iterate over each of the raw COM port names and then
             // scrub them
             for(int i = 0; i < rawNames.Length; i++) {
-                Console.WriteLine("Port: " + rawNames[i]);
                 string portName = r.Match(rawNames[i]).ToString();
 
                 if(portName.Length != 0) {
@@ -470,8 +469,6 @@ namespace NeuroSky.ThinkGear {
                 return;
 
             (deviceList[index]).Deliver(packet.DataRowArray);
-
-
         }/*End of DeliverPacket*/
 
         public class Connection: SerialPort {
@@ -623,7 +620,6 @@ namespace NeuroSky.ThinkGear {
                             receivedDataRow.Add(tempDataRow);
                         }
                     }
-
                 }
 
                 parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
