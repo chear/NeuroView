@@ -119,7 +119,7 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
-            if(!addThread.IsAlive) {
+            if(addThread == null) {
                 addThread = new Thread(AddThread);
                 addThread.Start();
             }
