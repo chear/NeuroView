@@ -78,6 +78,7 @@ namespace NeuroSky.ThinkGear {
 
         private bool ReadThreadEnable = true;
         private bool RemoveThreadEnable = true;
+
         public bool ScanConnectEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
@@ -102,6 +103,10 @@ namespace NeuroSky.ThinkGear {
 
             readThread.Start();
             removeThread.Start();
+        }
+
+        ~Connector() {
+            Close();
         }
 
         /**
@@ -261,8 +266,10 @@ namespace NeuroSky.ThinkGear {
 
             Connection tempPort;
 
+            //lock(mindSetPorts) {
             lock(mindSetPorts) {
                 mindSetPorts.Clear();
+            }
 
                 foreach(string portName in availablePorts) {
                     tempPort = new Connection();
@@ -299,7 +306,9 @@ namespace NeuroSky.ThinkGear {
                          */
 
                         if(returnPacket.DataRowArray.Length > 0) {
-                            mindSetPorts.Add(tempPort);
+                            lock(mindSetPorts) {
+                                mindSetPorts.Add(tempPort);
+                            }
 
                             //Connects to the First MindSet it found.
                             if(ScanConnectEnable) {
@@ -326,7 +335,7 @@ namespace NeuroSky.ThinkGear {
                     else
                         DeviceNotFound(this, EventArgs.Empty);
                 }
-            }
+            //}
         }
 
         private void ReadThread() {
@@ -375,7 +384,9 @@ namespace NeuroSky.ThinkGear {
                     foreach(Connection port in removePortsList) {
                         if(port.IsOpen) {
                             try {
+                                Console.WriteLine("Removing port " + port.PortName);
                                 port.Close();
+                                Console.WriteLine("Port closed.");
                             }
                             catch(Exception e) {
                                 Console.WriteLine("RemoveThread: " + e.Message);
@@ -400,6 +411,8 @@ namespace NeuroSky.ThinkGear {
                                 deviceList.RemoveAt(index);
                             }
                         }
+
+                        Console.WriteLine("Removed " + tempDevice.PortName);
 
                         DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
                     }
@@ -697,7 +710,7 @@ namespace NeuroSky.ThinkGear {
                     if(tempDataRow.Type == Code.PoorSignal)
                         poorSignal = tempDataRow.Data[0];
 
-                    // check if a blink was detected
+                    // check if a blink was detected every time a raw packet is received
                     if(tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
 
