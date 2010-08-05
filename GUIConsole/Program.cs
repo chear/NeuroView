@@ -20,17 +20,23 @@ namespace testprogram {
       Connector tg_Connector = new Connector();
       tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
 
-      tg_Connector.Find();
-      while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
+      //tg_Connector.Find();
+      //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
+      tg_Connector.Connect("COM41");
 
-      Thread.Sleep(500);
+      Thread.Sleep(10000);
+      tg_Connector.Disconnect();
+      Thread.Sleep(5000);
+      tg_Connector.Connect("COM41");
+      Thread.Sleep(10000);
 
+      /*
       foreach (NeuroSky.ThinkGear.Connector.Connection c in tg_Connector.mindSetPorts)
       {
           Console.WriteLine("Found" + c.PortName);
-      }
+      }*/
 
-      Thread.Sleep(10000);
+      //Thread.Sleep(10000);
 
       System.Console.WriteLine("Goodbye.");
 

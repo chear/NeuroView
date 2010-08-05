@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 
 namespace NeuroSky.ThinkGear.Algorithms {
-    class BlinkDetector {
+    public class BlinkDetector {
         private const int BLINK_DETECT_UPPER_THRESHOLD = 400;
         private const int BLINK_DETECT_LOWER_THRESHOLD = -200;
 

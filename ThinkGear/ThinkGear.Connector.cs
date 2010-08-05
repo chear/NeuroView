@@ -124,9 +124,11 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
-            if(addThread == null) {
-                addThread = new Thread(AddThread);
-                addThread.Start();
+            if(addThread == null || addThread.ThreadState == ThreadState.Stopped) {
+                addThread = new Thread(AddThread);               
+            }
+            if (!addThread.IsAlive) {
+              addThread.Start();
             }
 
             if(!readThread.IsAlive) 
@@ -172,6 +174,8 @@ namespace NeuroSky.ThinkGear {
 
             if(removeThread != null) 
                 removeThread.Abort();
+
+            //this.Disconnect();
         }
 
         /**
@@ -425,6 +429,7 @@ namespace NeuroSky.ThinkGear {
         }
 
         private void AddThread() {
+
             lock(portsToConnect) {
                 foreach(Connection tempPort in portsToConnect) {
                     if(tempPort.IsOpen) 

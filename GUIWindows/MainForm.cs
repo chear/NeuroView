@@ -143,10 +143,10 @@ namespace NeuroSky.MindView
             this.stopButton = new System.Windows.Forms.Button();
             this.openButton = new System.Windows.Forms.Button();
             this.analyzeButton = new System.Windows.Forms.Button();
-            this.portText = new TextBox();
-            this.statusLabel = new Label();
-            this.poorSignalLabel = new Label();
-            this.fileLabel = new Label();
+            this.portText = new System.Windows.Forms.TextBox();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.poorSignalLabel = new System.Windows.Forms.Label();
+            this.fileLabel = new System.Windows.Forms.Label();
             this.attGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.medGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
@@ -170,15 +170,6 @@ namespace NeuroSky.MindView
             this.button2.Text = "Clear";
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // analyzeButton
-            // 
-            this.analyzeButton.Location = new System.Drawing.Point(600, 510);
-            this.analyzeButton.Name = "analyzeButton";
-            this.analyzeButton.Size = new System.Drawing.Size(80, 24);
-            this.analyzeButton.TabIndex = 1;
-            this.analyzeButton.Text = "Analyze Data";
-            this.analyzeButton.Click += new System.EventHandler(this.analyze_Click);
-            // 
             // button3
             // 
             this.button3.Location = new System.Drawing.Point(360, 15);
@@ -198,7 +189,7 @@ namespace NeuroSky.MindView
             this.disconnectButton.Click += new System.EventHandler(this.disconnect_Click);
             // 
             // stopButton
-            //
+            // 
             this.stopButton.Location = new System.Drawing.Point(360, 15);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(80, 24);
@@ -215,25 +206,30 @@ namespace NeuroSky.MindView
             this.openButton.Text = "Open ...";
             this.openButton.Click += new System.EventHandler(this.open_Click);
             // 
+            // analyzeButton
+            // 
+            this.analyzeButton.Location = new System.Drawing.Point(600, 510);
+            this.analyzeButton.Name = "analyzeButton";
+            this.analyzeButton.Size = new System.Drawing.Size(80, 24);
+            this.analyzeButton.TabIndex = 1;
+            this.analyzeButton.Text = "Analyze Data";
+            this.analyzeButton.Click += new System.EventHandler(this.analyze_Click);
+            // 
             // portText
             // 
             this.portText.Location = new System.Drawing.Point(10, 17);
             this.portText.Name = "portText";
-            this.portText.Size = new System.Drawing.Size(80, 24);
+            this.portText.Size = new System.Drawing.Size(80, 20);
+            this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
-            // 
-            // fileLabel
-            // 
-            this.fileLabel.Location = new System.Drawing.Point(0, 15);
-            this.fileLabel.Name = "fileLabel";
-            this.fileLabel.Size = new System.Drawing.Size(800, 24);
-            this.fileLabel.Text = "None";
+            this.portText.TextChanged += new System.EventHandler(this.portText_TextChanged);
             // 
             // statusLabel
             // 
             this.statusLabel.Location = new System.Drawing.Point(110, 515);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(400, 24);
+            this.statusLabel.TabIndex = 4;
             this.statusLabel.Text = "Type COM port to connect (Ex. COM1) and Press Connect";
             // 
             // poorSignalLabel
@@ -241,7 +237,16 @@ namespace NeuroSky.MindView
             this.poorSignalLabel.Location = new System.Drawing.Point(740, 23);
             this.poorSignalLabel.Name = "poorSignalLabel";
             this.poorSignalLabel.Size = new System.Drawing.Size(50, 24);
+            this.poorSignalLabel.TabIndex = 5;
             this.poorSignalLabel.Text = "PQ:";
+            // 
+            // fileLabel
+            // 
+            this.fileLabel.Location = new System.Drawing.Point(0, 15);
+            this.fileLabel.Name = "fileLabel";
+            this.fileLabel.Size = new System.Drawing.Size(800, 24);
+            this.fileLabel.TabIndex = 3;
+            this.fileLabel.Text = "None";
             // 
             // attGraphPanel
             // 
@@ -264,10 +269,9 @@ namespace NeuroSky.MindView
             this.rawGraphPanel.Size = new System.Drawing.Size(800, 150);
             this.rawGraphPanel.TabIndex = 0;
             // 
-            // Form1
+            // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(800, 550);
-            this.StartPosition = FormStartPosition.CenterScreen;
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button3);
@@ -282,9 +286,11 @@ namespace NeuroSky.MindView
             this.Controls.Add(this.attGraphPanel);
             this.Controls.Add(this.medGraphPanel);
             this.Controls.Add(this.rawGraphPanel);
-            this.Name = "Form1";
+            this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MindView Lite";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
         #endregion
@@ -722,6 +728,10 @@ namespace NeuroSky.MindView
 
 
             base.OnSizeChanged(e);
+        }
+
+        private void portText_TextChanged(object sender, EventArgs e) {
+
         }
 
 
