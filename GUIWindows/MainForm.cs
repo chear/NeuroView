@@ -142,6 +142,7 @@ namespace NeuroSky.MindView
             this.portText = new System.Windows.Forms.TextBox();
             this.statusLabel = new System.Windows.Forms.Label();
             this.poorSignalLabel = new System.Windows.Forms.Label();
+            this.fileLabel = new System.Windows.Forms.Label();
             this.attGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.medGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
@@ -217,6 +218,7 @@ namespace NeuroSky.MindView
             this.portText.Size = new System.Drawing.Size(80, 20);
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
+            this.portText.TextChanged += new System.EventHandler(this.portText_TextChanged);
             // 
             // statusLabel
             // 
@@ -233,6 +235,14 @@ namespace NeuroSky.MindView
             this.poorSignalLabel.Size = new System.Drawing.Size(50, 24);
             this.poorSignalLabel.TabIndex = 5;
             this.poorSignalLabel.Text = "PQ:";
+            // 
+            // fileLabel
+            // 
+            this.fileLabel.Location = new System.Drawing.Point(0, 15);
+            this.fileLabel.Name = "fileLabel";
+            this.fileLabel.Size = new System.Drawing.Size(800, 24);
+            this.fileLabel.TabIndex = 3;
+            this.fileLabel.Text = "None";
             // 
             // attGraphPanel
             // 
@@ -712,6 +722,10 @@ namespace NeuroSky.MindView
 
 
             base.OnSizeChanged(e);
+        }
+
+        private void portText_TextChanged(object sender, EventArgs e) {
+
         }
 
 

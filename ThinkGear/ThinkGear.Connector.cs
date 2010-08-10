@@ -9,6 +9,8 @@ using System.IO.Ports;
 
 using System.Threading;
 
+using NeuroSky.ThinkGear.Algorithms;
+
 namespace NeuroSky.ThinkGear {
 
     /*
@@ -38,6 +40,7 @@ namespace NeuroSky.ThinkGear {
         PoorSignal = 0x02,
         Attention = 0x04,
         Meditation = 0x05,
+        Blink = 0x16,
         Raw = 0x80,
         EEGPowerFloat = 0x81,
         EEGPowerInt = 0x83,
@@ -66,7 +69,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private int defaultBaudRate;
+        private int defaultBaudRate = 57600;
 
         private Thread findThread;
         private Thread readThread;
@@ -75,6 +78,7 @@ namespace NeuroSky.ThinkGear {
 
         private bool ReadThreadEnable = true;
         private bool RemoveThreadEnable = true;
+
         public bool ScanConnectEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
@@ -101,6 +105,10 @@ namespace NeuroSky.ThinkGear {
             removeThread.Start();
         }
 
+        ~Connector() {
+            Close();
+        }
+
         /**
          * Attempts to open a connection to a Device on the serial port named portName.
          * 
@@ -116,9 +124,11 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
-            if(!addThread.IsAlive) {
-                addThread = new Thread(AddThread);
-                addThread.Start();
+            if(addThread == null || addThread.ThreadState == ThreadState.Stopped) {
+                addThread = new Thread(AddThread);               
+            }
+            if (!addThread.IsAlive) {
+              addThread.Start();
             }
 
             if(!readThread.IsAlive) 
@@ -153,10 +163,19 @@ namespace NeuroSky.ThinkGear {
 
             Thread.Sleep(50);
 
-            if(readThread != null) readThread.Abort();
-            if(findThread != null )findThread.Abort();
-            if(addThread != null ) addThread.Abort();
-            if(removeThread != null) removeThread.Abort();
+            if(readThread != null) 
+                readThread.Abort();
+
+            if(findThread != null )
+                findThread.Abort();
+
+            if(addThread != null ) 
+                addThread.Abort();
+
+            if(removeThread != null) 
+                removeThread.Abort();
+
+            //this.Disconnect();
         }
 
         /**
@@ -197,7 +216,7 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * Indicates whether the AvailableConnections collection is in the middle of refreshing. 
-         * Note that while this property returns "true", the contents of the AvailableConnections
+         * While this property returns "true", the contents of the AvailableConnections
          * collection are invalid.
          */
         public bool IsRefreshing {
@@ -227,23 +246,22 @@ namespace NeuroSky.ThinkGear {
             return findThread.IsAlive;
         }
 
-        // TODO: Make this method priate, or refactor it into FindThread.
+        // TODO: Make this method private, or refactor it into FindThread.
         public void FindAvailablePorts() {
-            /*
-            string[] temp = SerialPort.GetPortNames();
-
-            Regex r = new Regex("COM[1-9][0-9]*");
-
-            foreach (string portName in temp)
-            {
-                availablePorts.Add(r.Match(portName).ToString());
-            }
-             */
+            string[] rawNames = SerialPort.GetPortNames();
 
             availablePorts.Clear();
 
-            for(int i = 1; i < 100; i++) {
-                availablePorts.Add("COM" + i);
+            Regex r = new Regex("COM[1-9][0-9]*");
+
+            // iterate over each of the raw COM port names and then
+            // scrub them
+            for(int i = 0; i < rawNames.Length; i++) {
+                string portName = r.Match(rawNames[i]).ToString();
+
+                if(portName.Length != 0) {
+                    availablePorts.Add(portName);
+                }
             }
         }
 
@@ -252,8 +270,10 @@ namespace NeuroSky.ThinkGear {
 
             Connection tempPort;
 
+            //lock(mindSetPorts) {
             lock(mindSetPorts) {
                 mindSetPorts.Clear();
+            }
 
                 foreach(string portName in availablePorts) {
                     tempPort = new Connection();
@@ -290,14 +310,16 @@ namespace NeuroSky.ThinkGear {
                          */
 
                         if(returnPacket.DataRowArray.Length > 0) {
-                            mindSetPorts.Add(tempPort);
+                            lock(mindSetPorts) {
+                                mindSetPorts.Add(tempPort);
+                            }
 
                             //Connects to the First MindSet it found.
                             if(ScanConnectEnable) {
                                 lock(activePortsList) {
                                     activePortsList.Add(tempPort);
                                 }
-                                
+
                                 return;
                             }
                         }
@@ -317,7 +339,7 @@ namespace NeuroSky.ThinkGear {
                     else
                         DeviceNotFound(this, EventArgs.Empty);
                 }
-            }
+            //}
         }
 
         private void ReadThread() {
@@ -330,7 +352,8 @@ namespace NeuroSky.ThinkGear {
                         Packet returnPacket = port.ReadPacket();
 
                         /* Checks if it received any packet from any of the connections.*/
-                        if(returnPacket.DataRowArray.Length > 0) allReturnNull = false;
+                        if(returnPacket.DataRowArray.Length > 0) 
+                            allReturnNull = false;
 
                         /*Pass the data to the devices.*/
                         lock(deviceList) {
@@ -365,7 +388,9 @@ namespace NeuroSky.ThinkGear {
                     foreach(Connection port in removePortsList) {
                         if(port.IsOpen) {
                             try {
+                                Console.WriteLine("Removing port " + port.PortName);
                                 port.Close();
+                                Console.WriteLine("Port closed.");
                             }
                             catch(Exception e) {
                                 Console.WriteLine("RemoveThread: " + e.Message);
@@ -389,8 +414,9 @@ namespace NeuroSky.ThinkGear {
                                 tempDevice = deviceList[index];
                                 deviceList.RemoveAt(index);
                             }
-
                         }
+
+                        Console.WriteLine("Removed " + tempDevice.PortName);
 
                         DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
                     }
@@ -403,6 +429,7 @@ namespace NeuroSky.ThinkGear {
         }
 
         private void AddThread() {
+
             lock(portsToConnect) {
                 foreach(Connection tempPort in portsToConnect) {
                     if(tempPort.IsOpen) 
@@ -460,8 +487,6 @@ namespace NeuroSky.ThinkGear {
                 return;
 
             (deviceList[index]).Deliver(packet.DataRowArray);
-
-
         }/*End of DeliverPacket*/
 
         public class Connection: SerialPort {
@@ -477,31 +502,30 @@ namespace NeuroSky.ThinkGear {
             public DateTime StartTimeoutTime = new DateTime(1970, 1, 1, 0, 0, 0);
             public double TotalTimeoutTime = 0; //In milliseconds
 
+            private BlinkDetector blinkDetector;
+            private byte poorSignal = 200;
+
             public enum ParserState {
-                Invalid = 0,
-                Sync0 = 1,
-                Sync1 = 2,
-                PayloadLength = 3,
-                Payload = 4,
-                Checksum = 5
+                Invalid,
+                Sync0,
+                Sync1,
+                PayloadLength,
+                Payload,
+                Checksum
             };
 
             public Byte[] parserBuffer = new Byte[0];
 
-            public Connection() {
-                PortName = " ";
-                parserBuffer = new Byte[0];
-                this.BaudRate = 57600;
-                this.ReadTimeout = SERIALPORT_READ_TIMEOUT;
+            public Connection() : this(" ") {
             }
 
             public Connection(String portName) {
-                parserBuffer = new Byte[0];
-                this.BaudRate = 57600;
-                this.ReadTimeout = SERIALPORT_READ_TIMEOUT;
+                parserBuffer = new byte[0];
+                BaudRate = 57600;
+                ReadTimeout = SERIALPORT_READ_TIMEOUT;
 
-                this.PortName = portName;
-
+                PortName = portName;
+                blinkDetector = new BlinkDetector();
             }
 
             public Packet ReadPacket() {
@@ -509,7 +533,7 @@ namespace NeuroSky.ThinkGear {
                 List<byte> receivedBytes = new List<byte>();
                 List<DataRow> receivedDataRow = new List<DataRow>();
 
-                int state = (int)ParserState.Sync0;
+                ParserState state = ParserState.Sync0;
                 int payloadLength = 0;
                 int payloadSum = 0;
                 int checkSum = 0;
@@ -522,12 +546,10 @@ namespace NeuroSky.ThinkGear {
 
                 while(DateTime.Now < readPacketTimeOut && tempDataRowArray == null) {
                     try {
-                        if(parserBuffer.Length > bufferIterator) {
+                        if(parserBuffer.Length > bufferIterator)
                             tempByte[0] = parserBuffer[bufferIterator++];
-                        }
-                        else {
+                        else
                             Read(tempByte, 0, 1);
-                        }
 
                         /*
                         if (parserBuffer.Length == 0 && bufferIterator == parserBuffer.Length)
@@ -559,48 +581,49 @@ namespace NeuroSky.ThinkGear {
 
                     switch(state) {
                         /*Waiting for the first SYNC_BYTE*/
-                        case ((int)ParserState.Sync0):
+                        case (ParserState.Sync0):
                             if(tempByte[0] == SYNC_BYTE) {
-                                state = (int)ParserState.Sync1;
+                                state = ParserState.Sync1;
                             }
                             break;
 
                         /*Waiting for the second SYNC_BYTE*/
-                        case ((int)ParserState.Sync1):
+                        case (ParserState.Sync1):
                             if(tempByte[0] == SYNC_BYTE) {
-                                state = (int)ParserState.PayloadLength;
+                                state = ParserState.PayloadLength;
                             }
                             else {
-                                state = (int)ParserState.Sync0;
+                                state = ParserState.Sync0;
                             }
                             break;
 
                         /* Waiting for payload length */
-                        case ((int)ParserState.PayloadLength):
+                        case (ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if(payloadLength >= 170) {
-                                state = (int)ParserState.Sync0;
+                                state = ParserState.Sync0;
                             }
                             else {
                                 payload.Clear();
                                 payloadSum = 0;
-                                state = (int)ParserState.Payload;
+                                state = ParserState.Payload;
                             }
                             break;
 
                         /* Waiting for Payload bytes */
-                        case ((int)ParserState.Payload):
+                        case (ParserState.Payload):
                             payload.Add(tempByte[0]);
                             payloadSum += tempByte[0];
                             if(payload.Count >= payloadLength) {
-                                state = (int)ParserState.Checksum;
+                                state = ParserState.Checksum;
                             }
                             break;
 
                         /* Waiting for checksum byte */
-                        case ((int)ParserState.Checksum):
+                        case (ParserState.Checksum):
                             checkSum = tempByte[0];
-                            state = (int)ParserState.Sync0;
+                            state = ParserState.Sync0;
+
                             if(checkSum == ((~payloadSum) & 0xFF)) {
                                 //Console.WriteLine("Parsing Payload");
                                 tempDataRowArray = ParsePayload(payload.ToArray());
@@ -615,15 +638,9 @@ namespace NeuroSky.ThinkGear {
                             receivedDataRow.Add(tempDataRow);
                         }
                     }
-
                 }
 
-                if(receivedBytes.Count > 0) {
-                    parserBuffer = receivedBytes.ToArray();
-                }
-                else { parserBuffer = new Byte[0]; }
-
-                //if( receivedDataRow.Count < 1 ) debugFile.WriteLine("Did not receive any packet.");
+                parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
 
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
 
@@ -650,7 +667,6 @@ namespace NeuroSky.ThinkGear {
             }/*End of PackagePacket*/
 
             private DataRow[] ParsePayload(byte[] payload) {
-
                 List<DataRow> tempDataRowList = new List<DataRow>();
                 DataRow tempDataRow = new DataRow();
                 int i = 0;
@@ -660,7 +676,6 @@ namespace NeuroSky.ThinkGear {
 
                 /* Parse all bytes from the payload[] */
                 while(i < payload.Length) {
-
                     /* Parse possible Extended CODE bytes */
                     while(payload[i] == EXCODE_BYTE) {
                         extendedCodeLevel++;
@@ -671,25 +686,48 @@ namespace NeuroSky.ThinkGear {
                     code = payload[i++];
 
                     /* Parse value length */
-                    if(code >= 0x80) numBytes = payload[i++];
-                    else numBytes = 1;
+                    numBytes = code >= 0x80 ? payload[i++] : 1;
 
                     /*Copies the Code to the tempDataRow*/
                     tempDataRow.Type = (Code)code;
 
-                    /*Gets the current time and inserts it into the tempDataRow*/
-                    tempDataRow.Time = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
+                    double currentTime = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
 
-                    //debugFile.WriteLine("TimeStamp: " + (DateTime.UtcNow - startTime).TotalSeconds);
+                    /*Gets the current time and inserts it into the tempDataRow*/
+                    tempDataRow.Time = currentTime;
 
                     /*Copies the data into the DataRow*/
                     tempDataRow.Data = new byte[numBytes];
-                    for(int t = 0;t < numBytes;t++) {
-                        tempDataRow.Data[t] = payload[i++];
-                    }
+
+                    Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
+
+                    i += numBytes;
 
                     /*Appends the data row to list*/
                     tempDataRowList.Add(tempDataRow);
+
+                    /*
+                     * Now let's apply some processing to figure out blinks
+                     */
+
+                    // look for a poorSignal data row. the blink detector needs
+                    // this value
+                    if(tempDataRow.Type == Code.PoorSignal)
+                        poorSignal = tempDataRow.Data[0];
+
+                    // check if a blink was detected every time a raw packet is received
+                    if(tempDataRow.Type == Code.Raw) {
+                        short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
+
+                        byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
+
+                        if(blinkStrength > 0) {
+                            DataRow d = new DataRow { Type = Code.Blink, 
+                                                      Time = currentTime, 
+                                                      Data = new byte[1] { blinkStrength } };
+                            tempDataRowList.Add(d);
+                        }
+                    }
                 }
 
                 return tempDataRowList.ToArray();

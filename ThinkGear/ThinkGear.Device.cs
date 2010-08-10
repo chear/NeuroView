@@ -73,7 +73,9 @@ namespace NeuroSky.ThinkGear
 
         public bool Equals(Device other)
         {
-            return this.HeadsetID == other.HeadsetID && this.PortName == other.PortName;
+            return other != null && this != null && 
+                   this.HeadsetID == other.HeadsetID && 
+                   this.PortName == other.PortName;
         }
 
         public override string ToString() {

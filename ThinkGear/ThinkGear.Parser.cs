@@ -59,8 +59,6 @@ namespace NeuroSky.ThinkGear.Parser
         }
     }
 
-
-
     public struct TimeStampData
     {
         public double TimeStamp;
