@@ -22,13 +22,13 @@ namespace testprogram {
 
       //tg_Connector.Find();
       //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
-      tg_Connector.Connect("COM41");
+      tg_Connector.Connect("COM40");
 
-      Thread.Sleep(10000);
+      Thread.Sleep(60000);
       tg_Connector.Disconnect();
-      Thread.Sleep(5000);
-      tg_Connector.Connect("COM41");
-      Thread.Sleep(10000);
+      Thread.Sleep(500);
+      //tg_Connector.Connect("COM41");
+      //Thread.Sleep(10000);
 
       /*
       foreach (NeuroSky.ThinkGear.Connector.Connection c in tg_Connector.mindSetPorts)
@@ -37,7 +37,8 @@ namespace testprogram {
       }*/
 
       //Thread.Sleep(10000);
-
+      tg_Connector.Close();
+      Thread.Sleep(500);
       System.Console.WriteLine("Goodbye.");
 
       Environment.Exit(0);
@@ -66,23 +67,27 @@ namespace testprogram {
       MindSetParser mindSetParser = new MindSetParser();
 
       parsedData = mindSetParser.Read(de.DataRowArray);
-#if true
-            foreach (TimeStampData tsd in parsedData.Raw)
+#if false
+            foreach (TimeStampData tsd in parsedData.DampenedMeditation)
             {
                 Console.WriteLine("Time: " + tsd.TimeStamp + " Raw Value: " + tsd.Value);
             }
 #endif
 
 #if false
-            for (int i = 0; i < parsedData.Attention.Length; i++)
+            for (int i = 0; i < parsedData.DampenedAttention.Length; i++)
             {
-                Console.WriteLine("Time: " + parsedData.Attention[i].TimeStamp +
+                Console.WriteLine("Time: " + parsedData.DampenedAttention[i].TimeStamp +
                                   " Poor Signal Quality: " + parsedData.PoorSignalQuality[i].Value +
-                                  " Attention: " +  parsedData.Attention[i].Value + 
-                                  " Meditation: " + parsedData.Meditation[i].Value);
+                                  " Dampend Attention: " +  parsedData.DampenedAttention[i].Value + 
+                                  " Dampened Meditation: " + parsedData.DampenedMeditation[i].Value);
             }
 #endif
-
+            for (int i = 0; i < parsedData.EMGPower.Length; i++) {
+              Console.WriteLine("Time: " + parsedData.EMGPower[i].TimeStamp +
+                                " Poor Signal Quality: " + parsedData.PoorSignalQuality[i].Value +
+                                " emg power: " + string.Format("{0}", parsedData.EMGPower[i].Value));
+            }
 #if false
             foreach(PowerEEGData ped in parsedData.PowerEEGData)
             {

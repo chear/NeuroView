@@ -36,15 +36,18 @@ namespace NeuroSky.ThinkGear {
      * The raw CODE used in the packet
      */
     public enum Code: byte {
-        Battery = 0x01,
-        PoorSignal = 0x02,
-        Attention = 0x04,
-        Meditation = 0x05,
-        Blink = 0x16,
-        Raw = 0x80,
+        Battery       = 0x01,
+        PoorSignal    = 0x02,
+        Attention     = 0x04,
+        Meditation    = 0x05,
+        DampenedAtt   = 0x14,
+        DampenedMed   = 0x15,
+        Blink         = 0x16,
+        HeadsetID     = 0x7F,
+        Raw           = 0x80,
         EEGPowerFloat = 0x81,
-        EEGPowerInt = 0x83,
-        HeadsetID = 0x7F,
+        EEGPowerInt   = 0x83,
+        EMGPower      = 0x94        
     };
 
     // The main controller that connects the connections to a specific device.  
