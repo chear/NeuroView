@@ -85,15 +85,19 @@ namespace testprogram {
 #endif
 
 #if false
-            for (int i = 0; i < parsedData.Attention.Length; i++)
+            for (int i = 0; i < parsedData.DampenedAttention.Length; i++)
             {
-                Console.WriteLine("Time: " + parsedData.Attention[i].TimeStamp +
+                Console.WriteLine("Time: " + parsedData.DampenedAttention[i].TimeStamp +
                                   " Poor Signal Quality: " + parsedData.PoorSignalQuality[i].Value +
-                                  " Attention: " +  parsedData.Attention[i].Value + 
-                                  " Meditation: " + parsedData.Meditation[i].Value);
+                                  " Dampend Attention: " +  parsedData.DampenedAttention[i].Value + 
+                                  " Dampened Meditation: " + parsedData.DampenedMeditation[i].Value);
             }
 #endif
-
+            for (int i = 0; i < parsedData.EMGPower.Length; i++) {
+              Console.WriteLine("Time: " + parsedData.EMGPower[i].TimeStamp +
+                                " Poor Signal Quality: " + parsedData.PoorSignalQuality[i].Value +
+                                " emg power: " + string.Format("{0}", parsedData.EMGPower[i].Value));
+            }
 #if false
             foreach(PowerEEGData ped in parsedData.PowerEEGData)
             {
