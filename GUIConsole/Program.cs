@@ -11,64 +11,75 @@ using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Parser;
 
 namespace testprogram {
-  class Program {
+    class Program {
 
-    public static void Main(string[] args) {
+        public static void Main(string[] args) {
 
-      Console.WriteLine("Hello EEG!");
+            Console.WriteLine("Hello EEG!");
 
-      Connector tg_Connector = new Connector();
-      tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
+            Connector tg_Connector = new Connector();
+            tg_Connector.DeviceConnected += new EventHandler(OnDeviceConnected);
 
-      //tg_Connector.Find();
-      //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
-      tg_Connector.Connect("COM41");
+            //tg_Connector.Find();
+            //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
+            tg_Connector.Connect("COM4");
 
-      Thread.Sleep(10000);
-      tg_Connector.Disconnect();
-      Thread.Sleep(5000);
-      tg_Connector.Connect("COM41");
-      Thread.Sleep(10000);
+            Thread.Sleep(5000);
 
-      /*
-      foreach (NeuroSky.ThinkGear.Connector.Connection c in tg_Connector.mindSetPorts)
-      {
-          Console.WriteLine("Found" + c.PortName);
-      }*/
+            //byte[] tempByte = { 0xC2 };
+            byte[] connectByte = { 0xC0, 0x8E, 0xF2 };
+            tg_Connector.Send("COM4", connectByte);
 
-      //Thread.Sleep(10000);
+            Thread.Sleep(5000);
 
-      System.Console.WriteLine("Goodbye.");
+            byte[] tempByte1 = { 0xC1 };
+            tg_Connector.Send("COM4", tempByte1);
 
-      Environment.Exit(0);
+            Thread.Sleep(5000);
 
-    }
+            System.Console.WriteLine("Goodbye.");
+
+            Environment.Exit(0);
+
+        }
 
 
-    static void OnDeviceConnected(object sender, EventArgs e) {
-      Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
+        static void OnDeviceConnected(object sender, EventArgs e) {
+            Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
-      Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
+            Console.WriteLine("New Headset Created!!! " + de.Device.PortName);
 
-      de.Device.DataReceived += new EventHandler(OnDataReceived);
+            de.Device.DataReceived += new EventHandler(OnDataReceived);
 
-    }
+        }
 
-    static void OnDataReceived(object sender, EventArgs e) {
-      Device d = (Device)sender;
-      Device.DataEventArgs de = (Device.DataEventArgs)e;
+        static void OnDataReceived(object sender, EventArgs e) {
+            Device d = (Device)sender;
+            Device.DataEventArgs de = (Device.DataEventArgs)e;
 
-      DataRow[] tempDataRowArray = de.DataRowArray;
-      Parsed parsedData = new Parsed();
+            DataRow[] tempDataRowArray = de.DataRowArray;
+            Parsed parsedData = new Parsed();
 
-      //Console.WriteLine("PortName: " + d.PortName + " HeadSetID: " + d.HeadsetID);
+            //Console.WriteLine("PortName: " + d.PortName + " HeadSetID: " + d.HeadsetID);
 
-      MindSetParser mindSetParser = new MindSetParser();
+            MindSetParser mindSetParser = new MindSetParser();
 
-      parsedData = mindSetParser.Read(de.DataRowArray);
-#if true
-            foreach (TimeStampData tsd in parsedData.Raw)
-            {
+            parsedData = mindSetParser.Read(de.DataRowArray);
+
+            foreach(TimeStampData tsd in parsedData.DongleStatus){
+                Console.WriteLine("Time: " + tsd.TimeStamp + " Dongle Status: " + tsd.Value);
+            }
+
+            foreach (TimeStampData tsd in parsedData.HeadsetConnect) {
+                Console.WriteLine("Time: " + tsd.TimeStamp + " Dongle Connect: 0x" + ((int)tsd.Value).ToString("X2"));
+            }
+
+            foreach (TimeStampData tsd in parsedData.HeadsetDisconnect) {
+                Console.WriteLine("Time: " + tsd.TimeStamp + " Dongle Disconnect: 0x" + ((int)tsd.Value).ToString("X2"));
+            }
+
+#if false
+            foreach (TimeStampData tsd in parsedData.Raw) {
                 Console.WriteLine("Time: " + tsd.TimeStamp + " Raw Value: " + tsd.Value);
             }
 #endif
@@ -97,6 +108,6 @@ namespace testprogram {
                                   "\nGamma2: " + ped.Gamma2);
             }
 #endif
+        }
     }
-  }
 }

@@ -15,6 +15,11 @@ namespace NeuroSky.ThinkGear.Parser
         public PowerEEGData[] PowerEEGData;
 
         public TimeStampData[] Raw;
+
+        public TimeStampData[] DongleStatus;
+        public TimeStampData[] HeadsetConnect;
+        public TimeStampData[] HeadsetDisconnect;
+        
     }
 
     public struct PowerEEGData
@@ -86,6 +91,10 @@ namespace NeuroSky.ThinkGear.Parser
 
             List<TimeStampData> tempRaw = new List<TimeStampData>();
 
+            List<TimeStampData> tempDongleStatus = new List<TimeStampData>();
+            List<TimeStampData> tempHeadsetDisconnect = new List<TimeStampData>();
+            List<TimeStampData> tempHeadsetConnect = new List<TimeStampData>();
+
             foreach (DataRow d in dataRowArray)
             {
                 switch (d.Type)
@@ -105,6 +114,15 @@ namespace NeuroSky.ThinkGear.Parser
                     case(Code.EEGPowerInt):
                         tempPowerEEGData.Add(new PowerEEGData(d.Time, d.Data));
                         break;
+                    case(Code.DongleStatus):
+                        tempDongleStatus.Add(new TimeStampData(d.Time, (double)d.Data[0]));
+                        break;
+                    case(Code.HeadsetDisconnect):
+                        tempHeadsetDisconnect.Add(new TimeStampData(d.Time, (int)((d.Data[0]<<8) + d.Data[1])));
+                        break;
+                    case (Code.HeadsetConnect):
+                        tempHeadsetConnect.Add(new TimeStampData(d.Time, (int)((d.Data[0] << 8) + d.Data[1])));
+                        break;
 
                 }
             }
@@ -114,6 +132,9 @@ namespace NeuroSky.ThinkGear.Parser
             tempParsed.Meditation = tempMeditation.ToArray();
             tempParsed.Raw = tempRaw.ToArray();
             tempParsed.PowerEEGData = tempPowerEEGData.ToArray();
+            tempParsed.DongleStatus = tempDongleStatus.ToArray();
+            tempParsed.HeadsetDisconnect = tempHeadsetDisconnect.ToArray();
+            tempParsed.HeadsetConnect = tempHeadsetConnect.ToArray();
 
             return tempParsed;
         }

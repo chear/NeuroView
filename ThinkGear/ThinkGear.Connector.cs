@@ -45,6 +45,12 @@ namespace NeuroSky.ThinkGear {
         EEGPowerFloat = 0x81,
         EEGPowerInt = 0x83,
         HeadsetID = 0x7F,
+        
+        HeadsetConnect = 0xD0,
+        HeadsetNotFound = 0xD1,
+        HeadsetDisconnect = 0xD2,
+        RequestDenied = 0xD3,
+        DongleStatus = 0xD4
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -69,7 +75,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private int defaultBaudRate = 57600;
+        private int defaultBaudRate = 115200;
 
         private Thread findThread;
         private Thread readThread;
@@ -99,7 +105,7 @@ namespace NeuroSky.ThinkGear {
             readThread.Priority = ThreadPriority.Highest;
             removeThread.Priority = ThreadPriority.Lowest;
 
-            defaultBaudRate = 57600;
+            defaultBaudRate = 115200;
 
             readThread.Start();
             removeThread.Start();
@@ -133,6 +139,20 @@ namespace NeuroSky.ThinkGear {
 
             if(!readThread.IsAlive) 
                 readThread.Start();
+        }
+
+        public void Send(string portName, byte[] byteArray) {
+            Connection tempConnection = new Connection(portName);
+
+            lock (activePortsList) {
+                /*Check to make sure the portName exists in the activePortsList*/
+                int index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
+
+                if (index < 0)return;
+
+                activePortsList[index].Write(byteArray, 0, byteArray.Length);
+
+            }
         }
 
         /**
@@ -233,7 +253,7 @@ namespace NeuroSky.ThinkGear {
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
-            defaultBaudRate = 57600;
+            defaultBaudRate = 115200;
 
             if(!findThread.IsAlive) {
                 findThread = new Thread(FindThread);
@@ -270,7 +290,6 @@ namespace NeuroSky.ThinkGear {
 
             Connection tempPort;
 
-            //lock(mindSetPorts) {
             lock(mindSetPorts) {
                 mindSetPorts.Clear();
             }
@@ -355,13 +374,26 @@ namespace NeuroSky.ThinkGear {
                         if(returnPacket.DataRowArray.Length > 0) 
                             allReturnNull = false;
 
+                        /*
+                        foreach (DataRow d in returnPacket.DataRowArray) {
+                            Console.Write(d.Time + ": " + d.Type + ":");
+
+                            foreach (byte b in d.Data) {
+                                Console.Write( " 0x" + b.ToString("X2"));
+                            }
+                            
+                            Console.Write("\n");
+                        }
+                        */
+
+
                         /*Pass the data to the devices.*/
                         lock(deviceList) {
                             DeliverPacket(returnPacket);
                         }
 
                         // Check the TotalTimeout and add to the remove list if is not receiving
-                        if(port.TotalTimeoutTime > 1) {
+                        if(port.TotalTimeoutTime >1000) {
                             lock(removePortsList) {
                                 removePortsList.Add(port);
                             }
@@ -447,7 +479,7 @@ namespace NeuroSky.ThinkGear {
                     Packet returnPacket = tempPort.ReadPacket();
 
                     //If it can read valid packets add to activePortList
-                    if(returnPacket.DataRowArray.Length > 0) {
+                    if( returnPacket.DataRowArray.Length > 0) {
                         lock(activePortsList) {
                             activePortsList.Add(tempPort);
                         }
@@ -493,7 +525,7 @@ namespace NeuroSky.ThinkGear {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
             private const int SERIALPORT_READ_TIMEOUT = 50; //in milliseconds
-            private const int READ_PACKET_TIMEOUT = 1;      // in seconds
+            private const int READ_PACKET_TIMEOUT = 2;      // in seconds
 
             private const byte SYNC_BYTE = 0xAA;
             private const byte EXCODE_BYTE = 0x55;
@@ -521,7 +553,7 @@ namespace NeuroSky.ThinkGear {
 
             public Connection(String portName) {
                 parserBuffer = new byte[0];
-                BaudRate = 57600;
+                BaudRate = 115200;
                 ReadTimeout = SERIALPORT_READ_TIMEOUT;
 
                 PortName = portName;
@@ -550,13 +582,6 @@ namespace NeuroSky.ThinkGear {
                             tempByte[0] = parserBuffer[bufferIterator++];
                         else
                             Read(tempByte, 0, 1);
-
-                        /*
-                        if (parserBuffer.Length == 0 && bufferIterator == parserBuffer.Length)
-                            Read(tempByte, 0, 1);
-                        else
-                            tempByte[0] = parserBuffer[bufferIterator++];
-                        */
 
                         receivedBytes.Add(tempByte[0]);
                     }
