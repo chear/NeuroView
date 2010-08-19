@@ -48,8 +48,6 @@ namespace NeuroSky.ThinkGear {
         EEGPowerFloat = 0x81,
         EEGPowerInt = 0x83,
 		EMGPower    = 0x94,   
-        HeadsetID = 0x7F,
-        
         HeadsetConnect = 0xD0,
         HeadsetNotFound = 0xD1,
         HeadsetDisconnect = 0xD2,
