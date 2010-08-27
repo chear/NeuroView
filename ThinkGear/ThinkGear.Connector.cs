@@ -74,7 +74,6 @@ namespace NeuroSky.ThinkGear {
 
         private List<string> availablePorts;
         private List<Connection> portsToConnect;
-
         private List<Connection> activePortsList;
         private List<Connection> removePortsList;
         private List<Device> deviceList;
@@ -84,10 +83,8 @@ namespace NeuroSky.ThinkGear {
         private Thread findThread;
         private Thread readThread;
         private Thread addThread;
-        private Thread removeThread;
 
         private bool ReadThreadEnable = true;
-        private bool RemoveThreadEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -102,13 +99,10 @@ namespace NeuroSky.ThinkGear {
 
             findThread = new Thread(FindThread);
             readThread = new Thread(ReadThread);
-            removeThread = new Thread(RemoveThread);
 
             readThread.Priority = ThreadPriority.Highest;
-            removeThread.Priority = ThreadPriority.Lowest;
 
             readThread.Start();
-            removeThread.Start();
         }
 
         ~Connector() {
@@ -145,13 +139,12 @@ namespace NeuroSky.ThinkGear {
             Connection tempConnection = new Connection(portName);
 
             lock (activePortsList) {
-                /*Check to make sure the portName exists in the activePortsList*/
+                // Check to make sure the portName exists in the activePortsList
                 int index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
 
                 if (index < 0)return;
 
                 activePortsList[index].Write(byteArray, 0, byteArray.Length);
-
             }
         }
 
@@ -179,7 +172,6 @@ namespace NeuroSky.ThinkGear {
             this.Disconnect();
 
             ReadThreadEnable = false;
-            RemoveThreadEnable = false;
 
             Thread.Sleep(50);
 
@@ -191,30 +183,60 @@ namespace NeuroSky.ThinkGear {
 
             if(addThread != null ) 
                 addThread.Abort();
-
-            if(removeThread != null) 
-                removeThread.Abort();
-
-            //this.Disconnect();
         }
 
         /**
          * Closes all open connections.
          * 
          * Calling this method will result in the following event being broadcasted for
-         * all open devices:
+         * each open device:
          * 
          *      DeviceDisconnected - The device was disconnected
-         * 
-         * TODO: Write an overloaded Disconnect method that disconnects a specific Connection.
          */
         public void Disconnect() {
-            lock(activePortsList) {
-                foreach(Connection c in activePortsList) {
-                    removePortsList.Add(c);
-                }
+            // iterate over all open connections
+            foreach(Connection c in activePortsList) {
+                // make sure the associated Device is present in the deviceList
+                int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
 
-                activePortsList.Clear();
+                // go ahead and clean up
+                if(deviceIndex != -1){
+                    c.Close();
+
+                    Device d = deviceList[deviceIndex];
+
+                    deviceList.Remove(d);
+                    activePortsList.Remove(c);
+                    DeviceDisconnected(this, new DeviceEventArgs(d));
+                }
+            }
+        }
+
+        /**
+         * Closes a specific connection
+         * 
+         * Calling this method will result in the following event being broadcasted for
+         * a specific open device:
+         * 
+         *      DeviceDisconnected - The device was disconnected
+         */
+        public void Disconnect(Device d) {
+            // check to see whether the device exists in aPL and dL
+            if(deviceList.Contains(d)) {
+                // make sure a Connection exists for this Device
+                int connectionIndex = activePortsList.FindIndex(f => (f.PortName == d.PortName));
+
+                // perform cleanup
+                if(connectionIndex != -1) {
+                    Connection c = activePortsList[connectionIndex];
+
+                    c.Close();
+
+                    deviceList.Remove(d);
+                    activePortsList.Remove(c);
+
+                    DeviceDisconnected(this, new DeviceEventArgs(d));
+                }
             }
         }
 
@@ -365,37 +387,44 @@ namespace NeuroSky.ThinkGear {
             // Exits if readThreadEnable is false. 
             while(ReadThreadEnable) {
                 lock(activePortsList) {
-                    foreach(Connection port in activePortsList) {
-                        Packet returnPacket = port.ReadPacket();
+                    try {
+                        foreach(Connection port in activePortsList) {
+                            Packet returnPacket = port.ReadPacket();
 
-                        /* Checks if it received any packet from any of the connections.*/
-                        if(returnPacket.DataRowArray.Length > 0) 
-                            allReturnNull = false;
+                            /* Checks if it received any packet from any of the connections.*/
+                            if(returnPacket.DataRowArray.Length > 0)
+                                allReturnNull = false;
 
-                        /*
-                        foreach (DataRow d in returnPacket.DataRowArray) {
-                            Console.Write(d.Time + ": " + d.Type + ":");
+                            /*
+                            foreach (DataRow d in returnPacket.DataRowArray) {
+                                Console.Write(d.Time + ": " + d.Type + ":");
 
-                            foreach (byte b in d.Data) {
-                                Console.Write( " 0x" + b.ToString("X2"));
+                                foreach (byte b in d.Data) {
+                                    Console.Write( " 0x" + b.ToString("X2"));
+                                }
+                                
+                                Console.Write("\n");
                             }
-                            
-                            Console.Write("\n");
-                        }
-                        */
+                            */
 
 
-                        /*Pass the data to the devices.*/
-                        lock(deviceList) {
-                            DeliverPacket(returnPacket);
-                        }
+                            /*Pass the data to the devices.*/
+                            lock(deviceList) {
+                                DeliverPacket(returnPacket);
+                            }
 
-                        // Check the TotalTimeout and add to the remove list if is not receiving
-                        if(port.TotalTimeoutTime >1000) {
-                            lock(removePortsList) {
-                                removePortsList.Add(port);
+                            // Check the TotalTimeout and add to the remove list if is not receiving
+                            if(port.TotalTimeoutTime > 1000) {
+                                lock(removePortsList) {
+                                    removePortsList.Add(port);
+                                }
                             }
                         }
+                    }
+                    // catch the exception where the collection was modified inside the loop.
+                    // we can simply ignore and wait for the next iteration
+                    catch(InvalidOperationException) {
+
                     }
                 }
 
@@ -409,53 +438,6 @@ namespace NeuroSky.ThinkGear {
 
             }
 
-        }
-
-        private void RemoveThread() {
-
-            while(RemoveThreadEnable) {
-                lock(removePortsList) {
-                    foreach(Connection port in removePortsList) {
-                        if(port.IsOpen) {
-                            try {
-                                Console.WriteLine("Removing port " + port.PortName);
-                                port.Close();
-                                Console.WriteLine("Port closed.");
-                            }
-                            catch(Exception e) {
-                                Console.WriteLine("RemoveThread: " + e.Message);
-                            }
-                        }
-
-                        lock(activePortsList) {
-                            activePortsList.Remove(port);
-                        }
-
-                        Device tempDevice = new Device();
-
-                        lock(deviceList) {
-                            // TODO: Implement the case where multiple Devices are connected to the Connection. Currently only removes the first Device.
-
-                            /*Finds the index for the device that was connected to the port*/
-                            int index = deviceList.FindIndex(f => (f.PortName == port.PortName));
-
-                            /*Removes the Device from the list*/
-                            if(index >= 0) {
-                                tempDevice = deviceList[index];
-                                deviceList.RemoveAt(index);
-                            }
-                        }
-
-                        Console.WriteLine("Removed " + tempDevice.PortName);
-
-                        DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
-                    }
-
-                    removePortsList.Clear();
-                }
-
-                Thread.Sleep(500);
-            }
         }
 
         private void AddThread() {
