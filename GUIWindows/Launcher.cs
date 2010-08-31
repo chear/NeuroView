@@ -77,12 +77,9 @@ namespace NeuroSky.MindView
 
         void OnDeviceFound(object sender, EventArgs e)
         {
-            Console.WriteLine("At Launcher: Found " + connector.mindSetPorts[0].PortName);
+            Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
-            foreach(Connector.Connection c in connector.mindSetPorts)
-                Console.WriteLine("Found " + c.PortName);
-
-            string tempPortName = connector.mindSetPorts[0].PortName;
+            string tempPortName = de.Device.PortName;
             UpdateStatusLabel("Device found on " + tempPortName + ". Connecting...");
             mainForm.updateStatusLabel("Device found on " + tempPortName + ". Connecting...");
 
