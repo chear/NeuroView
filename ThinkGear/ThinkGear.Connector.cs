@@ -99,6 +99,7 @@ namespace NeuroSky.ThinkGear {
 
             findThread = new Thread(FindThread);
             readThread = new Thread(ReadThread);
+            addThread = new Thread(AddThread);
 
             readThread.Priority = ThreadPriority.Highest;
 
@@ -124,9 +125,11 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
+            /*
             if(addThread == null || addThread.ThreadState == ThreadState.Stopped) {
                 addThread = new Thread(AddThread);               
             }
+             */
             if (!addThread.IsAlive) {
               addThread.Start();
             }
@@ -276,7 +279,6 @@ namespace NeuroSky.ThinkGear {
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
             if(!findThread.IsAlive) {
-                findThread = new Thread(FindThread);
                 findThread.Start();
             }
         }
@@ -314,71 +316,70 @@ namespace NeuroSky.ThinkGear {
                 mindSetPorts.Clear();
             }
 
-                foreach(string portName in availablePorts) {
-                    tempPort = new Connection();
+            foreach(string portName in availablePorts) {
+                tempPort = new Connection();
 
-                    tempPort.PortName = portName;
-                    tempPort.BaudRate = DEFAULT_BAUD_RATE;
+                tempPort.PortName = portName;
+                tempPort.BaudRate = DEFAULT_BAUD_RATE;
 
-                    DeviceValidating(this, new ConnectionEventArgs(tempPort));
+                DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
-                    try {
-                        tempPort.Open();
-                        Thread.Sleep(100);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("Exception on port opening: " + e.Message);
-                    }
+                try {
+                    tempPort.Open();
+                    Thread.Sleep(100);
+                }
+                catch(Exception e) {
+                    Console.WriteLine("Exception on port opening: " + e.Message);
+                }
 
-                    if(tempPort.IsOpen) {
-                        Packet returnPacket = tempPort.ReadPacket();
+                if(tempPort.IsOpen) {
+                    Packet returnPacket = tempPort.ReadPacket();
 
-                        /*
-                        Console.WriteLine("Received " + returnPacket.DataRowArray.Length + " DataRows at FindThread.");
+                    /*
+                    Console.WriteLine("Received " + returnPacket.DataRowArray.Length + " DataRows at FindThread.");
 
-                        for(int i = 0;i < returnPacket.DataRowArray.Length;i++) {
-                            Console.Write(returnPacket.DataRowArray[i].Time + " : ["
-                                       + (Code)(returnPacket.DataRowArray[i].Type) + "] : ");
+                    for(int i = 0;i < returnPacket.DataRowArray.Length;i++) {
+                        Console.Write(returnPacket.DataRowArray[i].Time + " : ["
+                                   + (Code)(returnPacket.DataRowArray[i].Type) + "] : ");
 
-                            for(int t = 0;t < returnPacket.DataRowArray[i].Data.Length;t++) {
-                                Console.Write("0x" + returnPacket.DataRowArray[i].Data[t].ToString("X2") + " ");
-                            }
-
-                            Console.Write("\n");
-                        }
-                         */
-
-                        if(returnPacket.DataRowArray.Length > 0) {
-                            lock(mindSetPorts) {
-                                mindSetPorts.Add(tempPort);
-                            }
-
-                            //Connects to the First MindSet it found.
-                            if(ScanConnectEnable) {
-                                lock(activePortsList) {
-                                    activePortsList.Add(tempPort);
-                                }
-
-                                return;
-                            }
+                        for(int t = 0;t < returnPacket.DataRowArray[i].Data.Length;t++) {
+                            Console.Write("0x" + returnPacket.DataRowArray[i].Data[t].ToString("X2") + " ");
                         }
 
-                        tempPort.Close();
+                        Console.Write("\n");
                     }
-                }
+                     */
 
-                Thread.Sleep(1000);
+                    if(returnPacket.DataRowArray.Length > 0) {
+                        lock(mindSetPorts) {
+                            mindSetPorts.Add(tempPort);
+                        }
 
-                if(ScanConnectEnable && mindSetPorts.Count == 0) {
-                    DeviceConnectFail(this, EventArgs.Empty);
+                        //Connects to the First MindSet it found.
+                        if(ScanConnectEnable) {
+                            lock(activePortsList) {
+                                activePortsList.Add(tempPort);
+                            }
+
+                            return;
+                        }
+                    }
+
+                    tempPort.Close();
                 }
-                else {
-                    if(mindSetPorts.Count > 0)
-                        DeviceFound(this, EventArgs.Empty);
-                    else
-                        DeviceNotFound(this, EventArgs.Empty);
-                }
-            //}
+            }
+
+            Thread.Sleep(1000);
+
+            if(ScanConnectEnable && mindSetPorts.Count == 0) {
+                DeviceConnectFail(this, EventArgs.Empty);
+            }
+            else {
+                if(mindSetPorts.Count > 0)
+                    DeviceFound(this, EventArgs.Empty);
+                else
+                    DeviceNotFound(this, EventArgs.Empty);
+            }
         }
 
         private void ReadThread() {
