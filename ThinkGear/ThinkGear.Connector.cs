@@ -75,7 +75,6 @@ namespace NeuroSky.ThinkGear {
         private List<string> availablePorts;
         private List<Connection> portsToConnect;
         private List<Connection> activePortsList;
-        private List<Connection> removePortsList;
         private List<Device> deviceList;
 
         private const int DEFAULT_BAUD_RATE = 115200;
@@ -84,7 +83,7 @@ namespace NeuroSky.ThinkGear {
         private Thread readThread;
         private Thread addThread;
 
-        private bool ReadThreadEnable = true;
+        private volatile bool ReadThreadEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -94,14 +93,13 @@ namespace NeuroSky.ThinkGear {
             portsToConnect = new List<Connection>();
 
             activePortsList = new List<Connection>();
-            removePortsList = new List<Connection>();
             deviceList = new List<Device>();
 
             findThread = new Thread(FindThread);
             readThread = new Thread(ReadThread);
             addThread = new Thread(AddThread);
 
-            readThread.Priority = ThreadPriority.Highest;
+            //readThread.Priority = ThreadPriority.Highest;
 
             readThread.Start();
         }
@@ -125,14 +123,8 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
-            /*
-            if(addThread == null || addThread.ThreadState == ThreadState.Stopped) {
-                addThread = new Thread(AddThread);               
-            }
-             */
-            if (!addThread.IsAlive) {
-              addThread.Start();
-            }
+            if (!addThread.IsAlive)
+                addThread.Start();
 
             if(!readThread.IsAlive) 
                 readThread.Start();
@@ -141,14 +133,17 @@ namespace NeuroSky.ThinkGear {
         public void Send(string portName, byte[] byteArray) {
             Connection tempConnection = new Connection(portName);
 
+            int index = -1;
+
             lock (activePortsList) {
                 // Check to make sure the portName exists in the activePortsList
-                int index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
-
-                if (index < 0)return;
-
-                activePortsList[index].Write(byteArray, 0, byteArray.Length);
+                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
             }
+
+            if(index < 0)
+                return;
+
+            activePortsList[index].Write(byteArray, 0, byteArray.Length);
         }
 
         /**
@@ -172,20 +167,9 @@ namespace NeuroSky.ThinkGear {
          * TODO: Move this stuff into a destructor, so that an application that uses the Connector doesn't have to explicitly call this.
          */
         public void Close() {
-            this.Disconnect();
-
             ReadThreadEnable = false;
 
-            Thread.Sleep(50);
-
-            if(readThread != null) 
-                readThread.Abort();
-
-            if(findThread != null )
-                findThread.Abort();
-
-            if(addThread != null ) 
-                addThread.Abort();
+            this.Disconnect();
         }
 
         /**
@@ -198,12 +182,16 @@ namespace NeuroSky.ThinkGear {
          */
         public void Disconnect() {
             // iterate over all open connections
-            foreach(Connection c in activePortsList) {
+            Connection[] ports = activePortsList.ToArray();
+
+            for(int i = 0; i < ports.Length; i++) {
+                Connection c = ports[i];
+
                 // make sure the associated Device is present in the deviceList
                 int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
 
                 // go ahead and clean up
-                if(deviceIndex != -1){
+                if(deviceIndex != -1) {
                     c.Close();
 
                     Device d = deviceList[deviceIndex];
@@ -211,6 +199,10 @@ namespace NeuroSky.ThinkGear {
                     deviceList.Remove(d);
                     activePortsList.Remove(c);
                     DeviceDisconnected(this, new DeviceEventArgs(d));
+                }
+                else {
+                    c.Close();
+                    activePortsList.Remove(c);
                 }
             }
         }
@@ -233,14 +225,25 @@ namespace NeuroSky.ThinkGear {
                 if(connectionIndex != -1) {
                     Connection c = activePortsList[connectionIndex];
 
-                    c.Close();
-
-                    deviceList.Remove(d);
-                    activePortsList.Remove(c);
-
-                    DeviceDisconnected(this, new DeviceEventArgs(d));
+                    DisconnectionCleanup(c, d);
                 }
             }
+        }
+
+        private void Disconnect(Connection c) {
+            int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
+
+            Device d = deviceList[deviceIndex];
+
+            DisconnectionCleanup(c, d);
+        }
+
+        private void DisconnectionCleanup(Connection c, Device d) {
+            c.Close();
+            deviceList.Remove(d);
+            activePortsList.Remove(c);
+            DeviceDisconnected(this, new DeviceEventArgs(d));
+
         }
 
         /**
@@ -335,21 +338,6 @@ namespace NeuroSky.ThinkGear {
                 if(tempPort.IsOpen) {
                     Packet returnPacket = tempPort.ReadPacket();
 
-                    /*
-                    Console.WriteLine("Received " + returnPacket.DataRowArray.Length + " DataRows at FindThread.");
-
-                    for(int i = 0;i < returnPacket.DataRowArray.Length;i++) {
-                        Console.Write(returnPacket.DataRowArray[i].Time + " : ["
-                                   + (Code)(returnPacket.DataRowArray[i].Type) + "] : ");
-
-                        for(int t = 0;t < returnPacket.DataRowArray[i].Data.Length;t++) {
-                            Console.Write("0x" + returnPacket.DataRowArray[i].Data[t].ToString("X2") + " ");
-                        }
-
-                        Console.Write("\n");
-                    }
-                     */
-
                     if(returnPacket.DataRowArray.Length > 0) {
                         lock(mindSetPorts) {
                             mindSetPorts.Add(tempPort);
@@ -369,8 +357,6 @@ namespace NeuroSky.ThinkGear {
                 }
             }
 
-            Thread.Sleep(1000);
-
             if(ScanConnectEnable && mindSetPorts.Count == 0) {
                 DeviceConnectFail(this, EventArgs.Empty);
             }
@@ -387,45 +373,26 @@ namespace NeuroSky.ThinkGear {
 
             // Exits if readThreadEnable is false. 
             while(ReadThreadEnable) {
-                lock(activePortsList) {
+                Connection[] ports = activePortsList.ToArray();
+
+                foreach(Connection port in ports) {
+                    Packet returnPacket = port.ReadPacket();
+
+                    // Checks if it received any packet from any of the connections.
+                    if(returnPacket.DataRowArray.Length > 0)
+                        allReturnNull = false;
+
+                    // Pass the data to the devices.
                     try {
-                        foreach(Connection port in activePortsList) {
-                            Packet returnPacket = port.ReadPacket();
-
-                            /* Checks if it received any packet from any of the connections.*/
-                            if(returnPacket.DataRowArray.Length > 0)
-                                allReturnNull = false;
-
-                            /*
-                            foreach (DataRow d in returnPacket.DataRowArray) {
-                                Console.Write(d.Time + ": " + d.Type + ":");
-
-                                foreach (byte b in d.Data) {
-                                    Console.Write( " 0x" + b.ToString("X2"));
-                                }
-                                
-                                Console.Write("\n");
-                            }
-                            */
-
-
-                            /*Pass the data to the devices.*/
-                            lock(deviceList) {
-                                DeliverPacket(returnPacket);
-                            }
-
-                            // Check the TotalTimeout and add to the remove list if is not receiving
-                            if(port.TotalTimeoutTime > 1000) {
-                                lock(removePortsList) {
-                                    removePortsList.Add(port);
-                                }
-                            }
-                        }
+                        DeliverPacket(returnPacket);
                     }
-                    // catch the exception where the collection was modified inside the loop.
-                    // we can simply ignore and wait for the next iteration
-                    catch(InvalidOperationException) {
+                    catch(InvalidOperationException ie) {
 
+                    }
+
+                    // Check the TotalTimeout and add to the remove list if is not receiving
+                    if(port.TotalTimeoutTime > 1000) {
+                        Disconnect(port);
                     }
                 }
 
@@ -436,9 +403,7 @@ namespace NeuroSky.ThinkGear {
                 }
 
                 allReturnNull = true;
-
             }
-
         }
 
         private void AddThread() {
@@ -479,7 +444,8 @@ namespace NeuroSky.ThinkGear {
                 }
             }
 
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
+            Console.WriteLine("AddThread");
         }
 
         //Delivers a packet to a device
@@ -488,7 +454,9 @@ namespace NeuroSky.ThinkGear {
 
             /*Searches the device list and see the device is listed*/
             if(!deviceList.Contains(tempDevice)) {
-                deviceList.Add(tempDevice);
+                lock(deviceList) {
+                    deviceList.Add(tempDevice);
+                }
 
                 DeviceConnected(this, new DeviceEventArgs(tempDevice));
             }
