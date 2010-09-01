@@ -390,38 +390,36 @@ namespace NeuroSky.ThinkGear {
         }
 
         private void AddThread() {
+            Connection[] ports = portsToConnect.ToArray();
 
+            for(int i = 0; i < ports.Length; i++){
+                Connection port = ports[i];
 
+                if(port.IsOpen) 
+                    break;
 
-            lock(portsToConnect) {
-                foreach(Connection port in portsToConnect) {
-                    if(port.IsOpen) 
-                        break;
-
-                    //Connect if it was opened before.
-                    try {
-                        port.Open();
-                        Thread.Sleep(100);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("tempPort.Open Exception: " + e.Message);
-                    }
-
-                    Packet returnPacket = port.ReadPacket();
-
-                    //If it can read valid packets add to activePortList
-                    if( returnPacket.DataRowArray.Length > 0) {
-                        lock(activePortsList) {
-                            activePortsList.Add(port);
-                        }
-                    }
-                    else {
-                        port.Close();
-                    }
+                //Connect if it was opened before.
+                try {
+                    port.Open();
+                    Thread.Sleep(100);
+                }
+                catch(Exception e) {
+                    Console.WriteLine("tempPort.Open Exception: " + e.Message);
                 }
 
-                portsToConnect.Clear();
+                Packet returnPacket = port.ReadPacket();
+
+                //If it can read valid packets add to activePortList
+                if( returnPacket.DataRowArray.Length > 0) {
+                    lock(activePortsList) {
+                        activePortsList.Add(port);
+                    }
+                }
+                else
+                    port.Close();
             }
+
+            portsToConnect.Clear();
 
             lock(activePortsList) {
                 if(activePortsList.Count < 1) {
