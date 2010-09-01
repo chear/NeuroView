@@ -366,12 +366,7 @@ namespace NeuroSky.ThinkGear {
                         allReturnNull = false;
 
                     // Pass the data to the devices.
-                    try {
-                        DeliverPacket(returnPacket);
-                    }
-                    catch(InvalidOperationException ie) {
-
-                    }
+                    DeliverPacket(returnPacket);
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
                     if(port.TotalTimeoutTime > 1000) {
@@ -398,7 +393,7 @@ namespace NeuroSky.ThinkGear {
                 if(port.IsOpen) 
                     break;
 
-                //Connect if it was opened before.
+                // Connect if it was opened before.
                 try {
                     port.Open();
                     Thread.Sleep(100);
@@ -409,7 +404,7 @@ namespace NeuroSky.ThinkGear {
 
                 Packet returnPacket = port.ReadPacket();
 
-                //If it can read valid packets add to activePortList
+                // If it can read valid packets add to activePortList
                 if( returnPacket.DataRowArray.Length > 0) {
                     lock(activePortsList) {
                         activePortsList.Add(port);
@@ -421,21 +416,16 @@ namespace NeuroSky.ThinkGear {
 
             portsToConnect.Clear();
 
-            lock(activePortsList) {
-                if(activePortsList.Count < 1) {
-                    DeviceConnectFail(this, EventArgs.Empty);
-                }
+            if(activePortsList.Count < 1) {
+                DeviceConnectFail(this, EventArgs.Empty);
             }
-
-            //Thread.Sleep(1000);
-            Console.WriteLine("AddThread");
         }
 
-        //Delivers a packet to a device
+        // Delivers a packet to a device
         private void DeliverPacket(Packet packet) {
             Device tempDevice = new Device(packet.PortName, packet.HeadsetID);
 
-            /*Searches the device list and see the device is listed*/
+            // Searches the device list and see the device is listed
             if(!deviceList.Contains(tempDevice)) {
                 lock(deviceList) {
                     deviceList.Add(tempDevice);
@@ -444,14 +434,14 @@ namespace NeuroSky.ThinkGear {
                 DeviceConnected(this, new DeviceEventArgs(tempDevice));
             }
 
-            /*Finds the index for the device*/
+            // Finds the index for the device
             int index = deviceList.FindIndex(f => (f.PortName == tempDevice.PortName) && (f.HeadsetID == tempDevice.HeadsetID));
 
             if(index < 0)
                 return;
 
             (deviceList[index]).Deliver(packet.DataRowArray);
-        }/*End of DeliverPacket*/
+        }
 
         public class Connection: SerialPort {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -537,14 +527,14 @@ namespace NeuroSky.ThinkGear {
                     }
 
                     switch(state) {
-                        /*Waiting for the first SYNC_BYTE*/
+                        // Waiting for the first SYNC_BYTE
                         case (ParserState.Sync0):
                             if(tempByte[0] == SYNC_BYTE) {
                                 state = ParserState.Sync1;
                             }
                             break;
 
-                        /*Waiting for the second SYNC_BYTE*/
+                        // Waiting for the second SYNC_BYTE
                         case (ParserState.Sync1):
                             if(tempByte[0] == SYNC_BYTE) {
                                 state = ParserState.PayloadLength;
@@ -554,7 +544,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for payload length */
+                        // Waiting for payload length
                         case (ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if(payloadLength >= 170) {
@@ -567,7 +557,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for Payload bytes */
+                        // Waiting for Payload bytes
                         case (ParserState.Payload):
                             payload.Add(tempByte[0]);
                             payloadSum += tempByte[0];
@@ -576,7 +566,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for checksum byte */
+                        // Waiting for checksum byte
                         case (ParserState.Checksum):
                             checkSum = tempByte[0];
                             state = ParserState.Sync0;
@@ -601,7 +591,7 @@ namespace NeuroSky.ThinkGear {
 
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
 
-            }/*End of ReadPacket*/
+            }
 
             private Packet PackagePacket(DataRow[] dataRow, string portName) {
                 Packet tempPacket = new Packet();
@@ -621,7 +611,7 @@ namespace NeuroSky.ThinkGear {
                 tempPacket.DataRowArray = tempDataRowList.ToArray();
 
                 return tempPacket;
-            }/*End of PackagePacket*/
+            }
 
             private DataRow[] ParsePayload(byte[] payload) {
                 List<DataRow> tempDataRowList = new List<DataRow>();
@@ -631,36 +621,36 @@ namespace NeuroSky.ThinkGear {
                 byte code = 0;
                 int numBytes = 0;
 
-                /* Parse all bytes from the payload[] */
+                // Parse all bytes from the payload[]
                 while(i < payload.Length) {
-                    /* Parse possible Extended CODE bytes */
+                    // Parse possible Extended CODE bytes
                     while(payload[i] == EXCODE_BYTE) {
                         extendedCodeLevel++;
                         i++;
                     }
 
-                    /* Parse CODE */
+                    // Parse CODE
                     code = payload[i++];
 
-                    /* Parse value length */
+                    // Parse value length
                     numBytes = code >= 0x80 ? payload[i++] : 1;
 
-                    /*Copies the Code to the tempDataRow*/
+                    // Copies the Code to the tempDataRow
                     tempDataRow.Type = (Code)code;
 
                     double currentTime = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
 
-                    /*Gets the current time and inserts it into the tempDataRow*/
+                    // Gets the current time and inserts it into the tempDataRow
                     tempDataRow.Time = currentTime;
 
-                    /*Copies the data into the DataRow*/
+                    // Copies the data into the DataRow
                     tempDataRow.Data = new byte[numBytes];
 
                     Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
 
                     i += numBytes;
 
-                    /*Appends the data row to list*/
+                    // Appends the data row to list
                     tempDataRowList.Add(tempDataRow);
 
                     /*
