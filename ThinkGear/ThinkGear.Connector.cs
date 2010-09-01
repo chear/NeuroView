@@ -391,30 +391,32 @@ namespace NeuroSky.ThinkGear {
 
         private void AddThread() {
 
+
+
             lock(portsToConnect) {
-                foreach(Connection tempPort in portsToConnect) {
-                    if(tempPort.IsOpen) 
+                foreach(Connection port in portsToConnect) {
+                    if(port.IsOpen) 
                         break;
 
                     //Connect if it was opened before.
                     try {
-                        tempPort.Open();
+                        port.Open();
                         Thread.Sleep(100);
                     }
                     catch(Exception e) {
                         Console.WriteLine("tempPort.Open Exception: " + e.Message);
                     }
 
-                    Packet returnPacket = tempPort.ReadPacket();
+                    Packet returnPacket = port.ReadPacket();
 
                     //If it can read valid packets add to activePortList
                     if( returnPacket.DataRowArray.Length > 0) {
                         lock(activePortsList) {
-                            activePortsList.Add(tempPort);
+                            activePortsList.Add(port);
                         }
                     }
                     else {
-                        tempPort.Close();
+                        port.Close();
                     }
                 }
 
