@@ -234,10 +234,10 @@ namespace NeuroSky.ThinkGear.Parser
                         break;
                     case(Code.RawMS):
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
-                        if (d.Data.Length > 2) {
+                        if (d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
                         }
-                        if (d.Data.Length > 4) {
+                        if (d.Data.Length > 6) {
                             parsedRow.Add("RawCh3", (short)((d.Data[6] << 8) + d.Data[7]));
                         }
                         //Console.WriteLine("\tEEG");
