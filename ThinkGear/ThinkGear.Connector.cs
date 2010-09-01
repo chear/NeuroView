@@ -70,6 +70,8 @@ namespace NeuroSky.ThinkGear {
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
 
+        public bool ScanConnectEnable = true;
+
         private List<string> availablePorts;
         private List<Connection> portsToConnect;
 
@@ -77,7 +79,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private int defaultBaudRate = 115200;
+        private const int DEFAULT_BAUD_RATE = 115200;
 
         private Thread findThread;
         private Thread readThread;
@@ -86,8 +88,6 @@ namespace NeuroSky.ThinkGear {
 
         private bool ReadThreadEnable = true;
         private bool RemoveThreadEnable = true;
-
-        public bool ScanConnectEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -106,8 +106,6 @@ namespace NeuroSky.ThinkGear {
 
             readThread.Priority = ThreadPriority.Highest;
             removeThread.Priority = ThreadPriority.Lowest;
-
-            defaultBaudRate = 115200;
 
             readThread.Start();
             removeThread.Start();
@@ -255,8 +253,6 @@ namespace NeuroSky.ThinkGear {
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
-            defaultBaudRate = 115200;
-
             if(!findThread.IsAlive) {
                 findThread = new Thread(FindThread);
                 findThread.Start();
@@ -300,7 +296,7 @@ namespace NeuroSky.ThinkGear {
                     tempPort = new Connection();
 
                     tempPort.PortName = portName;
-                    tempPort.BaudRate = defaultBaudRate;
+                    tempPort.BaudRate = DEFAULT_BAUD_RATE;
 
                     DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
