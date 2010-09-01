@@ -123,6 +123,8 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(tempConnection);
             }
 
+            ReadThreadEnable = true;
+
             if (!addThread.IsAlive)
                 addThread.Start();
 
@@ -185,25 +187,7 @@ namespace NeuroSky.ThinkGear {
             Connection[] ports = activePortsList.ToArray();
 
             for(int i = 0; i < ports.Length; i++) {
-                Connection c = ports[i];
-
-                // make sure the associated Device is present in the deviceList
-                int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
-
-                // go ahead and clean up
-                if(deviceIndex != -1) {
-                    c.Close();
-
-                    Device d = deviceList[deviceIndex];
-
-                    deviceList.Remove(d);
-                    activePortsList.Remove(c);
-                    DeviceDisconnected(this, new DeviceEventArgs(d));
-                }
-                else {
-                    c.Close();
-                    activePortsList.Remove(c);
-                }
+                Disconnect(ports[i]);
             }
         }
 
@@ -243,7 +227,6 @@ namespace NeuroSky.ThinkGear {
             deviceList.Remove(d);
             activePortsList.Remove(c);
             DeviceDisconnected(this, new DeviceEventArgs(d));
-
         }
 
         /**
