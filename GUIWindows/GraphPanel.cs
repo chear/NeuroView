@@ -328,7 +328,7 @@ namespace NeuroSky.MindView
             // ValueLabel
             // 
             this.ValueLabel.Location = new System.Drawing.Point(10,20);
-            this.ValueLabel.Text = " A";
+            this.ValueLabel.Text = " ";
             this.ValueLabel.Size = new System.Drawing.Size(80, 20);
             this.ValueLabel.TextAlign = ContentAlignment.TopCenter;
             // 
