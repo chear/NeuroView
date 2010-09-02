@@ -36,23 +36,26 @@ namespace NeuroSky.ThinkGear {
      * The raw CODE used in the packet
      */
     public enum Code: byte {
-        Battery       = 0x01,
-        PoorSignal    = 0x02,
-        Attention     = 0x04,
-        Meditation    = 0x05,
-        DampenedAtt   = 0x14,
-        DampenedMed   = 0x15,
-        Blink         = 0x16,
-        HeadsetID     = 0x7F,
-        Raw           = 0x80,
-        EEGPowerFloat = 0x81,
-        EEGPowerInt = 0x83,
-		EMGPower    = 0x94,   
-        HeadsetConnect = 0xD0,
-        HeadsetNotFound = 0xD1,
-        HeadsetDisconnect = 0xD2,
-        RequestDenied = 0xD3,
-        DongleStatus = 0xD4
+        Battery             = 0x01,
+        PoorSignal          = 0x02,
+        Attention           = 0x04,
+        Meditation          = 0x05,
+        DampenedAtt         = 0x14,
+        DampenedMed         = 0x15,
+        Blink               = 0x16,
+        HeadsetID           = 0x7F,
+        Raw                 = 0x80,
+        EEGPowerFloat       = 0x81,
+        EEGPowerInt         = 0x83,
+        RawMS               = 0x90,
+        Accelerometer       = 0x91,
+		EMGPower            = 0x94,
+        Offhead             = 0xC0,
+        HeadsetConnect      = 0xD0,
+        HeadsetNotFound     = 0xD1,
+        HeadsetDisconnect   = 0xD2,
+        RequestDenied       = 0xD3,
+        DongleStatus        = 0xD4
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -70,8 +73,6 @@ namespace NeuroSky.ThinkGear {
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
 
-        public bool ScanConnectEnable = true;
-
         private List<string> availablePorts;
         private List<Connection> portsToConnect;
 
@@ -79,7 +80,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private const int DEFAULT_BAUD_RATE = 115200;
+        private int defaultBaudRate = 115200;
 
         private Thread findThread;
         private Thread readThread;
@@ -88,6 +89,8 @@ namespace NeuroSky.ThinkGear {
 
         private bool ReadThreadEnable = true;
         private bool RemoveThreadEnable = true;
+
+        public bool ScanConnectEnable = true;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -107,10 +110,15 @@ namespace NeuroSky.ThinkGear {
             readThread.Priority = ThreadPriority.Highest;
             removeThread.Priority = ThreadPriority.Lowest;
 
+            defaultBaudRate = 115200;
+
             readThread.Start();
             removeThread.Start();
         }
 
+        /**
+         * Destructor, calls Close to end the connection
+         */
         ~Connector() {
             Close();
         }
@@ -141,6 +149,9 @@ namespace NeuroSky.ThinkGear {
                 readThread.Start();
         }
 
+        /**
+         * Sends a command byte (byteArray) to the COM port at portName
+         */
         public void Send(string portName, byte[] byteArray) {
             Connection tempConnection = new Connection(portName);
 
@@ -253,6 +264,8 @@ namespace NeuroSky.ThinkGear {
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
+            defaultBaudRate = 115200;
+
             if(!findThread.IsAlive) {
                 findThread = new Thread(FindThread);
                 findThread.Start();
@@ -296,7 +309,7 @@ namespace NeuroSky.ThinkGear {
                     tempPort = new Connection();
 
                     tempPort.PortName = portName;
-                    tempPort.BaudRate = DEFAULT_BAUD_RATE;
+                    tempPort.BaudRate = defaultBaudRate;
 
                     DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
