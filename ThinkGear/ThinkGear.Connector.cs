@@ -186,8 +186,8 @@ namespace NeuroSky.ThinkGear {
             // iterate over all open connections
             Connection[] ports = activePortsList.ToArray();
 
-            for(int i = 0; i < ports.Length; i++) {
-                Disconnect(ports[i]);
+            foreach(Connection port in ports){
+                Disconnect(port);
             }
         }
 
@@ -205,28 +205,37 @@ namespace NeuroSky.ThinkGear {
                 // make sure a Connection exists for this Device
                 int connectionIndex = activePortsList.FindIndex(f => (f.PortName == d.PortName));
 
-                // perform cleanup
-                if(connectionIndex != -1) {
-                    Connection c = activePortsList[connectionIndex];
+                Connection c = null;
 
-                    DisconnectionCleanup(c, d);
-                }
+                // perform cleanup
+                if(connectionIndex != -1)
+                    c = activePortsList[connectionIndex];
+
+                DisconnectionCleanup(c, d);
             }
         }
 
         private void Disconnect(Connection c) {
             int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
 
-            Device d = deviceList[deviceIndex];
+            Device d = null;
+
+            if(deviceIndex != -1)
+                d = deviceList[deviceIndex];
 
             DisconnectionCleanup(c, d);
         }
 
         private void DisconnectionCleanup(Connection c, Device d) {
-            c.Close();
-            deviceList.Remove(d);
-            activePortsList.Remove(c);
-            DeviceDisconnected(this, new DeviceEventArgs(d));
+            if(c != null) {
+                c.Close();
+                activePortsList.Remove(c);
+            }
+
+            if(d != null) {
+                deviceList.Remove(d);
+                DeviceDisconnected(this, new DeviceEventArgs(d));
+            }
         }
 
         /**
@@ -284,8 +293,8 @@ namespace NeuroSky.ThinkGear {
 
             // iterate over each of the raw COM port names and then
             // scrub them
-            for(int i = 0; i < rawNames.Length; i++) {
-                string portName = r.Match(rawNames[i]).ToString();
+            foreach(string rawName in rawNames){
+                string portName = r.Match(rawName).ToString();
 
                 if(portName.Length != 0) {
                     availablePorts.Add(portName);
@@ -296,14 +305,14 @@ namespace NeuroSky.ThinkGear {
         private void FindThread() {
             FindAvailablePorts();
 
-            Connection tempPort;
-
             lock(mindSetPorts) {
                 mindSetPorts.Clear();
             }
 
-            foreach(string portName in availablePorts) {
-                tempPort = new Connection();
+            string[] ports = availablePorts.ToArray();
+
+            foreach(string portName in ports){
+                Connection tempPort = new Connection();
 
                 tempPort.PortName = portName;
                 tempPort.BaudRate = DEFAULT_BAUD_RATE;
@@ -387,9 +396,7 @@ namespace NeuroSky.ThinkGear {
         private void AddThread() {
             Connection[] ports = portsToConnect.ToArray();
 
-            for(int i = 0; i < ports.Length; i++){
-                Connection port = ports[i];
-
+            foreach(Connection port in ports){
                 if(port.IsOpen) 
                     break;
 
@@ -590,7 +597,6 @@ namespace NeuroSky.ThinkGear {
                 parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
 
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
-
             }
 
             private Packet PackagePacket(DataRow[] dataRow, string portName) {
