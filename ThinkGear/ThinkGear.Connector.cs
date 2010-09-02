@@ -73,7 +73,7 @@ namespace NeuroSky.ThinkGear {
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
 
-        public bool ScanConnectEnable = true;
+        public volatile bool ScanConnectEnable = true;
 
         private List<Connection> portsToConnect;
         private List<Connection> activePortsList;
@@ -86,6 +86,8 @@ namespace NeuroSky.ThinkGear {
 
         private volatile bool ReadThreadEnable = true;
         private volatile bool FindThreadEnable = true;
+
+        private volatile bool IsScanning = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -237,6 +239,8 @@ namespace NeuroSky.ThinkGear {
                 d = deviceList[deviceIndex];
 
             DisconnectionCleanup(c, d);
+
+            Console.WriteLine("Disconnected " + c.PortName);
         }
 
         private void DisconnectionCleanup(Connection c, Device d) {
@@ -265,8 +269,7 @@ namespace NeuroSky.ThinkGear {
          * TODO: Re-implement functionality
          */
         public void RefreshAvailableConnections() {
-            //ScanConnectEnable = false;
-            //Find();
+            Find();
         }
 
         /**
@@ -281,19 +284,36 @@ namespace NeuroSky.ThinkGear {
         /**
          * Indicates whether the Connector is in the middle of performing a connect-scan.
          */
+        /*
         public bool IsScanning {
             get { return ScanConnectEnable == true && findThread.IsAlive; }
         }
+         */
 
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
-        /*
         public void Find() {
-            if(!findThread.IsAlive) {
-                findThread.Start();
+            IsScanning = true;
+
+            string[] ports = FindAvailablePorts();
+
+            foreach(string port in ports) {
+                lock(portsToConnect) {
+                    portsToConnect.Add(new Connection(port));
+                }
             }
+
+            IsScanning = true;
+
+            ReadThreadEnable = true;
+            FindThreadEnable = true;
+
+            if(!findThread.IsAlive)
+                findThread.Start();
+
+            if(!readThread.IsAlive)
+                readThread.Start();
         }
-         */
 
         // TODO: Deprecate this method (replaced by IsRefreshing and IsScanning properties)
         public bool FindThreadIsAlive() {
@@ -326,19 +346,13 @@ namespace NeuroSky.ThinkGear {
         }
 
         private void FindThread() {
-            //FindAvailablePorts();
-
-            //lock(mindSetPorts) {
-            //    mindSetPorts.Clear();
-            //}
-
-            //string[] ports = availablePorts.ToArray();
             while(FindThreadEnable) {
                 Connection[] ports = portsToConnect.ToArray();
 
                 if(ports.Length > 0) {
                     foreach(Connection tempPort in ports) {
-                        DeviceValidating(this, new ConnectionEventArgs(tempPort));
+                        if(IsScanning)
+                            DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
                         try {
                             tempPort.Open();
@@ -357,7 +371,7 @@ namespace NeuroSky.ThinkGear {
                                 }
 
                                 //Connects to the First MindSet it found.
-                                if(ScanConnectEnable) {
+                                if(!IsScanning) {
                                     lock(activePortsList) {
                                         activePortsList.Add(tempPort);
                                     }
@@ -368,17 +382,23 @@ namespace NeuroSky.ThinkGear {
 
                             tempPort.Close();
                         }
+
+                        lock(portsToConnect) {
+                            portsToConnect.Remove(tempPort);
+                        }
                     }
 
-                    if(ScanConnectEnable && mindSetPorts.Count == 0) {
+                    if(!IsScanning && mindSetPorts.Count == 0) {
                         DeviceConnectFail(this, EventArgs.Empty);
                     }
                     else {
                         if(mindSetPorts.Count > 0)
-                            DeviceFound(this, EventArgs.Empty);
+                            DeviceFound(this, new PortEventArgs(mindSetPorts[0].PortName));
                         else
                             DeviceNotFound(this, EventArgs.Empty);
                     }
+
+                    IsScanning = false;
                 }
 
                 Thread.Sleep(500);
@@ -690,6 +710,14 @@ namespace NeuroSky.ThinkGear {
 
             public ConnectionEventArgs(Connection connection) {
                 this.Connection = connection;
+            }
+        }
+
+        public class PortEventArgs: EventArgs {
+            public string PortName;
+
+            public PortEventArgs(string portName) {
+                this.PortName = portName;
             }
         }
     }

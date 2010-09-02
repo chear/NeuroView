@@ -9,7 +9,6 @@ using System.Windows.Forms;
 
 using System.Text.RegularExpressions;
 
-
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Parser;
 
@@ -63,7 +62,7 @@ namespace NeuroSky.MindView
             //Comment this line out if you want the splash screen to wait for good connection.
             UpdateVisibility(false);
 
-            connector.Find();
+            connector.RefreshAvailableConnections();
             
         }
 
@@ -77,9 +76,9 @@ namespace NeuroSky.MindView
 
         void OnDeviceFound(object sender, EventArgs e)
         {
-            Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
+            Connector.PortEventArgs de = (Connector.PortEventArgs)e;
 
-            string tempPortName = de.Device.PortName;
+            string tempPortName = de.PortName;
             UpdateStatusLabel("Device found on " + tempPortName + ". Connecting...");
             mainForm.updateStatusLabel("Device found on " + tempPortName + ". Connecting...");
 
@@ -94,12 +93,10 @@ namespace NeuroSky.MindView
             UpdateStatusLabel("Validating " + ce.Connection.PortName + ".");
 
             mainForm.updateStatusLabel("Validating " + ce.Connection.PortName + ".");
-
         }
 
         void OnDeviceConnected(object sender, EventArgs e)
         {
-
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
             mainForm.updateStatusLabel("Connected to a headset on " + de.Device.PortName + ".");
@@ -180,7 +177,7 @@ namespace NeuroSky.MindView
 
             if (portName == "AUTO")
             {
-                connector.Find();
+                connector.RefreshAvailableConnections();
                 mainForm.updateStatusLabel("Searching for MindSet...");
                 return;
             }
