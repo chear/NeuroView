@@ -9,17 +9,19 @@ using System.Windows.Forms;
 
 namespace NeuroSky.MindView
 {
-    // Possible types of device
+    /* Possible types of device */
+    // Underscores here will tranform into spaces in the device list menu
     public enum DeviceType
     {
         MindSet = 0,            // Original MindSet
         Circlet = 1,            // Circlet, 1 Channel, headband form factor
         Bandana = 2,            // Bandana, 2 Channel on MSB, nothing else
-        BandanaDeluxeP300 = 3,  // Bandana, 3 Channel on MSB, 3 Accel, 2 Offhead, Sleep Firmware  
-        BandanaDeluxeMed = 4    // Bandana, 3 Channel on MSB, Meditation FirmWare
+        Bandana_P300 = 3,       // Bandana, 3 Channel on MSB, 3 Accel, 2 Offhead, Sleep Firmware  
+        Bandana_Med = 4         // Bandana, 3 Channel on MSB, Meditation FirmWare
     };
 
-    // Possible types of data
+
+    /* Possible types of data */
     public enum DataType
     {
         EEG = 1,        // Raw EEG
@@ -30,12 +32,14 @@ namespace NeuroSky.MindView
         Pwr = 6         // Power of EEG signal
     };
 
-    // Possible plotting types
+
+    /* Possible plotting types */
     public enum PlotType
     {
         Line = 1,       // Line graphs
         Bar = 2         // Bar graphs
-    }
+    };
+
 
     public class GraphPanel: Panel
     {
@@ -43,6 +47,10 @@ namespace NeuroSky.MindView
         public BarGraph BarGraph;
         public Label Label;
         public Label ValueLabel;
+        public Label Label15;
+        public Label Value15;
+        public Label Value60;
+        public Label Label60;
         public DeviceType DeviceType;
         public DataType DataType;
         public PlotType PlotType;
@@ -52,11 +60,18 @@ namespace NeuroSky.MindView
 
         public event EventHandler DataSavingFinished = delegate { };
 
-        // Defaults to a line plot
+        /**
+         * Overloaded Initializer
+         * 
+         * Defaults to line plot
+         */
         public GraphPanel() : this(PlotType.Line)
         {
         }
 
+        /**
+         * Initializer
+         */
         public GraphPanel(PlotType plotType)
         {
             InitializeComponent(plotType);
@@ -70,16 +85,54 @@ namespace NeuroSky.MindView
             ValueUpdateTimer.Tick += new EventHandler(ValueUpdateTimer_Tick);
         }
 
+
+        /**
+         * Clears the line or bar graph,depending on the type
+         */
+        public void Clear() {
+            if (this.PlotType == PlotType.Bar) {
+                BarGraph.Clear();
+            } else if (this.PlotType == PlotType.Line) {
+                LineGraph.Clear();
+            }
+        }
+
+        
+        /**
+         * Start the timer for the numeric value updates
+         */
         public void EnableValueDisplay()
         {
             ValueUpdateTimer.Start();
         }
 
+
+        /**
+         * Invalidates the data stream momentarily
+         */
+        public void Invalidate() {
+            if (this.PlotType == PlotType.Bar) {
+                BarGraph.Invalidate();
+            } else if (this.PlotType == PlotType.Line) {
+                LineGraph.Invalidate();
+            }
+        }
+
+
+        /**
+         * Saving is finished.
+         */
         void LineGraph_DataSavingFinished(object sender, EventArgs e)
         {
             DataSavingFinished(this, EventArgs.Empty);
         }
 
+
+        /**
+         * Function to run whenever the timer updates.
+         * 
+         * Updates numerical values printed on the graph panel.
+         */
         public void ValueUpdateTimer_Tick(object sender, EventArgs e)
         {
             // Only do this if it is a line plot
@@ -90,8 +143,39 @@ namespace NeuroSky.MindView
                     this.ValueLabel.Text = this.LineGraph.data0[lastIndex].data.ToString();
                 }
             }
+
+            // Only do this if it is a bar graph
+            if (this.PlotType == PlotType.Bar)
+            {
+                // Check a power spectrum has already been computed
+                if (this.BarGraph.oldPwr.Length == this.BarGraph.numberOfPoints)
+                {
+                    int precision = 3;
+
+
+                    int v15 = 15;
+                    double pwr15 = Math.Round(this.BarGraph.oldPwr[v15 * (int)this.BarGraph.pwrSpecWindow], precision);
+                    this.Label15.Text = v15.ToString() + " Hz";
+                    this.Value15.Text = pwr15.ToString();
+
+
+                    int v60low = 59;
+                    int v60hi = 61;
+                    double pwr60 = 0;
+                    for( int i= v60low; i <= v60hi; i++) {
+                        pwr60 = pwr60 + this.BarGraph.oldPwr[i * (int)this.BarGraph.pwrSpecWindow];
+                    }
+                    pwr60 = Math.Round(pwr60, precision);
+                    this.Label60.Text = v60low.ToString() + " -- " + v60hi.ToString() + " Hz";
+                    this.Value60.Text = pwr60.ToString();
+                }
+            }
         }
 
+
+        /**
+         * Clear out the resources
+         */
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -104,7 +188,10 @@ namespace NeuroSky.MindView
             base.Dispose(disposing);
         }
         
-        // Set parameters relating to device and data type
+
+        /**
+         * Set parameters relating to device and data type
+         */
         public void SetTypes(DeviceType deviceType, DataType dataType)
         {
             // Catch DeviceType exceptions
@@ -116,9 +203,9 @@ namespace NeuroSky.MindView
                     break;
                 case DeviceType.Bandana:
                     break;
-                case DeviceType.BandanaDeluxeP300:
+                case DeviceType.Bandana_P300:
                     break;
-                case DeviceType.BandanaDeluxeMed:
+                case DeviceType.Bandana_Med:
                     break;
                 default:
                     // Default to Bandana
@@ -153,12 +240,12 @@ namespace NeuroSky.MindView
                             LineGraph.yAxisMax = 2047;
                             LineGraph.yAxisMin = -2048;
                             break;
-                        case DeviceType.BandanaDeluxeP300:
+                        case DeviceType.Bandana_P300:
                             LineGraph.samplingRate = 256;
                             LineGraph.yAxisMax = 2047;
                             LineGraph.yAxisMin = -2048;
                             break;
-                        case DeviceType.BandanaDeluxeMed:
+                        case DeviceType.Bandana_Med:
                             LineGraph.samplingRate = 128;
                             LineGraph.yAxisMax = 2047;
                             LineGraph.yAxisMin = -2048;
@@ -173,10 +260,10 @@ namespace NeuroSky.MindView
                 case DataType.Accel:
                     switch (deviceType)
                     {
-                        case DeviceType.BandanaDeluxeP300:
+                        case DeviceType.Bandana_P300:
                             LineGraph.samplingRate = 85;
                             LineGraph.yAxisMax = 4100;
-                            LineGraph.yAxisMin = 1000;
+                            LineGraph.yAxisMin = 0;
                             break;
                         default:
                             SetTypes(DeviceType.Bandana, DataType.EEG);
@@ -188,7 +275,7 @@ namespace NeuroSky.MindView
                 case DataType.Offhead:
                     switch (deviceType)
                     {
-                        case DeviceType.BandanaDeluxeP300:
+                        case DeviceType.Bandana_P300:
                             LineGraph.samplingRate = 1;
                             LineGraph.yAxisMax = 4100;
                             LineGraph.yAxisMin = 0;
@@ -241,10 +328,10 @@ namespace NeuroSky.MindView
                         case DeviceType.Bandana:
                             BarGraph.samplingRate = 256;
                             break;
-                        case DeviceType.BandanaDeluxeP300:
+                        case DeviceType.Bandana_P300:
                             BarGraph.samplingRate = 256;
                             break;
-                        case DeviceType.BandanaDeluxeMed:
+                        case DeviceType.Bandana_Med:
                             BarGraph.samplingRate = 128;
                             break;
                         default:
@@ -278,7 +365,9 @@ namespace NeuroSky.MindView
             }
             EnableValueDisplay();
         }
-        // End "public void SetType(...)"
+        /* End "public void SetType(...)" */
+
+
 
         #region Windows Form Designer generated code
         private void InitializeComponent(PlotType plotType)
@@ -289,6 +378,10 @@ namespace NeuroSky.MindView
             } else if (plotType == PlotType.Bar) {
                 this.BarGraph = new NeuroSky.MindView.BarGraph();
                 this.PlotType = PlotType.Bar;
+                this.Label15 = new System.Windows.Forms.Label();
+                this.Value15 = new System.Windows.Forms.Label();
+                this.Label60 = new System.Windows.Forms.Label();
+                this.Value60 = new System.Windows.Forms.Label();
             }
             this.Label = new System.Windows.Forms.Label();
             this.ValueLabel = new System.Windows.Forms.Label(); 
@@ -312,6 +405,44 @@ namespace NeuroSky.MindView
                 this.BarGraph.Name = "barGraph";
                 this.BarGraph.Size = new System.Drawing.Size(700, 200);
                 this.BarGraph.TabIndex = 0;
+            }
+            //
+            // Label15
+            //
+            if (plotType == PlotType.Bar) {
+                this.Label15.Location = new System.Drawing.Point(10, 40);
+                this.Label15.Text = " ";
+                this.Label15.Size = new System.Drawing.Size(80, 20);
+                this.Label15.TextAlign = ContentAlignment.TopCenter;
+                this.Label15.Font = new Font(Label15.Font, FontStyle.Italic);
+            }
+            //
+            // Value15
+            //
+            if (plotType == PlotType.Bar) {
+                this.Value15.Location = new System.Drawing.Point(10, 55);
+                this.Value15.Text = " ";
+                this.Value15.Size = new System.Drawing.Size(80, 20);
+                this.Value15.TextAlign = ContentAlignment.TopCenter;
+            }
+            //
+            // Label60
+            //
+            if (plotType == PlotType.Bar) {
+                this.Label60.Location = new System.Drawing.Point(10, 90);
+                this.Label60.Text = " ";
+                this.Label60.Size = new System.Drawing.Size(80, 20);
+                this.Label60.TextAlign = ContentAlignment.TopCenter;
+                this.Label60.Font = new Font(Label60.Font, FontStyle.Italic);
+            }
+            //
+            // Value60
+            //
+            if (plotType == PlotType.Bar) {
+                this.Value60.Location = new System.Drawing.Point(10, 105);
+                this.Value60.Text = " ";
+                this.Value60.Size = new System.Drawing.Size(80, 20);
+                this.Value60.TextAlign = ContentAlignment.TopCenter;
             }
             // 
             // Label
@@ -342,6 +473,10 @@ namespace NeuroSky.MindView
                 this.Controls.Add(this.LineGraph);
             } else if (plotType == PlotType.Bar) {
                 this.Controls.Add(this.BarGraph);
+                this.Controls.Add(this.Label15);
+                this.Controls.Add(this.Value15);
+                this.Controls.Add(this.Label60);
+                this.Controls.Add(this.Value60);
             }
             this.ResumeLayout(false);
 
@@ -370,7 +505,23 @@ namespace NeuroSky.MindView
             this.ValueLabel.Left = 10;
             //this.ValueLabel.Top = this.Size.Height*2/3;
             this.ValueLabel.Top = 20;
+            if (this.PlotType == PlotType.Bar) {
+                this.Label15.Left = 10;
+                this.Label15.Top = 40;
+                this.Label15.BringToFront();
 
+                this.Value15.Left = 10;
+                this.Value15.Top = 55;
+                this.Value15.BringToFront();
+
+                this.Label60.Left = 10;
+                this.Label60.Top = 90;
+                this.Label60.BringToFront();
+
+                this.Value60.Left = 10;
+                this.Value60.Top = 105;
+                this.Value60.BringToFront();
+            }
             base.OnSizeChanged(e);
             
         }
