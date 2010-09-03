@@ -421,7 +421,7 @@ namespace NeuroSky.ThinkGear {
                         }
                     }
 
-                    // If the scan failed, then broadcast a DeviceConnectFail message
+                    // If the Connect/ConnectScan failed, then broadcast a DeviceConnectFail message
                     if(!IsFinding && mindSetPorts.Count == 0) {
                         DeviceConnectFail(this, EventArgs.Empty);
                     }
@@ -441,13 +441,12 @@ namespace NeuroSky.ThinkGear {
         }
 
         /**
-         * ReadThread is responsible for transmitting data to all active connections.
+         * ReadThread is responsible for transmitting headset data to all active connections.
          * It is also responsible for disconnecting any connections that have died.
          */
         private void ReadThread() {
             bool allReturnNull = true;
 
-            // Exits if readThreadEnable is false. 
             while(ReadThreadEnable) {
                 Connection[] ports = activePortsList.ToArray();
 
