@@ -239,18 +239,22 @@ namespace NeuroSky.ThinkGear {
                 d = deviceList[deviceIndex];
 
             DisconnectionCleanup(c, d);
-
-            Console.WriteLine("Disconnected " + c.PortName);
         }
 
         private void DisconnectionCleanup(Connection c, Device d) {
             if(c != null) {
                 c.Close();
-                activePortsList.Remove(c);
+
+                lock(activePortsList) {
+                    activePortsList.Remove(c);
+                }
             }
 
             if(d != null) {
-                deviceList.Remove(d);
+                lock(deviceList) {
+                    deviceList.Remove(d);
+                }
+
                 DeviceDisconnected(this, new DeviceEventArgs(d));
             }
         }
@@ -413,7 +417,16 @@ namespace NeuroSky.ThinkGear {
                 Connection[] ports = activePortsList.ToArray();
 
                 foreach(Connection port in ports) {
-                    Packet returnPacket = port.ReadPacket();
+                    Packet returnPacket = new Packet();
+
+                    try {
+                        returnPacket = port.ReadPacket();
+                    }
+                    catch(Exception e) {
+                        Console.WriteLine("Caught exception " + e.Message);
+                        Disconnect(port);
+                        continue;
+                    }
 
                     // Checks if it received any packet from any of the connections.
                     if(returnPacket.DataRowArray.Length > 0)
@@ -538,9 +551,6 @@ namespace NeuroSky.ThinkGear {
                     catch(IndexOutOfRangeException ie) {
                         Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
                         Console.WriteLine("bufferIterator: " + bufferIterator);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("ReadPackets: " + e.Message);
                     }
 
                     switch(state) {
