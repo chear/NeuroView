@@ -98,11 +98,7 @@ namespace NeuroSky.ThinkGear {
             activePortsList = new List<Connection>();
             deviceList = new List<Device>();
 
-            findThread = new Thread(FindThread);
-            readThread = new Thread(ReadThread);
-
-            readThread.Start();
-            findThread.Start();
+            StartThreads();
         }
 
         ~Connector() {
@@ -124,14 +120,7 @@ namespace NeuroSky.ThinkGear {
                 portsToConnect.Add(new Connection(portName));
             }
 
-            ReadThreadEnable = true;
-            FindThreadEnable = true;
-
-            if(!findThread.IsAlive)
-                findThread.Start();
-
-            if(!readThread.IsAlive) 
-                readThread.Start();
+            StartThreads();
         }
 
         public void Send(string portName, byte[] byteArray) {
@@ -171,14 +160,7 @@ namespace NeuroSky.ThinkGear {
                 }
             }
 
-            ReadThreadEnable = true;
-            FindThreadEnable = true;
-
-            if(!findThread.IsAlive)
-                findThread.Start();
-
-            if(!readThread.IsAlive)
-                readThread.Start();
+            StartThreads();
         }
 
         /**
@@ -273,8 +255,6 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * Refreshes the DeviceList
-         * 
-         * TODO: Re-implement functionality
          */
         public void RefreshAvailableConnections() {
             Find();
@@ -310,22 +290,27 @@ namespace NeuroSky.ThinkGear {
                 }
             }
 
-            IsScanning = true;
-
-            ReadThreadEnable = true;
-            FindThreadEnable = true;
-
-            if(!findThread.IsAlive) {
-                findThread.Start();
-            }
-
-            if(!readThread.IsAlive)
-                readThread.Start();
+            StartThreads();
         }
 
         // TODO: Deprecate this method (replaced by IsRefreshing and IsScanning properties)
         public bool FindThreadIsAlive() {
             return findThread.IsAlive;
+        }
+
+        private void StartThreads() {
+            ReadThreadEnable = true;
+            FindThreadEnable = true;
+
+            if(findThread == null || !findThread.IsAlive) {
+                findThread = new Thread(FindThread);
+                findThread.Start();
+            }
+
+            if(readThread == null || !readThread.IsAlive) {
+                readThread = new Thread(ReadThread);
+                readThread.Start();
+            }
         }
 
         /**
