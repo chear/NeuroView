@@ -350,8 +350,23 @@ namespace NeuroSky.ThinkGear {
         }
 
         /**
-         * This thread is responsible both for scanning for ThinkGear devices, and
-         * also for the auto-connect functionality.
+         * This thread has different behavior depending on whether it was invoked from a
+         * Find or a ConnectScan / Connect. IsFinding is set to 'true' for a Find, 'false'
+         * otherwise.
+         * 
+         * Messages for a ConnectScan / Connect:
+         *    * DeviceConnectFail will be broadcasted if the attempt failed
+         *    
+         * Messages for a Find:
+         *    * DeviceValidating will be broadcasted for every device attempted
+         *    * DeviceFound will be broadcasted at the end if a device was found
+         *    * DeviceNotFound will be broadcasted at the end if no device was found
+         *    
+         * For both Find and ConnectScan/Connect, devices are added to the mindSetPorts 
+         * collection.
+         * 
+         * For only ConnectScan/Connect, devices are added to the activePortsList collection 
+         * for the ReadThread to handle.
          */
         private void FindThread() {
             while(FindThreadEnable) {
@@ -383,6 +398,13 @@ namespace NeuroSky.ThinkGear {
                                 // to the port. No need to worry about sending messages at this
                                 // point.
                                 if(!IsFinding) {
+                                    // clear the portsToConnect list. this fixes the bug where
+                                    // subsequent Connect/ConnectScan attempts would re-search
+                                    // ports
+                                    lock(portsToConnect) {
+                                        portsToConnect.Clear();
+                                    }
+
                                     lock(activePortsList) {
                                         activePortsList.Add(tempPort);
                                     }
