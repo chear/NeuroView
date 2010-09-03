@@ -87,7 +87,7 @@ namespace NeuroSky.ThinkGear {
         private volatile bool ReadThreadEnable = true;
         private volatile bool FindThreadEnable = true;
 
-        private volatile bool IsScanning = false;
+        private volatile bool IsFinding = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
@@ -114,7 +114,7 @@ namespace NeuroSky.ThinkGear {
          *      DeviceConnectFail - The connection attempt was unsuccessful
          */
         public void Connect(string portName) {
-            IsScanning = false;
+            IsFinding = false;
 
             lock(portsToConnect){
                 portsToConnect.Add(new Connection(portName));
@@ -123,6 +123,9 @@ namespace NeuroSky.ThinkGear {
             StartThreads();
         }
 
+        /**
+         * Send a collection of bytes to the port specified by portName.
+         */
         public void Send(string portName, byte[] byteArray) {
             Connection tempConnection = new Connection(portName);
 
@@ -150,7 +153,7 @@ namespace NeuroSky.ThinkGear {
          * TODO: Overload to take a preferred initial port to scan
          */
         public void ConnectScan() {
-            IsScanning = false;
+            IsFinding = false;
 
             string[] ports = FindAvailablePorts();
 
@@ -165,8 +168,6 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * Performs cleanup of the ThinkGear Connector instance.
-         * 
-         * TODO: Move this stuff into a destructor, so that an application that uses the Connector doesn't have to explicitly call this.
          */
         public void Close() {
             ReadThreadEnable = false;
@@ -216,6 +217,9 @@ namespace NeuroSky.ThinkGear {
             }
         }
 
+        /**
+         * Overloaded Disconnect method that takes a Connection instance.
+         */
         private void Disconnect(Connection c) {
             int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
 
@@ -227,6 +231,9 @@ namespace NeuroSky.ThinkGear {
             DisconnectionCleanup(c, d);
         }
 
+        /**
+         * Handle all the cleanup when disconnecting a Connection and Device
+         */
         private void DisconnectionCleanup(Connection c, Device d) {
             if(c != null) {
                 c.Close();
@@ -280,7 +287,7 @@ namespace NeuroSky.ThinkGear {
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
-            IsScanning = true;
+            IsFinding = true;
 
             string[] ports = FindAvailablePorts();
 
@@ -298,6 +305,10 @@ namespace NeuroSky.ThinkGear {
             return findThread.IsAlive;
         }
 
+        /**
+         * Fire off the read and find threads, handling all error conditions (e.g. if no
+         * Thread instance exists, or if the Thread exists but has exited).
+         */
         private void StartThreads() {
             ReadThreadEnable = true;
             FindThreadEnable = true;
@@ -338,13 +349,18 @@ namespace NeuroSky.ThinkGear {
             return ports.ToArray();
         }
 
+        /**
+         * This thread is responsible both for scanning for ThinkGear devices, and
+         * also for the auto-connect functionality.
+         */
         private void FindThread() {
             while(FindThreadEnable) {
                 Connection[] ports = portsToConnect.ToArray();
 
                 if(ports.Length > 0) {
                     foreach(Connection tempPort in ports) {
-                        if(IsScanning)
+                        // we only trigger the DeviceValidating message if it is a Find
+                        if(IsFinding)
                             DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
                         try {
@@ -363,8 +379,10 @@ namespace NeuroSky.ThinkGear {
                                     mindSetPorts.Add(tempPort);
                                 }
 
-                                //Connects to the First MindSet it found.
-                                if(!IsScanning) {
+                                // If this is a ConnectScan, then go ahead and connect directly
+                                // to the port. No need to worry about sending messages at this
+                                // point.
+                                if(!IsFinding) {
                                     lock(activePortsList) {
                                         activePortsList.Add(tempPort);
                                     }
@@ -381,9 +399,11 @@ namespace NeuroSky.ThinkGear {
                         }
                     }
 
-                    if(!IsScanning && mindSetPorts.Count == 0) {
+                    // If the scan failed, then broadcast a DeviceConnectFail message
+                    if(!IsFinding && mindSetPorts.Count == 0) {
                         DeviceConnectFail(this, EventArgs.Empty);
                     }
+                    // Otherwise, indicate whether the Find call was successful or not
                     else {
                         if(mindSetPorts.Count > 0)
                             DeviceFound(this, new PortEventArgs(mindSetPorts[0].PortName));
@@ -391,13 +411,17 @@ namespace NeuroSky.ThinkGear {
                             DeviceNotFound(this, EventArgs.Empty);
                     }
 
-                    IsScanning = false;
+                    IsFinding = false;
                 }
 
                 Thread.Sleep(500);
             }
         }
 
+        /**
+         * ReadThread is responsible for transmitting data to all active connections.
+         * It is also responsible for disconnecting any connections that have died.
+         */
         private void ReadThread() {
             bool allReturnNull = true;
 
