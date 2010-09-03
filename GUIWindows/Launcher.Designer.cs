@@ -60,7 +60,7 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.label1.Location = new System.Drawing.Point(42, 46);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(305, 46);
+            this.label1.Size = new System.Drawing.Size(281, 46);
             this.label1.TabIndex = 1;
             this.label1.Text = "MindView Lite";
             // 
@@ -108,7 +108,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
             this.ClientSize = new System.Drawing.Size(383, 327);
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox1);
@@ -117,7 +116,9 @@
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Name = "Launcher";
             this.ShowIcon = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "MindView Lite";
+            this.Load += new System.EventHandler(this.Launcher_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

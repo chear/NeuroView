@@ -118,6 +118,8 @@ namespace NeuroSky.ThinkGear {
          *      DeviceConnectFail - The connection attempt was unsuccessful
          */
         public void Connect(string portName) {
+            IsScanning = false;
+
             lock(portsToConnect){
                 portsToConnect.Add(new Connection(portName));
             }
@@ -159,6 +161,8 @@ namespace NeuroSky.ThinkGear {
          * TODO: Overload to take a preferred initial port to scan
          */
         public void ConnectScan() {
+            IsScanning = false;
+
             string[] ports = FindAvailablePorts();
 
             foreach(string port in ports) {
@@ -292,8 +296,7 @@ namespace NeuroSky.ThinkGear {
         public bool IsScanning {
             get { return ScanConnectEnable == true && findThread.IsAlive; }
         }
-         */
-
+        */
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
@@ -312,8 +315,9 @@ namespace NeuroSky.ThinkGear {
             ReadThreadEnable = true;
             FindThreadEnable = true;
 
-            if(!findThread.IsAlive)
+            if(!findThread.IsAlive) {
                 findThread.Start();
+            }
 
             if(!readThread.IsAlive)
                 readThread.Start();
@@ -363,7 +367,7 @@ namespace NeuroSky.ThinkGear {
                             Thread.Sleep(100);
                         }
                         catch(Exception e) {
-                            Console.WriteLine("Exception on port opening: " + e.Message);
+                            Console.WriteLine("Caught exception on port open: " + e.Message);
                         }
 
                         if(tempPort.IsOpen) {
@@ -423,7 +427,7 @@ namespace NeuroSky.ThinkGear {
                         returnPacket = port.ReadPacket();
                     }
                     catch(Exception e) {
-                        Console.WriteLine("Caught exception " + e.Message);
+                        Console.WriteLine("Caught exception on read: " + e.Message);
                         Disconnect(port);
                         continue;
                     }
@@ -436,7 +440,7 @@ namespace NeuroSky.ThinkGear {
                     DeliverPacket(returnPacket);
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
-                    if(port.TotalTimeoutTime > 1000) {
+                    if(port.TotalTimeoutTime > 2000) {
                         Disconnect(port);
                     }
                 }
@@ -549,8 +553,8 @@ namespace NeuroSky.ThinkGear {
                         continue;
                     }
                     catch(IndexOutOfRangeException ie) {
-                        Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
-                        Console.WriteLine("bufferIterator: " + bufferIterator);
+                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " + 
+                                          parserBuffer.Length + ", bufferIterator is " + bufferIterator);
                     }
 
                     switch(state) {

@@ -296,6 +296,10 @@ namespace NeuroSky.MindView
         {
             this.Dispose();
         }
+
+        private void Launcher_Load(object sender, EventArgs e) {
+
+        }
         
 
     }
