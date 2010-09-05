@@ -64,6 +64,9 @@ namespace NeuroSky.ThinkGear {
         public event EventHandler DeviceConnected = delegate { };
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
+        
+        // configuration properties
+        public bool blinkDetectionEnabled;
 
         private List<string> availablePorts;
         private List<Connection> portsToConnect;
@@ -103,6 +106,8 @@ namespace NeuroSky.ThinkGear {
             removeThread.Priority = ThreadPriority.Lowest;
 
             defaultBaudRate = 57600;
+
+            blinkDetectionEnabled = true;
 
             readThread.Start();
             removeThread.Start();
@@ -721,7 +726,7 @@ namespace NeuroSky.ThinkGear {
                     // check if a blink was detected every time a raw packet is received
                     if(tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
-
+                        
                         byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
 
                         if(blinkStrength > 0) {
