@@ -5,7 +5,10 @@ using System.Text;
 
 namespace NeuroSky.ThinkGear.Parser
 {
-    // TODO: Really have to rename this guy. Yikes. Recommend "ParsedData".
+    /*
+     * Old Parser code
+     */
+    // TODO:Really have to rename this guy. Yikes. Recommend "ParsedData".
     public struct Parsed
     {
         public TimeStampData[] PoorSignalQuality;
@@ -20,6 +23,11 @@ namespace NeuroSky.ThinkGear.Parser
         public PowerEEGData[] PowerEEGData;
 
         public TimeStampData[] Raw;
+
+        public TimeStampData[] DongleStatus;
+        public TimeStampData[] HeadsetConnect;
+        public TimeStampData[] HeadsetDisconnect;
+
     }
 
     public struct PowerEEGData
@@ -94,20 +102,24 @@ namespace NeuroSky.ThinkGear.Parser
 
             List<TimeStampData> tempRaw = new List<TimeStampData>();
 
+            List<TimeStampData> tempDongleStatus = new List<TimeStampData>();
+            List<TimeStampData> tempHeadsetDisconnect = new List<TimeStampData>();
+            List<TimeStampData> tempHeadsetConnect = new List<TimeStampData>();
+
             foreach (DataRow d in dataRowArray)
             {
                 switch (d.Type)
                 {
-                    case(Code.PoorSignal):
+                    case (Code.PoorSignal):
                         tempPoorSignal.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case(Code.Attention):
+                    case (Code.Attention):
                         tempAttention.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case(Code.Meditation):
+                    case (Code.Meditation):
                         tempMeditation.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case(Code.DampenedAtt):
+                    case (Code.DampenedAtt):
                         tempDampenedAttention.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
                     case (Code.DampenedMed):
@@ -117,13 +129,22 @@ namespace NeuroSky.ThinkGear.Parser
                         tempBlinkStrength.Add(new TimeStampData(d.Time, (int)d.Data[0]));
                         break;
                     case(Code.Raw):
-                        tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0]<<8) + d.Data[1])));
+                        tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0] << 8) + d.Data[1])));
                         break;
-                    case(Code.EMGPower):                                                
+                    case (Code.EMGPower):
                         tempEmgPower.Add(new TimeStampData(d.Time, BitConverter.ToSingle(ReverseBytes(d.Data), 0)));
                         break;
-                    case(Code.EEGPowerInt):
+                    case (Code.EEGPowerInt):
                         tempPowerEEGData.Add(new PowerEEGData(d.Time, d.Data));
+                        break;
+                    case (Code.DongleStatus):
+                        tempDongleStatus.Add(new TimeStampData(d.Time, (double)d.Data[0]));
+                        break;
+                    case (Code.HeadsetDisconnect):
+                        tempHeadsetDisconnect.Add(new TimeStampData(d.Time, (int)((d.Data[0] << 8) + d.Data[1])));
+                        break;
+                    case (Code.HeadsetConnect):
+                        tempHeadsetConnect.Add(new TimeStampData(d.Time, (int)((d.Data[0] << 8) + d.Data[1])));
                         break;
 
                 }
@@ -134,12 +155,167 @@ namespace NeuroSky.ThinkGear.Parser
             tempParsed.Meditation = tempMeditation.ToArray();
             tempParsed.Raw = tempRaw.ToArray();
             tempParsed.PowerEEGData = tempPowerEEGData.ToArray();
+
+            tempParsed.DongleStatus = tempDongleStatus.ToArray();
+            tempParsed.HeadsetDisconnect = tempHeadsetDisconnect.ToArray();
+            tempParsed.HeadsetConnect = tempHeadsetConnect.ToArray();
+
             tempParsed.DampenedAttention = tempDampenedAttention.ToArray();
             tempParsed.DampenedMeditation = tempDampenedMeditation.ToArray();
             tempParsed.BlinkStrength = tempBlinkStrength.ToArray();
             tempParsed.EMGPower = tempEmgPower.ToArray();
             return tempParsed;
         }
+
+        private byte[] ReverseBytes(byte[] inArray)
+        {
+            byte temp;
+            int highCtr = inArray.Length - 1;
+
+            for (int ctr = 0; ctr < inArray.Length / 2; ctr++)
+            {
+                temp = inArray[ctr];
+                inArray[ctr] = inArray[highCtr];
+                inArray[highCtr] = temp;
+                highCtr -= 1;
+            }
+            return inArray;
+        }
+    }
+    /*
+     * End "Old Parser code..."
+     */
+
+
+
+    /*
+     * New Parser Code
+     */
+    // New class name to reflect generality of this parser, able to expand capabilities in the future
+    public class TGParser
+    {
+        // Variable containing parsed data
+        public Dictionary<string, double>[] ParsedData = new Dictionary<string,double>[0];
+
+        // Variable indicating what type of data is streaming in
+        public short TGType = 1;
+
+        public void Read(DataRow[] dataRowArray)
+        {
+            // Variable to pass back
+            List<Dictionary<string,double>> parsedData = new List<Dictionary<string,double>>();
+
+            // Loop through dataRowArray
+            foreach (DataRow d in dataRowArray)
+            {
+                // Variable to fill up at each row of dataRowArray and empty out after each row is read
+                Dictionary<string, double> parsedRow = new Dictionary<string, double>();
+
+                // Get time value
+                parsedRow.Add("Time", d.Time);
+
+                //Console.WriteLine("New Row for {0} with {1} and {2}", d.Time, d.Type, (double)d.Data[0]);
+
+                // Get payload values
+                switch (d.Type)
+                {
+                    case(Code.PoorSignal):
+                        parsedRow.Add("PoorSignal", (double)d.Data[0]);
+                        break;
+                    case(Code.Attention):
+                        parsedRow.Add("Attention", (double)d.Data[0]);
+                        break;
+                    case(Code.Meditation):
+                        parsedRow.Add("Meditation", (double)d.Data[0]);
+                        break;
+                    case(Code.DampenedAtt):
+                        parsedRow.Add("DampenedAttn", (double)d.Data[0]);
+                        break;
+                    case (Code.DampenedMed):
+                        parsedRow.Add("DampenedMed", (double)d.Data[0]);
+                        break;
+                    case(Code.Raw):
+                        parsedRow.Add("Raw", (short)((d.Data[0] << 8) + d.Data[1]));
+                        break;
+                    case(Code.RawMS):
+                        parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
+                        if (d.Data.Length > 3) {
+                            parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
+                        }
+                        if (d.Data.Length > 6) {
+                            parsedRow.Add("RawCh3", (short)((d.Data[6] << 8) + d.Data[7]));
+                        }
+                        //Console.WriteLine("\tEEG");
+                        //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["RawCh1"], parsedRow["RawCh2"], parsedRow["RawCh3"]);
+                        break;
+                    case(Code.Accelerometer):
+                        parsedRow.Add("AccelCh1", (short)((d.Data[0] << 8) + d.Data[1]));
+                        if (d.Data.Length > 2) {
+                            parsedRow.Add("AccelCh2", (short)((d.Data[2] << 8) + d.Data[3]));
+                        }
+                        if (d.Data.Length > 4) {
+                            parsedRow.Add("AccelCh3", (short)((d.Data[4] << 8) + d.Data[5]));
+                        }
+                        //Console.WriteLine("\tAccel");
+                        //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["AccelCh1"], parsedRow["AccelCh2"], parsedRow["AccelCh3"]);
+                        break;
+                    case(Code.EMGPower):
+                        parsedRow.Add("EmgPower", BitConverter.ToSingle(ReverseBytes(d.Data), 0));
+                        break;
+                    case(Code.Offhead):
+                        parsedRow.Add("OffheadCh1", (short)((d.Data[0] << 8) + d.Data[1]));
+                        parsedRow.Add("OffheadCh3", (short)((d.Data[2] << 8) + d.Data[3]));
+                        //Console.WriteLine("\tOffhead ------------");
+                        //Console.WriteLine("\t{0}\t{1}", parsedRow["OffheadCh1"], parsedRow["OffheadCh3"]);
+                        break;
+                    case(Code.EEGPowerInt):
+                        if (d.Data.Length == 24)
+                        {
+                            parsedRow.Add("EegPowerDelta", (uint)(d.Data[0] << 16) + d.Data[1] << 8 + d.Data[2]);
+                            parsedRow.Add("EegPowerTheta", (uint)(d.Data[3] << 16) + d.Data[4] << 8 + d.Data[5]);
+                            parsedRow.Add("EegPowerAlpha1", (uint)(d.Data[6] << 16) + d.Data[7] << 8 + d.Data[8]);
+                            parsedRow.Add("EegPowerAlpha2", (uint)(d.Data[9] << 16) + d.Data[10] << 8 + d.Data[11]);
+                            parsedRow.Add("EegPowerBeta1", (uint)(d.Data[12] << 16) + d.Data[13] << 8 + d.Data[14]);
+                            parsedRow.Add("EegPowerBeta2", (uint)(d.Data[15] << 16) + d.Data[16] << 8 + d.Data[17]);
+                            parsedRow.Add("EegPowerGamma1", (uint)(d.Data[18] << 16) + d.Data[19] << 8 + d.Data[20]);
+                            parsedRow.Add("EegPowerGamma2", (uint)(d.Data[21] << 16) + d.Data[22] << 8 + d.Data[23]);
+                        }
+                        else
+                        {
+                            parsedRow.Add("EegPowerDelta", 0);
+                            parsedRow.Add("EegPowerTheta", 0);
+                            parsedRow.Add("EegPowerAlpha1", 0);
+                            parsedRow.Add("EegPowerAlpha2", 0);
+                            parsedRow.Add("EegPowerBeta1", 0);
+                            parsedRow.Add("EegPowerBeta2", 0);
+                            parsedRow.Add("EegPowerGamma1", 0);
+                            parsedRow.Add("EegPowerGamma2", 0);
+                        }
+                        break;
+                    case(Code.DongleStatus):
+                        parsedRow.Add("DongleStatus", (double)d.Data[0]);
+                        break;
+                    case(Code.HeadsetDisconnect):
+                        parsedRow.Add("HeadsetDisconnect", (int)((d.Data[0]<<8) + d.Data[1]));
+                        break;
+                    case (Code.HeadsetConnect):
+                        parsedRow.Add("HeadsetConnect", (int)((d.Data[0] << 8) + d.Data[1]));
+                        break;
+                }
+                // End "switch (d.Type)..."
+
+
+                // Add this row to the growing List
+                parsedData.Add(parsedRow);
+            }
+            // End "foreach (DataRow d in dataRowArray)..."
+
+
+            // Assign the resulting array out to the class variable
+            this.ParsedData = parsedData.ToArray();
+   
+        }
+        // End "public void Read(DataRow[] dataRowArray)..."
 
         private byte[] ReverseBytes(byte[] inArray) {
           byte temp;
@@ -154,4 +330,7 @@ namespace NeuroSky.ThinkGear.Parser
           return inArray;
         }
     }
+    /*
+     * End "New Parser code..."
+     */
 }

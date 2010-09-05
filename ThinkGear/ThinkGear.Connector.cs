@@ -36,18 +36,26 @@ namespace NeuroSky.ThinkGear {
      * The raw CODE used in the packet
      */
     public enum Code: byte {
-        Battery       = 0x01,
-        PoorSignal    = 0x02,
-        Attention     = 0x04,
-        Meditation    = 0x05,
-        DampenedAtt   = 0x14,
-        DampenedMed   = 0x15,
-        Blink         = 0x16,
-        HeadsetID     = 0x7F,
-        Raw           = 0x80,
-        EEGPowerFloat = 0x81,
-        EEGPowerInt   = 0x83,
-        EMGPower      = 0x94        
+        Battery             = 0x01,
+        PoorSignal          = 0x02,
+        Attention           = 0x04,
+        Meditation          = 0x05,
+        DampenedAtt         = 0x14,
+        DampenedMed         = 0x15,
+        Blink               = 0x16,
+        HeadsetID           = 0x7F,
+        Raw                 = 0x80,
+        EEGPowerFloat       = 0x81,
+        EEGPowerInt         = 0x83,
+        RawMS               = 0x90,
+        Accelerometer       = 0x91,
+		    EMGPower            = 0x94,
+        Offhead             = 0xC0,
+        HeadsetConnect      = 0xD0,
+        HeadsetNotFound     = 0xD1,
+        HeadsetDisconnect   = 0xD2,
+        RequestDenied       = 0xD3,
+        DongleStatus        = 0xD4
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -68,49 +76,32 @@ namespace NeuroSky.ThinkGear {
         // configuration properties
         public bool blinkDetectionEnabled;
 
-        private List<string> availablePorts;
-        private List<Connection> portsToConnect;
+        public volatile bool ScanConnectEnable = true;
 
+        private List<Connection> portsToConnect;
         private List<Connection> activePortsList;
-        private List<Connection> removePortsList;
         private List<Device> deviceList;
 
-        private int defaultBaudRate = 57600;
+        private const int DEFAULT_BAUD_RATE = 115200;
 
         private Thread findThread;
         private Thread readThread;
-        private Thread addThread;
-        private Thread removeThread;
 
-        private bool ReadThreadEnable = true;
-        private bool RemoveThreadEnable = true;
+        private volatile bool ReadThreadEnable = true;
+        private volatile bool FindThreadEnable = true;
 
-        public bool ScanConnectEnable = true;
+        private volatile bool IsFinding = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
 
         public Connector() {
-            availablePorts = new List<string>();
             mindSetPorts = new List<Connection>();
             portsToConnect = new List<Connection>();
 
             activePortsList = new List<Connection>();
-            removePortsList = new List<Connection>();
             deviceList = new List<Device>();
 
-            findThread = new Thread(FindThread);
-            readThread = new Thread(ReadThread);
-            removeThread = new Thread(RemoveThread);
-
-            readThread.Priority = ThreadPriority.Highest;
-            removeThread.Priority = ThreadPriority.Lowest;
-
-            defaultBaudRate = 57600;
-
-            blinkDetectionEnabled = true;
-
-            readThread.Start();
-            removeThread.Start();
+            StartThreads();
         }
 
         ~Connector() {
@@ -126,21 +117,32 @@ namespace NeuroSky.ThinkGear {
          *      DeviceConnectFail - The connection attempt was unsuccessful
          */
         public void Connect(string portName) {
+            IsFinding = false;
+
+            lock(portsToConnect){
+                portsToConnect.Add(new Connection(portName));
+            }
+
+            StartThreads();
+        }
+
+        /**
+         * Send a collection of bytes to the port specified by portName.
+         */
+        public void Send(string portName, byte[] byteArray) {
             Connection tempConnection = new Connection(portName);
 
-            lock(portsToConnect) {
-                portsToConnect.Add(tempConnection);
+            int index = -1;
+
+            lock (activePortsList) {
+                // Check to make sure the portName exists in the activePortsList
+                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
             }
 
-            if(addThread == null || addThread.ThreadState == ThreadState.Stopped) {
-                addThread = new Thread(AddThread);               
-            }
-            if (!addThread.IsAlive) {
-              addThread.Start();
-            }
+            if(index < 0)
+                return;
 
-            if(!readThread.IsAlive) 
-                readThread.Start();
+            activePortsList[index].Write(byteArray, 0, byteArray.Length);
         }
 
         /**
@@ -154,55 +156,102 @@ namespace NeuroSky.ThinkGear {
          * TODO: Overload to take a preferred initial port to scan
          */
         public void ConnectScan() {
-            ScanConnectEnable = true;
-            Find();
+            IsFinding = false;
+
+            string[] ports = FindAvailablePorts();
+
+            foreach(string port in ports) {
+                lock(portsToConnect) {
+                    portsToConnect.Add(new Connection(port));
+                }
+            }
+
+            StartThreads();
         }
 
         /**
          * Performs cleanup of the ThinkGear Connector instance.
-         * 
-         * TODO: Move this stuff into a destructor, so that an application that uses the Connector doesn't have to explicitly call this.
          */
         public void Close() {
-            this.Disconnect();
-
             ReadThreadEnable = false;
-            RemoveThreadEnable = false;
+            FindThreadEnable = false;
 
-            Thread.Sleep(50);
-
-            if(readThread != null) 
-                readThread.Abort();
-
-            if(findThread != null )
-                findThread.Abort();
-
-            if(addThread != null ) 
-                addThread.Abort();
-
-            if(removeThread != null) 
-                removeThread.Abort();
-
-            //this.Disconnect();
+            this.Disconnect();
         }
 
         /**
          * Closes all open connections.
          * 
          * Calling this method will result in the following event being broadcasted for
-         * all open devices:
+         * each open device:
          * 
          *      DeviceDisconnected - The device was disconnected
-         * 
-         * TODO: Write an overloaded Disconnect method that disconnects a specific Connection.
          */
         public void Disconnect() {
-            lock(activePortsList) {
-                foreach(Connection c in activePortsList) {
-                    removePortsList.Add(c);
+            // iterate over all open connections
+            Connection[] ports = activePortsList.ToArray();
+
+            foreach(Connection port in ports){
+                Disconnect(port);
+            }
+        }
+
+        /**
+         * Closes a specific connection
+         * 
+         * Calling this method will result in the following event being broadcasted for
+         * a specific open device:
+         * 
+         *      DeviceDisconnected - The device was disconnected
+         */
+        public void Disconnect(Device d) {
+            // check to see whether the device exists in aPL and dL
+            if(deviceList.Contains(d)) {
+                // make sure a Connection exists for this Device
+                int connectionIndex = activePortsList.FindIndex(f => (f.PortName == d.PortName));
+
+                Connection c = null;
+
+                // perform cleanup
+                if(connectionIndex != -1)
+                    c = activePortsList[connectionIndex];
+
+                DisconnectionCleanup(c, d);
+            }
+        }
+
+        /**
+         * Overloaded Disconnect method that takes a Connection instance.
+         */
+        private void Disconnect(Connection c) {
+            int deviceIndex = deviceList.FindIndex(f => (f.PortName == c.PortName));
+
+            Device d = null;
+
+            if(deviceIndex != -1)
+                d = deviceList[deviceIndex];
+
+            DisconnectionCleanup(c, d);
+        }
+
+        /**
+         * Handle all the cleanup when disconnecting a Connection and Device
+         */
+        private void DisconnectionCleanup(Connection c, Device d) {
+            if(c != null) {
+                c.Close();
+
+                lock(activePortsList) {
+                    activePortsList.Remove(c);
+                }
+            }
+
+            if(d != null) {
+                lock(deviceList) {
+                    deviceList.Remove(d);
                 }
 
-                activePortsList.Clear();
+                DeviceDisconnected(this, new DeviceEventArgs(d));
             }
         }
 
@@ -218,7 +267,6 @@ namespace NeuroSky.ThinkGear {
          * Refreshes the DeviceList
          */
         public void RefreshAvailableConnections() {
-            ScanConnectEnable = false;
             Find();
         }
 
@@ -234,19 +282,25 @@ namespace NeuroSky.ThinkGear {
         /**
          * Indicates whether the Connector is in the middle of performing a connect-scan.
          */
+        /*
         public bool IsScanning {
             get { return ScanConnectEnable == true && findThread.IsAlive; }
         }
-
+        */
 
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
-            defaultBaudRate = 57600;
+            IsFinding = true;
 
-            if(!findThread.IsAlive) {
-                findThread = new Thread(FindThread);
-                findThread.Start();
+            string[] ports = FindAvailablePorts();
+
+            foreach(string port in ports) {
+                lock(portsToConnect) {
+                    portsToConnect.Add(new Connection(port));
+                }
             }
+
+            StartThreads();
         }
 
         // TODO: Deprecate this method (replaced by IsRefreshing and IsScanning properties)
@@ -254,126 +308,173 @@ namespace NeuroSky.ThinkGear {
             return findThread.IsAlive;
         }
 
-        // TODO: Make this method private, or refactor it into FindThread.
-        public void FindAvailablePorts() {
+        /**
+         * Fire off the read and find threads, handling all error conditions (e.g. if no
+         * Thread instance exists, or if the Thread exists but has exited).
+         */
+        private void StartThreads() {
+            ReadThreadEnable = true;
+            FindThreadEnable = true;
+
+            if(findThread == null || !findThread.IsAlive) {
+                findThread = new Thread(FindThread);
+                findThread.Start();
+            }
+
+            if(readThread == null || !readThread.IsAlive) {
+                readThread = new Thread(ReadThread);
+                readThread.Start();
+            }
+        }
+
+        /**
+         * This method scans through all the serial ports listed by the system, and then
+         * performs some scrubbing to make sure that they're "clean" port names (i.e. are of the
+         * form "COM#").
+         */
+        private string[] FindAvailablePorts() {
             string[] rawNames = SerialPort.GetPortNames();
 
-            availablePorts.Clear();
+            List<string> ports = new List<string>();
 
             Regex r = new Regex("COM[1-9][0-9]*");
 
             // iterate over each of the raw COM port names and then
             // scrub them
-            for(int i = 0; i < rawNames.Length; i++) {
-                string portName = r.Match(rawNames[i]).ToString();
+            foreach(string rawName in rawNames){
+                string portName = r.Match(rawName).ToString();
 
                 if(portName.Length != 0) {
-                    availablePorts.Add(portName);
+                    ports.Add(portName);
                 }
             }
+
+            return ports.ToArray();
         }
 
+        /**
+         * This thread has different behavior depending on whether it was invoked from a
+         * Find or a ConnectScan / Connect. IsFinding is set to 'true' for a Find, 'false'
+         * otherwise.
+         * 
+         * Messages for a ConnectScan / Connect:
+         *    * DeviceConnectFail will be broadcasted if the attempt failed
+         *    
+         * Messages for a Find:
+         *    * DeviceValidating will be broadcasted for every device attempted
+         *    * DeviceFound will be broadcasted at the end if a device was found
+         *    * DeviceNotFound will be broadcasted at the end if no device was found
+         *    
+         * For both Find and ConnectScan/Connect, devices are added to the mindSetPorts 
+         * collection.
+         * 
+         * For only ConnectScan/Connect, devices are added to the activePortsList collection 
+         * for the ReadThread to handle.
+         */
         private void FindThread() {
-            FindAvailablePorts();
+            while(FindThreadEnable) {
+                Connection[] ports = portsToConnect.ToArray();
 
-            Connection tempPort;
+                if(ports.Length > 0) {
+                    foreach(Connection tempPort in ports) {
+                        // we only trigger the DeviceValidating message if it is a Find
+                        if(IsFinding)
+                            DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
-            //lock(mindSetPorts) {
-            lock(mindSetPorts) {
-                mindSetPorts.Clear();
-            }
-
-                foreach(string portName in availablePorts) {
-                    tempPort = new Connection();
-
-                    tempPort.PortName = portName;
-                    tempPort.BaudRate = defaultBaudRate;
-
-                    DeviceValidating(this, new ConnectionEventArgs(tempPort));
-
-                    try {
-                        tempPort.Open();
-                        Thread.Sleep(100);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("Exception on port opening: " + e.Message);
-                    }
-
-                    if(tempPort.IsOpen) {
-                        Packet returnPacket = tempPort.ReadPacket();
-
-                        /*
-                        Console.WriteLine("Received " + returnPacket.DataRowArray.Length + " DataRows at FindThread.");
-
-                        for(int i = 0;i < returnPacket.DataRowArray.Length;i++) {
-                            Console.Write(returnPacket.DataRowArray[i].Time + " : ["
-                                       + (Code)(returnPacket.DataRowArray[i].Type) + "] : ");
-
-                            for(int t = 0;t < returnPacket.DataRowArray[i].Data.Length;t++) {
-                                Console.Write("0x" + returnPacket.DataRowArray[i].Data[t].ToString("X2") + " ");
-                            }
-
-                            Console.Write("\n");
+                        try {
+                            tempPort.Open();
+                            Thread.Sleep(100);
                         }
-                         */
+                        catch(Exception e) {
+                            Console.WriteLine("Caught exception on port open: " + e.Message);
+                        }
 
-                        if(returnPacket.DataRowArray.Length > 0) {
-                            lock(mindSetPorts) {
-                                mindSetPorts.Add(tempPort);
-                            }
+                        if(tempPort.IsOpen) {
+                            Packet returnPacket = tempPort.ReadPacket();
 
-                            //Connects to the First MindSet it found.
-                            if(ScanConnectEnable) {
-                                lock(activePortsList) {
-                                    activePortsList.Add(tempPort);
+                            if(returnPacket.DataRowArray.Length > 0) {
+                                lock(mindSetPorts) {
+                                    mindSetPorts.Add(tempPort);
                                 }
 
-                                return;
+                                // If this is a ConnectScan, then go ahead and connect directly
+                                // to the port. No need to worry about sending messages at this
+                                // point.
+                                if(!IsFinding) {
+                                    // clear the portsToConnect list. this fixes the bug where
+                                    // subsequent Connect/ConnectScan attempts would re-search
+                                    // ports
+                                    lock(portsToConnect) {
+                                        portsToConnect.Clear();
+                                    }
+
+                                    lock(activePortsList) {
+                                        activePortsList.Add(tempPort);
+                                    }
+
+                                    return;
+                                }
                             }
+
+                            tempPort.Close();
                         }
 
-                        tempPort.Close();
+                        lock(portsToConnect) {
+                            portsToConnect.Remove(tempPort);
+                        }
                     }
+
+                    // If the Connect/ConnectScan failed, then broadcast a DeviceConnectFail message
+                    if(!IsFinding && mindSetPorts.Count == 0) {
+                        DeviceConnectFail(this, EventArgs.Empty);
+                    }
+                    // Otherwise, indicate whether the Find call was successful or not
+                    else {
+                        if(mindSetPorts.Count > 0)
+                            DeviceFound(this, new PortEventArgs(mindSetPorts[0].PortName));
+                        else
+                            DeviceNotFound(this, EventArgs.Empty);
+                    }
+
+                    IsFinding = false;
                 }
 
-                Thread.Sleep(1000);
-
-                if(ScanConnectEnable && mindSetPorts.Count == 0) {
-                    DeviceConnectFail(this, EventArgs.Empty);
-                }
-                else {
-                    if(mindSetPorts.Count > 0)
-                        DeviceFound(this, EventArgs.Empty);
-                    else
-                        DeviceNotFound(this, EventArgs.Empty);
-                }
-            //}
+                Thread.Sleep(500);
+            }
         }
 
+        /**
+         * ReadThread is responsible for transmitting headset data to all active connections.
+         * It is also responsible for disconnecting any connections that have died.
+         */
         private void ReadThread() {
             bool allReturnNull = true;
 
-            // Exits if readThreadEnable is false. 
             while(ReadThreadEnable) {
-                lock(activePortsList) {
-                    foreach(Connection port in activePortsList) {
-                        Packet returnPacket = port.ReadPacket();
+                Connection[] ports = activePortsList.ToArray();
 
-                        /* Checks if it received any packet from any of the connections.*/
-                        if(returnPacket.DataRowArray.Length > 0) 
-                            allReturnNull = false;
+                foreach(Connection port in ports) {
+                    Packet returnPacket = new Packet();
 
-                        /*Pass the data to the devices.*/
-                        lock(deviceList) {
-                            DeliverPacket(returnPacket);
-                        }
+                    try {
+                        returnPacket = port.ReadPacket();
+                    }
+                    catch(Exception e) {
+                        Console.WriteLine("Caught exception on read: " + e.Message);
+                        Disconnect(port);
+                        continue;
+                    }
 
-                        // Check the TotalTimeout and add to the remove list if is not receiving
-                        if(port.TotalTimeoutTime > 1) {
-                            lock(removePortsList) {
-                                removePortsList.Add(port);
-                            }
-                        }
+                    // Checks if it received any packet from any of the connections.
+                    if(returnPacket.DataRowArray.Length > 0)
+                        allReturnNull = false;
+
+                    // Pass the data to the devices.
+                    DeliverPacket(returnPacket);
+
+                    // Check the TotalTimeout and add to the remove list if is not receiving
+                    if(port.TotalTimeoutTime > 2000) {
+                        Disconnect(port);
                     }
                 }
 
@@ -384,124 +485,36 @@ namespace NeuroSky.ThinkGear {
                 }
 
                 allReturnNull = true;
-
-            }
-
-        }
-
-        private void RemoveThread() {
-
-            while(RemoveThreadEnable) {
-                lock(removePortsList) {
-                    foreach(Connection port in removePortsList) {
-                        if(port.IsOpen) {
-                            try {
-                                Console.WriteLine("Removing port " + port.PortName);
-                                port.Close();
-                                Console.WriteLine("Port closed.");
-                            }
-                            catch(Exception e) {
-                                Console.WriteLine("RemoveThread: " + e.Message);
-                            }
-                        }
-
-                        lock(activePortsList) {
-                            activePortsList.Remove(port);
-                        }
-
-                        Device tempDevice = new Device();
-
-                        lock(deviceList) {
-                            // TODO: Implement the case where multiple Devices are connected to the Connection. Currently only removes the first Device.
-
-                            /*Finds the index for the device that was connected to the port*/
-                            int index = deviceList.FindIndex(f => (f.PortName == port.PortName));
-
-                            /*Removes the Device from the list*/
-                            if(index >= 0) {
-                                tempDevice = deviceList[index];
-                                deviceList.RemoveAt(index);
-                            }
-                        }
-
-                        Console.WriteLine("Removed " + tempDevice.PortName);
-
-                        DeviceDisconnected(this, new DeviceEventArgs(tempDevice));
-                    }
-
-                    removePortsList.Clear();
-                }
-
-                Thread.Sleep(500);
             }
         }
 
-        private void AddThread() {
-
-            lock(portsToConnect) {
-                foreach(Connection tempPort in portsToConnect) {
-                    if(tempPort.IsOpen) 
-                        break;
-
-                    //Connect if it was opened before.
-                    try {
-                        tempPort.Open();
-                        Thread.Sleep(100);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("tempPort.Open Exception: " + e.Message);
-                    }
-
-                    Packet returnPacket = tempPort.ReadPacket();
-
-                    //If it can read valid packets add to activePortList
-                    if(returnPacket.DataRowArray.Length > 0) {
-                        lock(activePortsList) {
-                            activePortsList.Add(tempPort);
-                        }
-                    }
-                    else {
-                        tempPort.Close();
-                    }
-                }
-
-                portsToConnect.Clear();
-            }
-
-            lock(activePortsList) {
-                if(activePortsList.Count < 1) {
-                    DeviceConnectFail(this, EventArgs.Empty);
-                }
-            }
-
-            Thread.Sleep(1000);
-        }
-
-        //Delivers a packet to a device
+        // Delivers a packet to a device
         private void DeliverPacket(Packet packet) {
             Device tempDevice = new Device(packet.PortName, packet.HeadsetID);
 
-            /*Searches the device list and see the device is listed*/
+            // Searches the device list and see the device is listed
             if(!deviceList.Contains(tempDevice)) {
-                deviceList.Add(tempDevice);
+                lock(deviceList) {
+                    deviceList.Add(tempDevice);
+                }
 
                 DeviceConnected(this, new DeviceEventArgs(tempDevice));
             }
 
-            /*Finds the index for the device*/
+            // Finds the index for the device
             int index = deviceList.FindIndex(f => (f.PortName == tempDevice.PortName) && (f.HeadsetID == tempDevice.HeadsetID));
 
             if(index < 0)
                 return;
 
             (deviceList[index]).Deliver(packet.DataRowArray);
-        }/*End of DeliverPacket*/
+        }
 
         public class Connection: SerialPort {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
             private const int SERIALPORT_READ_TIMEOUT = 50; //in milliseconds
-            private const int READ_PACKET_TIMEOUT = 1;      // in seconds
+            private const int READ_PACKET_TIMEOUT = 2;      // in seconds
 
             private const byte SYNC_BYTE = 0xAA;
             private const byte EXCODE_BYTE = 0x55;
@@ -529,7 +542,7 @@ namespace NeuroSky.ThinkGear {
 
             public Connection(String portName) {
                 parserBuffer = new byte[0];
-                BaudRate = 57600;
+                BaudRate = 115200;
                 ReadTimeout = SERIALPORT_READ_TIMEOUT;
 
                 PortName = portName;
@@ -559,13 +572,6 @@ namespace NeuroSky.ThinkGear {
                         else
                             Read(tempByte, 0, 1);
 
-                        /*
-                        if (parserBuffer.Length == 0 && bufferIterator == parserBuffer.Length)
-                            Read(tempByte, 0, 1);
-                        else
-                            tempByte[0] = parserBuffer[bufferIterator++];
-                        */
-
                         receivedBytes.Add(tempByte[0]);
                     }
                     catch(TimeoutException te) {
@@ -580,22 +586,19 @@ namespace NeuroSky.ThinkGear {
                         continue;
                     }
                     catch(IndexOutOfRangeException ie) {
-                        Console.WriteLine("parserBuffer.Length: " + parserBuffer.Length);
-                        Console.WriteLine("bufferIterator: " + bufferIterator);
-                    }
-                    catch(Exception e) {
-                        Console.WriteLine("ReadPackets: " + e.Message);
+                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " + 
+                                          parserBuffer.Length + ", bufferIterator is " + bufferIterator);
                     }
 
                     switch(state) {
-                        /*Waiting for the first SYNC_BYTE*/
+                        // Waiting for the first SYNC_BYTE
                         case (ParserState.Sync0):
                             if(tempByte[0] == SYNC_BYTE) {
                                 state = ParserState.Sync1;
                             }
                             break;
 
-                        /*Waiting for the second SYNC_BYTE*/
+                        // Waiting for the second SYNC_BYTE
                         case (ParserState.Sync1):
                             if(tempByte[0] == SYNC_BYTE) {
                                 state = ParserState.PayloadLength;
@@ -605,7 +608,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for payload length */
+                        // Waiting for payload length
                         case (ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if(payloadLength >= 170) {
@@ -618,7 +621,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for Payload bytes */
+                        // Waiting for Payload bytes
                         case (ParserState.Payload):
                             payload.Add(tempByte[0]);
                             payloadSum += tempByte[0];
@@ -627,7 +630,7 @@ namespace NeuroSky.ThinkGear {
                             }
                             break;
 
-                        /* Waiting for checksum byte */
+                        // Waiting for checksum byte
                         case (ParserState.Checksum):
                             checkSum = tempByte[0];
                             state = ParserState.Sync0;
@@ -651,8 +654,7 @@ namespace NeuroSky.ThinkGear {
                 parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
 
                 return PackagePacket(receivedDataRow.ToArray(), PortName);
-
-            }/*End of ReadPacket*/
+            }
 
             private Packet PackagePacket(DataRow[] dataRow, string portName) {
                 Packet tempPacket = new Packet();
@@ -672,7 +674,7 @@ namespace NeuroSky.ThinkGear {
                 tempPacket.DataRowArray = tempDataRowList.ToArray();
 
                 return tempPacket;
-            }/*End of PackagePacket*/
+            }
 
             private DataRow[] ParsePayload(byte[] payload) {
                 List<DataRow> tempDataRowList = new List<DataRow>();
@@ -682,36 +684,36 @@ namespace NeuroSky.ThinkGear {
                 byte code = 0;
                 int numBytes = 0;
 
-                /* Parse all bytes from the payload[] */
+                // Parse all bytes from the payload[]
                 while(i < payload.Length) {
-                    /* Parse possible Extended CODE bytes */
+                    // Parse possible Extended CODE bytes
                     while(payload[i] == EXCODE_BYTE) {
                         extendedCodeLevel++;
                         i++;
                     }
 
-                    /* Parse CODE */
+                    // Parse CODE
                     code = payload[i++];
 
-                    /* Parse value length */
+                    // Parse value length
                     numBytes = code >= 0x80 ? payload[i++] : 1;
 
-                    /*Copies the Code to the tempDataRow*/
+                    // Copies the Code to the tempDataRow
                     tempDataRow.Type = (Code)code;
 
                     double currentTime = (DateTime.UtcNow - UNIXSTARTTIME).TotalSeconds;
 
-                    /*Gets the current time and inserts it into the tempDataRow*/
+                    // Gets the current time and inserts it into the tempDataRow
                     tempDataRow.Time = currentTime;
 
-                    /*Copies the data into the DataRow*/
+                    // Copies the data into the DataRow
                     tempDataRow.Data = new byte[numBytes];
 
                     Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
 
                     i += numBytes;
 
-                    /*Appends the data row to list*/
+                    // Appends the data row to list
                     tempDataRowList.Add(tempDataRow);
 
                     /*
@@ -755,6 +757,14 @@ namespace NeuroSky.ThinkGear {
 
             public ConnectionEventArgs(Connection connection) {
                 this.Connection = connection;
+            }
+        }
+
+        public class PortEventArgs: EventArgs {
+            public string PortName;
+
+            public PortEventArgs(string portName) {
+                this.PortName = portName;
             }
         }
     }
