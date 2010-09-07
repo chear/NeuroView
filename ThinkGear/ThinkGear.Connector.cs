@@ -571,7 +571,7 @@ namespace NeuroSky.ThinkGear {
                         continue;
                     }
                     catch(IndexOutOfRangeException ie) {
-                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " + 
+                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " +
                                           parserBuffer.Length + ", bufferIterator is " + bufferIterator);
                     }
 
