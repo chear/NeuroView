@@ -338,6 +338,7 @@ namespace NeuroSky.ThinkGear {
                             //Connects to the First MindSet it found.
                             if(ScanConnectEnable) {
                                 lock(activePortsList) {
+                                    Console.WriteLine("Going to add on active portlist.");
                                     activePortsList.Add(tempPort);
                                 }
 
