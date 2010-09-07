@@ -18,6 +18,7 @@ namespace NeuroSky.ThinkGear.Parser
         public TimeStampData[] DampenedAttention;
         public TimeStampData[] DampenedMeditation;
 
+        public TimeStampData[] BlinkStrength;
         public TimeStampData[] EMGPower;
         public PowerEEGData[] PowerEEGData;
 
@@ -95,7 +96,7 @@ namespace NeuroSky.ThinkGear.Parser
             List<TimeStampData> tempMeditation = new List<TimeStampData>();
             List<TimeStampData> tempDampenedAttention = new List<TimeStampData>();
             List<TimeStampData> tempDampenedMeditation = new List<TimeStampData>();
-
+            List<TimeStampData> tempBlinkStrength = new List<TimeStampData>();
             List<TimeStampData> tempEmgPower = new List<TimeStampData>();
             List<PowerEEGData> tempPowerEEGData = new List<PowerEEGData>();
 
@@ -124,7 +125,10 @@ namespace NeuroSky.ThinkGear.Parser
                     case (Code.DampenedMed):
                         tempDampenedMeditation.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
-                    case (Code.Raw):
+                    case (Code.Blink):
+                        tempBlinkStrength.Add(new TimeStampData(d.Time, (int)d.Data[0]));
+                        break;
+                    case(Code.Raw):
                         tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0] << 8) + d.Data[1])));
                         break;
                     case (Code.EMGPower):
@@ -158,6 +162,7 @@ namespace NeuroSky.ThinkGear.Parser
 
             tempParsed.DampenedAttention = tempDampenedAttention.ToArray();
             tempParsed.DampenedMeditation = tempDampenedMeditation.ToArray();
+            tempParsed.BlinkStrength = tempBlinkStrength.ToArray();
             tempParsed.EMGPower = tempEmgPower.ToArray();
             return tempParsed;
         }

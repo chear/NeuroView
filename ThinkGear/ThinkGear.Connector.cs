@@ -49,7 +49,7 @@ namespace NeuroSky.ThinkGear {
         EEGPowerInt         = 0x83,
         RawMS               = 0x90,
         Accelerometer       = 0x91,
-		EMGPower            = 0x94,
+		    EMGPower            = 0x94,
         Offhead             = 0xC0,
         HeadsetConnect      = 0xD0,
         HeadsetNotFound     = 0xD1,
@@ -72,6 +72,9 @@ namespace NeuroSky.ThinkGear {
         public event EventHandler DeviceConnected = delegate { };
         public event EventHandler DeviceConnectFail = delegate { };
         public event EventHandler DeviceDisconnected = delegate { };
+        
+        // configuration properties
+        public bool blinkDetectionEnabled;
 
         public volatile bool ScanConnectEnable = true;
 
@@ -710,7 +713,7 @@ namespace NeuroSky.ThinkGear {
                     // check if a blink was detected every time a raw packet is received
                     if(tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
-
+                        
                         byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
 
                         if(blinkStrength > 0) {
