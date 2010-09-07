@@ -526,6 +526,8 @@ namespace NeuroSky.ThinkGear {
             private BlinkDetector blinkDetector;
             private byte poorSignal = 200;
 
+            private bool blinkPacketFound = false; 
+
             public enum ParserState {
                 Invalid,
                 Sync0,
@@ -612,7 +614,7 @@ namespace NeuroSky.ThinkGear {
                         case (ParserState.PayloadLength):
                             payloadLength = tempByte[0];
                             if(payloadLength >= 170) {
-                                state = ParserState.Sync0;
+                                state = ParserState.Sync1;
                             }
                             else {
                                 payload.Clear();
@@ -725,8 +727,12 @@ namespace NeuroSky.ThinkGear {
                     if(tempDataRow.Type == Code.PoorSignal)
                         poorSignal = tempDataRow.Data[0];
 
+                    // if blink packet is received from the headset then skip embedded blink detection
+                    if (tempDataRow.Type == Code.Blink) {
+                      blinkPacketFound = true;               
+                    }
                     // check if a blink was detected every time a raw packet is received
-                    if(tempDataRow.Type == Code.Raw) {
+                    if(!blinkPacketFound && tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
                         
                         byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
