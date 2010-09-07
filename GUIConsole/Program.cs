@@ -22,18 +22,18 @@ namespace testprogram {
 
             //tg_Connector.Find();
             //while(tg_Connector.FindThreadIsAlive()) { /*DO NOTHING*/}
-            tg_Connector.Connect("COM4");
+            tg_Connector.Connect("COM10");
 
             Thread.Sleep(5000);
 
             //byte[] tempByte = { 0xC2 };
-            byte[] connectByte = { 0xC0, 0x8E, 0xF2 };
-            tg_Connector.Send("COM4", connectByte);
+            //byte[] connectByte = { 0xC0, 0x8E, 0xF2 };
+            //tg_Connector.Send("COM4", connectByte);
 
             Thread.Sleep(5000);
 
-            byte[] tempByte1 = { 0xC1 };
-            tg_Connector.Send("COM4", tempByte1);
+            //byte[] tempByte1 = { 0xC1 };
+            //tg_Connector.Send("COM4", tempByte1);
 
             Thread.Sleep(5000);
 
@@ -78,7 +78,7 @@ namespace testprogram {
                 Console.WriteLine("Time: " + tsd.TimeStamp + " Dongle Disconnect: 0x" + ((int)tsd.Value).ToString("X2"));
             }
 
-#if false
+#if true
             foreach (TimeStampData tsd in parsedData.Raw) {
                 Console.WriteLine("Time: " + tsd.TimeStamp + " Raw Value: " + tsd.Value);
             }
