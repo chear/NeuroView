@@ -101,12 +101,38 @@ namespace NeuroSky.ThinkGear {
             activePortsList = new List<Connection>();
             deviceList = new List<Device>();
 
-            StartThreads();
+            StartThreads(false);
         }
 
         ~Connector() {
             Close();
         }
+
+        /**
+         * Provides a collection of Connections that have ThinkGear devices. Note that this is
+         * *not* a collection of active Connections.
+         */
+        public Connection[] AvailableConnections {
+            get { return mindSetPorts.ToArray(); }
+        }
+
+        /**
+         * Indicates whether the AvailableConnections collection is in the middle of refreshing. 
+         * While this property returns "true", the contents of the AvailableConnections
+         * collection are invalid.
+         */
+        public bool IsRefreshing {
+            get { return ScanConnectEnable == false && findThread.IsAlive; }
+        }
+
+        /**
+         * Indicates whether the Connector is in the middle of performing a connect-scan.
+         */
+        /*
+        public bool IsScanning {
+            get { return ScanConnectEnable == true && findThread.IsAlive; }
+        }
+        */
 
         /**
          * Attempts to open a connection to a Device on the serial port named portName.
@@ -117,32 +143,9 @@ namespace NeuroSky.ThinkGear {
          *      DeviceConnectFail - The connection attempt was unsuccessful
          */
         public void Connect(string portName) {
-            IsFinding = false;
+            lock(portsToConnect){ portsToConnect.Add(new Connection(portName)); }
 
-            lock(portsToConnect){
-                portsToConnect.Add(new Connection(portName));
-            }
-
-            StartThreads();
-        }
-
-        /**
-         * Send a collection of bytes to the port specified by portName.
-         */
-        public void Send(string portName, byte[] byteArray) {
-            Connection tempConnection = new Connection(portName);
-
-            int index = -1;
-
-            lock (activePortsList) {
-                // Check to make sure the portName exists in the activePortsList
-                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
-            }
-
-            if(index < 0)
-                return;
-
-            activePortsList[index].Write(byteArray, 0, byteArray.Length);
+            StartThreads(false);
         }
 
         /**
@@ -156,17 +159,12 @@ namespace NeuroSky.ThinkGear {
          * TODO: Overload to take a preferred initial port to scan
          */
         public void ConnectScan() {
-            IsFinding = false;
-
             string[] ports = FindAvailablePorts();
 
-            foreach(string port in ports) {
-                lock(portsToConnect) {
-                    portsToConnect.Add(new Connection(port));
-                }
-            }
+            foreach(string port in ports)
+                lock(portsToConnect) { portsToConnect.Add(new Connection(port)); }
 
-            StartThreads();
+            StartThreads(false);
         }
 
         /**
@@ -191,9 +189,8 @@ namespace NeuroSky.ThinkGear {
             // iterate over all open connections
             Connection[] ports = activePortsList.ToArray();
 
-            foreach(Connection port in ports){
+            foreach(Connection port in ports)
                 Disconnect(port);
-            }
         }
 
         /**
@@ -241,26 +238,33 @@ namespace NeuroSky.ThinkGear {
             if(c != null) {
                 c.Close();
 
-                lock(activePortsList) {
-                    activePortsList.Remove(c);
-                }
+                lock(activePortsList) { activePortsList.Remove(c); }
             }
 
             if(d != null) {
-                lock(deviceList) {
-                    deviceList.Remove(d);
-                }
+                lock(deviceList) { deviceList.Remove(d); }
 
                 DeviceDisconnected(this, new DeviceEventArgs(d));
             }
         }
 
         /**
-         * Provides a collection of Connections that have ThinkGear devices. Note that this is
-         * *not* a collection of active Connections.
+         * Send a collection of bytes to the port specified by portName.
          */
-        public Connection[] AvailableConnections {
-            get { return mindSetPorts.ToArray(); }
+        public void Send(string portName, byte[] byteArray) {
+            Connection tempConnection = new Connection(portName);
+
+            int index = -1;
+
+            lock(activePortsList) {
+                // Check to make sure the portName exists in the activePortsList
+                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
+            }
+
+            if(index < 0)
+                return;
+
+            activePortsList[index].Write(byteArray, 0, byteArray.Length);
         }
 
         /**
@@ -270,37 +274,14 @@ namespace NeuroSky.ThinkGear {
             Find();
         }
 
-        /**
-         * Indicates whether the AvailableConnections collection is in the middle of refreshing. 
-         * While this property returns "true", the contents of the AvailableConnections
-         * collection are invalid.
-         */
-        public bool IsRefreshing {
-            get { return ScanConnectEnable == false && findThread.IsAlive; }
-        }
-
-        /**
-         * Indicates whether the Connector is in the middle of performing a connect-scan.
-         */
-        /*
-        public bool IsScanning {
-            get { return ScanConnectEnable == true && findThread.IsAlive; }
-        }
-        */
-
         // TODO: Deprecate this method (replaced by RefreshAvailableConnections and ConnectScan methods).
         public void Find() {
-            IsFinding = true;
-
             string[] ports = FindAvailablePorts();
 
-            foreach(string port in ports) {
-                lock(portsToConnect) {
-                    portsToConnect.Add(new Connection(port));
-                }
-            }
+            foreach(string port in ports)
+                lock(portsToConnect) { portsToConnect.Add(new Connection(port)); }
 
-            StartThreads();
+            StartThreads(true);
         }
 
         // TODO: Deprecate this method (replaced by IsRefreshing and IsScanning properties)
@@ -311,8 +292,13 @@ namespace NeuroSky.ThinkGear {
         /**
          * Fire off the read and find threads, handling all error conditions (e.g. if no
          * Thread instance exists, or if the Thread exists but has exited).
+         * 
+         * The isFind parameter dictates whether the threads will be started in "Find" mode
+         * (e.g. no connection initialized to a ThinkGear device) or "Connect/Scan" mode
+         * (a successful search will result in a connection to a ThinkGear device).
          */
-        private void StartThreads() {
+        private void StartThreads(bool isFind) {
+            IsFinding = isFind;
             ReadThreadEnable = true;
             FindThreadEnable = true;
 
@@ -354,14 +340,16 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * This thread has different behavior depending on whether it was invoked from a
-         * Find or a ConnectScan / Connect. IsFinding is set to 'true' for a Find, 'false'
+         * Find or a ConnectScan/Connect. IsFinding is set to 'true' for a Find, 'false'
          * otherwise.
          * 
          * Messages for a ConnectScan / Connect:
+         *    * DeviceConnected will be broadcasted if the attempt was successful (though not
+         *      by this thread)
          *    * DeviceConnectFail will be broadcasted if the attempt failed
          *    
          * Messages for a Find:
-         *    * DeviceValidating will be broadcasted for every device attempted
+         *    * DeviceValidating will be broadcasted for every validation attempt
          *    * DeviceFound will be broadcasted at the end if a device was found
          *    * DeviceNotFound will be broadcasted at the end if no device was found
          *    
@@ -376,6 +364,9 @@ namespace NeuroSky.ThinkGear {
                 Connection[] ports = portsToConnect.ToArray();
 
                 if(ports.Length > 0) {
+                    if(IsFinding)
+                        lock(mindSetPorts) { mindSetPorts.Clear(); }
+
                     foreach(Connection tempPort in ports) {
                         // we only trigger the DeviceValidating message if it is a Find
                         if(IsFinding)
@@ -383,6 +374,9 @@ namespace NeuroSky.ThinkGear {
 
                         try {
                             tempPort.Open();
+
+                            // sleep the thread to wait for some data to come in before we
+                            // try to read data from the port
                             Thread.Sleep(100);
                         }
                         catch(Exception e) {
@@ -393,9 +387,9 @@ namespace NeuroSky.ThinkGear {
                             Packet returnPacket = tempPort.ReadPacket();
 
                             if(returnPacket.DataRowArray.Length > 0) {
-                                lock(mindSetPorts) {
-                                    mindSetPorts.Add(tempPort);
-                                }
+                                // found a valid ThinkGear device, so add it to the list of
+                                // valid ports
+                                lock(mindSetPorts) { mindSetPorts.Add(tempPort); }
 
                                 // If this is a ConnectScan, then go ahead and connect directly
                                 // to the port. No need to worry about sending messages at this
@@ -404,13 +398,10 @@ namespace NeuroSky.ThinkGear {
                                     // clear the portsToConnect list. this fixes the bug where
                                     // subsequent Connect/ConnectScan attempts would re-search
                                     // ports
-                                    lock(portsToConnect) {
-                                        portsToConnect.Clear();
-                                    }
+                                    lock(portsToConnect) { portsToConnect.Clear(); }
 
-                                    lock(activePortsList) {
-                                        activePortsList.Add(tempPort);
-                                    }
+                                    // notify ReadThread that we should start reading from this port
+                                    lock(activePortsList) { activePortsList.Add(tempPort); }
 
                                     return;
                                 }
@@ -419,9 +410,7 @@ namespace NeuroSky.ThinkGear {
                             tempPort.Close();
                         }
 
-                        lock(portsToConnect) {
-                            portsToConnect.Remove(tempPort);
-                        }
+                        lock(portsToConnect) { portsToConnect.Remove(tempPort); }
                     }
 
                     // If the Connect/ConnectScan failed, then broadcast a DeviceConnectFail message
@@ -473,16 +462,14 @@ namespace NeuroSky.ThinkGear {
                     DeliverPacket(returnPacket);
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
-                    if(port.TotalTimeoutTime > 2000) {
+                    if(port.TotalTimeoutTime > 2000)
                         Disconnect(port);
-                    }
                 }
 
                 // Sleep when DataRow null.
                 // TODO: Make a dynamic sleep thread. (What does this mean? -HK)
-                if(allReturnNull) {
+                if(allReturnNull)
                     Thread.Sleep(2);
-                }
 
                 allReturnNull = true;
             }
@@ -494,9 +481,7 @@ namespace NeuroSky.ThinkGear {
 
             // Searches the device list and see the device is listed
             if(!deviceList.Contains(tempDevice)) {
-                lock(deviceList) {
-                    deviceList.Add(tempDevice);
-                }
+                lock(deviceList) { deviceList.Add(tempDevice); }
 
                 DeviceConnected(this, new DeviceEventArgs(tempDevice));
             }
@@ -588,7 +573,7 @@ namespace NeuroSky.ThinkGear {
                         continue;
                     }
                     catch(IndexOutOfRangeException ie) {
-                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " + 
+                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " +
                                           parserBuffer.Length + ", bufferIterator is " + bufferIterator);
                     }
 
