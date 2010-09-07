@@ -289,9 +289,13 @@ namespace NeuroSky.ThinkGear {
         /**
          * Fire off the read and find threads, handling all error conditions (e.g. if no
          * Thread instance exists, or if the Thread exists but has exited).
+         * 
+         * The isFind parameter dictates whether the threads will be started in "Find" mode
+         * (e.g. no connection initialized to a ThinkGear device) or "Connect/Scan" mode
+         * (a successful search will result in a connection to a ThinkGear device).
          */
         private void StartThreads(bool isFind) {
-            IsFinding = isFinding;
+            IsFinding = isFind;
             ReadThreadEnable = true;
             FindThreadEnable = true;
 
@@ -333,14 +337,16 @@ namespace NeuroSky.ThinkGear {
 
         /**
          * This thread has different behavior depending on whether it was invoked from a
-         * Find or a ConnectScan / Connect. IsFinding is set to 'true' for a Find, 'false'
+         * Find or a ConnectScan/Connect. IsFinding is set to 'true' for a Find, 'false'
          * otherwise.
          * 
          * Messages for a ConnectScan / Connect:
+         *    * DeviceConnected will be broadcasted if the attempt was successful (though not
+         *      by this thread)
          *    * DeviceConnectFail will be broadcasted if the attempt failed
          *    
          * Messages for a Find:
-         *    * DeviceValidating will be broadcasted for every device attempted
+         *    * DeviceValidating will be broadcasted for every validation attempt
          *    * DeviceFound will be broadcasted at the end if a device was found
          *    * DeviceNotFound will be broadcasted at the end if no device was found
          *    
