@@ -23,7 +23,6 @@ public struct DataPair {
         timeStamp = t;
         data = d;
     }
-
 }
 
 
@@ -120,6 +119,7 @@ namespace NeuroSky.MindView {
 
             //TODO: Draw Axis
             //if (timeStampOffset < 0) timeStampOffset = 0;
+            DrawXAxis(drawingSurface);
             DrawYAxis(drawingSurface);
 
             myPen.Dispose();
@@ -164,7 +164,6 @@ namespace NeuroSky.MindView {
 
                 try {
                     graphPoints[i] = Point2Pixel((data[d].timeStamp - timeStampOffset), data[d].data);
-
                 }
                 catch (Exception e) {
                     Console.WriteLine("LineGraph: " + e.Message);
@@ -177,20 +176,80 @@ namespace NeuroSky.MindView {
             return timeStampOffset;
         }
 
-        private void DrawYAxis(Graphics drawingSurface) {
+
+        /**
+         * Labels the x-axis with frequency bins
+         */
+        private void DrawXAxis(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.Black);
+            SolidBrush myBrush = new SolidBrush(Color.Black);
+            System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 11F);
 
-            int locationX = 20;
+            Point pt;
+            float X;
+            float Xoffset = 0;
 
-            //10 Lines
-            int temp = (int)frameHeight/10;
+            float YtickLength = 15;
+            float Y1 = frameHeight;
+            float Y2 = Y1 - YtickLength;
 
-            for (int i = 0; i < 10; i++) {
-                drawingSurface.DrawLine(myPen, locationX, temp + temp*i, locationX + 10, temp + temp*i);
+            double stepSize = 0;
+            int numGroups = 0;
+
+
+            // Set number of labels to create
+            if (xAxisMax >= 10) {
+                stepSize = 2;
+            } else if (xAxisMax >= 5) {
+                stepSize = 1;
+            } else if (xAxisMax >= 2) {
+                stepSize = 0.5;
+            } else if (xAxisMax >= 1) {
+                stepSize = 0.2;
+            } else {
+                stepSize = 0.1;
+            }
+
+            numGroups = (int)(xAxisMax / stepSize);
+
+
+            // Write the labels
+            for (int i = 1; i < numGroups; i++)
+            {
+                X = (float)(i * stepSize) + Xoffset;
+                pt = Point2Pixel(X, 0);
+                drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
+                drawingSurface.DrawString(X.ToString(), myFont, myBrush, frameWidth - pt.X, Y2 - 2);
             }
 
             myPen.Dispose();
+            myBrush.Dispose();
         }
+
+        /**
+         * Labels the y-axis with amplitudes
+         */
+        private void DrawYAxis(Graphics drawingSurface) {
+            Pen myPen = new Pen(Color.Black);
+            
+            int X = frameWidth;
+            int Xwide = -10;
+            int numLines = 10;
+            double Ystep = Math.Ceiling((double)(frameHeight) / (double)(numLines));
+
+            for (int i = numLines - 1; i > 0; i--)
+            {
+                drawingSurface.DrawLine(myPen, X, frameHeight - ((int)Ystep * i), (X + Xwide), frameHeight - ((int)Ystep * i));
+            }
+
+            myPen.Dispose();
+            SolidBrush myBrush2 = new SolidBrush(Color.Black);
+            System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 11F);
+            drawingSurface.DrawString(yAxisMax.ToString(), myFont2, myBrush2, X+(Xwide*5), 2);
+            drawingSurface.DrawString(yAxisMin.ToString(), myFont2, myBrush2, X+(Xwide*5), frameHeight - 20);
+            myBrush2.Dispose();
+        }
+
 
         private void SaveData() {
             DataPair[] dataPointsCopy = data0.ToArray();
@@ -362,6 +421,6 @@ namespace NeuroSky.MindView {
         }
 
 
-    }/*End of LinGraph Class*/
+    }/*End of LineGraph Class*/
 
 }

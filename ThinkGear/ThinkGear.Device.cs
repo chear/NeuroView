@@ -47,7 +47,6 @@ namespace NeuroSky.ThinkGear
             DataRowList = new List<DataRow>();
             
             lastUpdate = DateTime.UtcNow;
-
         }
 
 
