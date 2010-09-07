@@ -49,7 +49,7 @@ namespace NeuroSky.ThinkGear {
         EEGPowerInt         = 0x83,
         RawMS               = 0x90,
         Accelerometer       = 0x91,
-		    EMGPower            = 0x94,
+        EMGPower            = 0x94,
         Offhead             = 0xC0,
         HeadsetConnect      = 0xD0,
         HeadsetNotFound     = 0xD1,
@@ -76,6 +76,7 @@ namespace NeuroSky.ThinkGear {
         // configuration properties
         public bool blinkDetectionEnabled;
 
+        // TODO: Deprecate this public variable, since it's not used anymore
         public volatile bool ScanConnectEnable = true;
 
         private List<Connection> portsToConnect;
@@ -122,17 +123,15 @@ namespace NeuroSky.ThinkGear {
          * collection are invalid.
          */
         public bool IsRefreshing {
-            get { return ScanConnectEnable == false && findThread.IsAlive; }
+            get { return IsFinding; }
         }
 
         /**
          * Indicates whether the Connector is in the middle of performing a connect-scan.
          */
-        /*
         public bool IsScanning {
-            get { return ScanConnectEnable == true && findThread.IsAlive; }
+            get { return !IsFinding; }
         }
-        */
 
         /**
          * Attempts to open a connection to a Device on the serial port named portName.
