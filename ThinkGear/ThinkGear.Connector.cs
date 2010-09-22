@@ -79,9 +79,9 @@ namespace NeuroSky.ThinkGear {
         // TODO: Deprecate this public variable, since it's not used anymore
         public volatile bool ScanConnectEnable = true;
 
-        private List<Connection> portsToConnect;
-        private List<Connection> activePortsList;
-        private List<Device> deviceList;
+        private List<Connection> portsToConnect;        // ports that an application wishes to connect to
+        private List<Connection> activePortsList;       // ports that are currently connected
+        private List<Device> deviceList;                // devices that are currently connected
 
         private const int DEFAULT_BAUD_RATE = 115200;
 
@@ -123,14 +123,14 @@ namespace NeuroSky.ThinkGear {
          * collection are invalid.
          */
         public bool IsRefreshing {
-            get { return IsFinding; }
+            get { return IsFinding && portsToConnect.Count > 0; }
         }
 
         /**
          * Indicates whether the Connector is in the middle of performing a connect-scan.
          */
         public bool IsScanning {
-            get { return !IsFinding; }
+            get { return !IsFinding && portsToConnect.Count > 0; }
         }
 
         /**
@@ -185,7 +185,6 @@ namespace NeuroSky.ThinkGear {
          *      DeviceDisconnected - The device was disconnected
          */
         public void Disconnect() {
-            // iterate over all open connections
             Connection[] ports = activePortsList.ToArray();
 
             foreach(Connection port in ports)
@@ -388,7 +387,9 @@ namespace NeuroSky.ThinkGear {
                             if(returnPacket.DataRowArray.Length > 0) {
                                 // found a valid ThinkGear device, so add it to the list of
                                 // valid ports
-                                lock(mindSetPorts) { mindSetPorts.Add(tempPort); }
+                                if(IsFinding) {
+                                    lock(mindSetPorts) { mindSetPorts.Add(tempPort); }
+                                }
 
                                 // If this is a ConnectScan, then go ahead and connect directly
                                 // to the port. No need to worry about sending messages at this
