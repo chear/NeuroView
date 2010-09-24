@@ -166,6 +166,18 @@ namespace NeuroSky.ThinkGear {
             StartThreads(false);
         }
 
+        public void ConnectScan(string initialPort) {
+            Regex r = new Regex("COM[1-9][0-9]*");
+
+            // scrub the port
+            string portName = r.Match(initialPort).ToString();
+
+            if(portName.Length != 0)
+                lock(portsToConnect) { portsToConnect.Add(new Connection(portName)); }
+
+            ConnectScan();
+        }
+
         /**
          * Performs cleanup of the ThinkGear Connector instance.
          */
@@ -366,6 +378,10 @@ namespace NeuroSky.ThinkGear {
                         lock(mindSetPorts) { mindSetPorts.Clear(); }
 
                     foreach(Connection tempPort in ports) {
+#if DEBUG
+                        Console.WriteLine("MVC scanning " + tempPort.PortName);
+#endif
+
                         // we only trigger the DeviceValidating message if it is a Find
                         if(IsFinding)
                             DeviceValidating(this, new ConnectionEventArgs(tempPort));
