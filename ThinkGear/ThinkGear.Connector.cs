@@ -49,7 +49,7 @@ namespace NeuroSky.ThinkGear {
         EEGPowerInt         = 0x83,
         RawMS               = 0x90,
         Accelerometer       = 0x91,
-		    EMGPower            = 0x94,
+		EMGPower            = 0x94,
         Offhead             = 0xC0,
         HeadsetConnect      = 0xD0,
         HeadsetNotFound     = 0xD1,
@@ -143,6 +143,22 @@ namespace NeuroSky.ThinkGear {
                 return;
 
             activePortsList[index].Write(byteArray, 0, byteArray.Length);
+        }
+
+        public void IsRFWorld(string portName) {
+            Connection tempConnection = new Connection(portName);
+
+            int index = -1;
+
+            lock (activePortsList) {
+                // Check to make sure the portName exists in the activePortsList
+                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
+            }
+
+            if (index < 0)
+                return;
+
+            activePortsList[index].IsRFWorld = true;
         }
 
         /**
@@ -377,9 +393,8 @@ namespace NeuroSky.ThinkGear {
 
                 if(ports.Length > 0) {
                     foreach(Connection tempPort in ports) {
-                        // we only trigger the DeviceValidating message if it is a Find
-                        if(IsFinding)
-                            DeviceValidating(this, new ConnectionEventArgs(tempPort));
+                        // DeviceValidating message, to notify the application that the FindThread is validating the COM port
+                        DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
                         try {
                             tempPort.Open();
@@ -474,6 +489,7 @@ namespace NeuroSky.ThinkGear {
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
                     if(port.TotalTimeoutTime > 2000) {
+                        if(port.IsRFWorld) Send(port.PortName, new byte[]{0xC1});
                         Disconnect(port);
                     }
                 }
@@ -525,6 +541,8 @@ namespace NeuroSky.ThinkGear {
 
             private BlinkDetector blinkDetector;
             private byte poorSignal = 200;
+
+            public volatile bool IsRFWorld = false; //TODO: Automatically detect that it is a RFWorld Dongle
 
             public enum ParserState {
                 Invalid,
