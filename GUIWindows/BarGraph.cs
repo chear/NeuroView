@@ -51,7 +51,7 @@ namespace NeuroSky.MindView
         private Size defaultSize;
         private int scrollBarTop;
 
-        private int numberOfPoints;         // Number of data points needed for computation
+        public int numberOfPoints;         // Number of data points needed for computation
 
         private Thread saveDataThread;
 
