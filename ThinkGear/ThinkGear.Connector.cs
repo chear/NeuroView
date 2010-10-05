@@ -147,6 +147,22 @@ namespace NeuroSky.ThinkGear {
             StartThreads(false);
         }
 
+        public void IsRFWorld(string portName) {
+            Connection tempConnection = new Connection(portName);
+
+            int index = -1;
+
+            lock (activePortsList) {
+                // Check to make sure the portName exists in the activePortsList
+                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
+            }
+
+            if (index < 0)
+                return;
+
+            activePortsList[index].IsRFWorld = true;
+        }
+
         /**
          * Attempts to open a connection to the first Device seen by the Connector.
          * 
@@ -392,9 +408,8 @@ namespace NeuroSky.ThinkGear {
                         Console.WriteLine("MVC scanning " + tempPort.PortName);
 #endif
 
-                        // we only trigger the DeviceValidating message if it is a Find
-                        if(IsFinding)
-                            DeviceValidating(this, new ConnectionEventArgs(tempPort));
+                        // Always notifies which port it is validating.
+                        DeviceValidating(this, new ConnectionEventArgs(tempPort));
 
                         try {
                             tempPort.Open();
@@ -479,7 +494,7 @@ namespace NeuroSky.ThinkGear {
                     ports = activePortsList.ToArray();
                 }
 
-                foreach(Connection port in ports) {
+                foreach (Connection port in ports) {
                     Packet returnPacket = new Packet();
 
                     try {
@@ -492,14 +507,15 @@ namespace NeuroSky.ThinkGear {
                     }
 
                     // Checks if it received any packet from any of the connections.
-                    if(returnPacket.DataRowArray.Length > 0)
+                    if (returnPacket.DataRowArray.Length > 0)
                         allReturnNull = false;
 
                     // Pass the data to the devices.
                     DeliverPacket(returnPacket);
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
-                    if(port.TotalTimeoutTime > 2000) {
+                    if (port.TotalTimeoutTime > 2000) {
+                        if (port.IsRFWorld) Send(port.PortName, new byte[] { 0xC1 });
                         Disconnect(port);
                     }
                 }
@@ -554,6 +570,8 @@ namespace NeuroSky.ThinkGear {
             private byte[] buffer;
             private int payloadBytesRemaining = 0;
             private byte[] payloadBuffer;
+
+            public volatile bool IsRFWorld = false; //TODO: Automatically detect that it is a RFWorld Dongle
 
             public enum ParserStatuses {
                 Invalid,
