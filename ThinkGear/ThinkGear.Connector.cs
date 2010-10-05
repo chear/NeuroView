@@ -147,22 +147,6 @@ namespace NeuroSky.ThinkGear {
             StartThreads(false);
         }
 
-        public void IsRFWorld(string portName) {
-            Connection tempConnection = new Connection(portName);
-
-            int index = -1;
-
-            lock (activePortsList) {
-                // Check to make sure the portName exists in the activePortsList
-                index = activePortsList.FindIndex(f => (f.PortName == tempConnection.PortName));
-            }
-
-            if (index < 0)
-                return;
-
-            activePortsList[index].IsRFWorld = true;
-        }
-
         /**
          * Attempts to open a connection to the first Device seen by the Connector.
          * 
@@ -176,12 +160,12 @@ namespace NeuroSky.ThinkGear {
         public void ConnectScan() {
             string[] ports = FindAvailablePorts();
 
-            foreach(string port in ports) {
-                lock(portsToConnect) {
+            lock(portsToConnect) {
+                foreach(string port in ports) {
                     Connection c = new Connection(port);
 
                     if(!portsToConnect.Contains(c))
-                        portsToConnect.Add(new Connection(port));
+                        portsToConnect.Add(c);
                 }
             }
 
@@ -194,10 +178,21 @@ namespace NeuroSky.ThinkGear {
             // scrub the port
             string portName = r.Match(initialPort).ToString();
 
-            if(portName.Length != 0)
-                lock(portsToConnect) { portsToConnect.Add(new Connection(portName)); }
+            lock(portsToConnect) {
+                if(portName.Length != 0)
+                    portsToConnect.Add(new Connection(portName));
 
-            ConnectScan();
+                string[] ports = FindAvailablePorts();
+
+                foreach(string port in ports) {
+                    Connection c = new Connection(port);
+
+                    if(!portsToConnect.Contains(c))
+                        portsToConnect.Add(c);
+                }
+            }
+
+            StartThreads(false);
         }
 
         /**
@@ -515,7 +510,6 @@ namespace NeuroSky.ThinkGear {
 
                     // Check the TotalTimeout and add to the remove list if is not receiving
                     if (port.TotalTimeoutTime > 2000) {
-                        if (port.IsRFWorld) Send(port.PortName, new byte[] { 0xC1 });
                         Disconnect(port);
                     }
                 }
@@ -571,8 +565,6 @@ namespace NeuroSky.ThinkGear {
             private int payloadBytesRemaining = 0;
             private byte[] payloadBuffer;
 
-            public volatile bool IsRFWorld = false; //TODO: Automatically detect that it is a RFWorld Dongle
-
             public enum ParserStatuses {
                 Invalid,
                 Sync0,
@@ -580,7 +572,7 @@ namespace NeuroSky.ThinkGear {
                 PayloadLength,
                 Payload,
                 Checksum
-            };
+            }
 
             public struct ParserState {
                 public ParserStatuses packetState;
