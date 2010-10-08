@@ -183,7 +183,7 @@ namespace NeuroSky.MindView {
         private void DrawXAxis(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.Black);
             SolidBrush myBrush = new SolidBrush(Color.Black);
-            System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 11F);
+            System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
             Point pt;
             float X;
@@ -244,7 +244,7 @@ namespace NeuroSky.MindView {
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
-            System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 11F);
+            System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
             drawingSurface.DrawString(yAxisMax.ToString(), myFont2, myBrush2, X+(Xwide*5), 2);
             drawingSurface.DrawString(yAxisMin.ToString(), myFont2, myBrush2, X+(Xwide*5), frameHeight - 20);
             myBrush2.Dispose();

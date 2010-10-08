@@ -6,19 +6,19 @@ using System.IO;
 
 namespace NeuroSky.ThinkGear.Algorithms {
     public class BlinkDetector {
-        private const int BLINK_DETECT_UPPER_THRESHOLD = 400;
-        private const int BLINK_DETECT_LOWER_THRESHOLD = -200;
+        private const int BLINK_DETECT_UPPER_THRESHOLD = 250;
+        private const int BLINK_DETECT_LOWER_THRESHOLD = -50;
 
-        private const int UPPER_BLINK_MIN_TIME = 5;
-        private const int UPPER_BLINK_MAX_TIME = 75;
+        private const int UPPER_BLINK_MIN_TIME = 10;
+        private const int UPPER_BLINK_MAX_TIME = 100;
 
         private const int MIDDLE_BLINK_MIN_TIME = 0;
-        private const int MIDDLE_BLINK_MAX_TIME = 40;
+        private const int MIDDLE_BLINK_MAX_TIME = 50;
         
-        private const int LOWER_BLINK_MIN_TIME = 10;
-        private const int LOWER_BLINK_MAX_TIME = 110;
+        private const int LOWER_BLINK_MIN_TIME = 5;
+        private const int LOWER_BLINK_MAX_TIME = 100;
 
-        private const byte PQ_THRESHOLD = 27;
+        private const byte PQ_THRESHOLD = 26;
 
         private const int SHIFTING_TERM = 4;
 
