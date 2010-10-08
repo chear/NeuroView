@@ -52,11 +52,10 @@ namespace NeuroSky.ThinkGear
 
         public void Deliver(DataRow[] dataRowArray)
         {
-            foreach (DataRow d in dataRowArray)
-            {
-                DataRowList.Add(d);
+            lock(DataRowList) {
+                foreach(DataRow d in dataRowArray)
+                    DataRowList.Add(d);
             }
-
 
             if ((DateTime.UtcNow - lastUpdate).TotalMilliseconds > DataReceivedRate)
             {

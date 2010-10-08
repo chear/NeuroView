@@ -94,6 +94,7 @@ namespace NeuroSky.ThinkGear {
         private volatile bool IsFinding = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
+        private const int DATA_TIMEOUT = 5000;
 
         public Connector() {
             mindSetPorts = new List<Connection>();
@@ -263,9 +264,8 @@ namespace NeuroSky.ThinkGear {
          */
         private void DisconnectionCleanup(Connection c, Device d) {
             if(c != null) {
-                c.Close();
-
                 lock(activePortsList) { activePortsList.Remove(c); }
+                c.Close();
             }
 
             if(d != null) {
@@ -480,8 +480,6 @@ namespace NeuroSky.ThinkGear {
          * It is also responsible for disconnecting any connections that have died.
          */
         private void ReadThread() {
-            bool allReturnNull = true;
-
             while(ReadThreadEnable) {
                 Connection[] ports;
 
@@ -497,29 +495,22 @@ namespace NeuroSky.ThinkGear {
                     }
                     catch(Exception e) {
                         Console.WriteLine("Caught exception on read: " + e);
-                        Disconnect(port);
+
+                        // catch the case where the port gets removed from APL
+                        // in the Disconnect call, but ReadThread is still processing
+                        // old cached data. this is to prevent Disconnect() being called
+                        // twice.
+                        if(activePortsList.Contains(port))
+                            Disconnect(port);
+
                         continue;
                     }
 
-                    // Checks if it received any packet from any of the connections.
-                    if (returnPacket.DataRowArray.Length > 0)
-                        allReturnNull = false;
-
                     // Pass the data to the devices.
                     DeliverPacket(returnPacket);
-
-                    // Check the TotalTimeout and add to the remove list if is not receiving
-                    if (port.TotalTimeoutTime > 2000) {
-                        Disconnect(port);
-                    }
                 }
 
-                // Sleep when DataRow null.
-                // TODO: Make a dynamic sleep thread. (What does this mean? -HK)
-                if(allReturnNull)
-                    Thread.Sleep(20);
-
-                allReturnNull = true;
+                Thread.Sleep(20);
             }
         }
 
@@ -546,14 +537,14 @@ namespace NeuroSky.ThinkGear {
         public class Connection: SerialPort {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
-            private const int SERIALPORT_READ_TIMEOUT = 1000; //in milliseconds
+            private const int SERIALPORT_READ_TIMEOUT = 2000; //in milliseconds
             private const int READ_PACKET_TIMEOUT = 2;      // in seconds
 
             private const byte SYNC_BYTE = 0xAA;
             private const byte EXCODE_BYTE = 0x55;
             private const byte MULTI_BYTE = 0x80;
 
-            public DateTime StartTimeoutTime = new DateTime(1970, 1, 1, 0, 0, 0);
+            private DateTime packetLastReceived;
             public double TotalTimeoutTime = 0; //In milliseconds
 
             private BlinkDetector blinkDetector;
@@ -598,6 +589,8 @@ namespace NeuroSky.ThinkGear {
                 parserState.packetState = ParserStatuses.Sync0;
                 parserState.payloadLength = 0;
                 parserState.cumulativeChecksum = 0;
+
+                packetLastReceived = DateTime.UtcNow;
             }
 
             public Packet ReadPacket() {
@@ -609,8 +602,10 @@ namespace NeuroSky.ThinkGear {
                 try {
                     bytesRead = Read(buffer, 0, 1024);
                 }
-                catch(IOException ie) {
-                    Console.WriteLine("IO exception: " + ie);
+                catch(TimeoutException te) {
+                    Console.WriteLine("No packets available.");
+
+                    //return new Packet();
                 }
 
                 for(int i = 0; i < bytesRead; i++) {
@@ -663,6 +658,8 @@ namespace NeuroSky.ThinkGear {
                                     dataRows.Add(parsedDataRows[j]);
 
                                 payloadBuffer = null;
+
+                                packetLastReceived = DateTime.UtcNow;
                             }
 
                             ResetParser();
@@ -672,113 +669,6 @@ namespace NeuroSky.ThinkGear {
                 }
 
                 return PackagePacket(dataRows.ToArray(), PortName);
-
-                /*
-                byte[] tempByte = new byte[1];
-                List<byte> receivedBytes = new List<byte>();
-                List<DataRow> receivedDataRow = new List<DataRow>();
-
-                ParserState state = ParserState.Sync0;
-                int payloadLength = 0;
-                int payloadSum = 0;
-                int checkSum = 0;
-                List<byte> payload = new List<byte>();
-                DataRow[] tempDataRowArray = null;
-
-                int bufferIterator = 0;
-
-                DateTime readPacketTimeOut = DateTime.Now.AddSeconds(READ_PACKET_TIMEOUT);
-
-                while(DateTime.Now < readPacketTimeOut && tempDataRowArray == null) {
-                    try {
-                        if(parserBuffer.Length > bufferIterator)
-                            tempByte[0] = parserBuffer[bufferIterator++];
-                        else
-                            Read(tempByte, 0, 1);
-
-                        receivedBytes.Add(tempByte[0]);
-                    }
-                    catch(TimeoutException te) {
-                        //Console.WriteLine("serialPort.Read TimeoutException: " + te.Message);
-                        if(StartTimeoutTime == UNIXSTARTTIME) {
-                            StartTimeoutTime = DateTime.UtcNow;
-                        }
-                        else {
-                            TotalTimeoutTime = (DateTime.UtcNow - StartTimeoutTime).TotalMilliseconds;
-                        }
-
-                        continue;
-                    }
-                    catch(IndexOutOfRangeException ie) {
-                        Console.WriteLine("Caught exception on buffers: parserBuffer.Length is " +
-                                          parserBuffer.Length + ", bufferIterator is " + bufferIterator);
-                    }
-
-                    switch(state) {
-                        // Waiting for the first SYNC_BYTE
-                        case (ParserState.Sync0):
-                            if(tempByte[0] == SYNC_BYTE) {
-                                state = ParserState.Sync1;
-                            }
-                            break;
-
-                        // Waiting for the second SYNC_BYTE
-                        case (ParserState.Sync1):
-                            if(tempByte[0] == SYNC_BYTE) {
-                                state = ParserState.PayloadLength;
-                            }
-                            else {
-                                state = ParserState.Sync0;
-                            }
-                            break;
-
-                        // Waiting for payload length
-                        case (ParserState.PayloadLength):
-                            payloadLength = tempByte[0];
-                            if(payloadLength >= 170) {
-                                state = ParserState.Sync1;
-                            }
-                            else {
-                                payload.Clear();
-                                payloadSum = 0;
-                                state = ParserState.Payload;
-                            }
-                            break;
-
-                        // Waiting for Payload bytes
-                        case (ParserState.Payload):
-                            payload.Add(tempByte[0]);
-                            payloadSum += tempByte[0];
-                            if(payload.Count >= payloadLength) {
-                                state = ParserState.Checksum;
-                            }
-                            break;
-
-                        // Waiting for checksum byte
-                        case (ParserState.Checksum):
-                            checkSum = tempByte[0];
-                            state = ParserState.Sync0;
-
-                            if(checkSum == ((~payloadSum) & 0xFF)) {
-                                //Console.WriteLine("Parsing Payload");
-                                tempDataRowArray = ParsePayload(payload.ToArray());
-                                receivedBytes.Clear();
-                                StartTimeoutTime = UNIXSTARTTIME;
-                            }
-                            break;
-                    }
-
-                    if(tempDataRowArray != null) {
-                        for(int i = 0; i < tempDataRowArray.Length; i++) {
-                            receivedDataRow.Add(tempDataRowArray[i]);
-                        }
-                    }
-                }
-
-                parserBuffer = receivedBytes.Count > 0 ? receivedBytes.ToArray() : new byte[0];
-
-                return PackagePacket(receivedDataRow.ToArray(), PortName);
-                 */
             }
 
             private void ResetParser() {
