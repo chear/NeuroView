@@ -537,7 +537,7 @@ namespace NeuroSky.ThinkGear {
         public class Connection: SerialPort {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
-            private const int SERIALPORT_READ_TIMEOUT = 2000; //in milliseconds
+            private const int SERIALPORT_READ_TIMEOUT = 4000; //in milliseconds
             private const int READ_PACKET_TIMEOUT = 2;      // in seconds
 
             private const byte SYNC_BYTE = 0xAA;
@@ -723,7 +723,12 @@ namespace NeuroSky.ThinkGear {
                     // Copies the data into the DataRow
                     tempDataRow.Data = new byte[numBytes];
 
-                    Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
+                    try {
+                        Array.Copy(payload, i, tempDataRow.Data, 0, numBytes);
+                    }
+                    catch(ArgumentException ae) {
+                        Console.WriteLine("Argument exception!");
+                    }
 
                     i += numBytes;
 
