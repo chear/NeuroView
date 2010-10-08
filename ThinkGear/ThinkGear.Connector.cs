@@ -599,14 +599,7 @@ namespace NeuroSky.ThinkGear {
 
                 List<DataRow> dataRows = new List<DataRow>(256);
 
-                try {
-                    bytesRead = Read(buffer, 0, 1024);
-                }
-                catch(TimeoutException te) {
-                    Console.WriteLine("No packets available.");
-
-                    //return new Packet();
-                }
+                bytesRead = Read(buffer, 0, 1024);
 
                 for(int i = 0; i < bytesRead; i++) {
                     switch(parserState.packetState) {
