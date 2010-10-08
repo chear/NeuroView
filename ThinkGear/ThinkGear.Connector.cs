@@ -362,6 +362,15 @@ namespace NeuroSky.ThinkGear {
                 }
             }
 
+            // now sort the COM port names
+            ports.Sort((x, y) => {
+                // parse the number after "COM"
+                int xNum = Int32.Parse(x.Substring(3));
+                int yNum = Int32.Parse(y.Substring(3));
+
+                return xNum.CompareTo(yNum);
+            });
+
             return ports.ToArray();
         }
 
