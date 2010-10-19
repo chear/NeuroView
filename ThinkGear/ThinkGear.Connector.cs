@@ -94,7 +94,7 @@ namespace NeuroSky.ThinkGear {
         private volatile bool IsFinding = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
-        private const int DATA_TIMEOUT = 5000;
+        private const int READ_TIMEOUT = 10000;
 
         public Connector() {
             mindSetPorts = new List<Connection>();
@@ -455,6 +455,11 @@ namespace NeuroSky.ThinkGear {
                                     // notify ReadThread that we should start reading from this port
                                     lock(activePortsList) { activePortsList.Add(tempPort); }
 
+                                    // increase the timeout to some arbitrarily large number
+                                    // so that we're not always tripping TimeoutException (e.g. under
+                                    // low battery conditions)
+                                    tempPort.ReadTimeout = READ_TIMEOUT;
+
                                     return;
                                 }
                             }
@@ -546,8 +551,7 @@ namespace NeuroSky.ThinkGear {
         public class Connection: SerialPort {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
-            private const int SERIALPORT_READ_TIMEOUT = 4000; //in milliseconds
-            private const int READ_PACKET_TIMEOUT = 2;      // in seconds
+            private const int INITIAL_READ_TIMEOUT = 4000; //in milliseconds
 
             private const byte SYNC_BYTE = 0xAA;
             private const byte EXCODE_BYTE = 0x55;
@@ -589,7 +593,7 @@ namespace NeuroSky.ThinkGear {
                 buffer = new byte[1024];
 
                 BaudRate = 115200;
-                ReadTimeout = SERIALPORT_READ_TIMEOUT;
+                ReadTimeout = INITIAL_READ_TIMEOUT;
 
                 PortName = portName;
                 blinkDetector = new BlinkDetector();
