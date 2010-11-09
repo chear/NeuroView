@@ -43,6 +43,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
          * indicating the blink strength otherwise.
          */
         public byte Detect(byte poorSignalValue, int eegValue) {
+            // Let's put some sweet comments here
             if(poorSignalValue < PQ_THRESHOLD){
                 switch(state) {
                     case BlinkStates.NoBlink:
