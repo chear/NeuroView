@@ -765,7 +765,7 @@ namespace NeuroSky.ThinkGear {
                     if(!blinkPacketFound && tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
                         
-                        byte blinkStrength = blinkDetector.Detect(poorSignal, rawValue);
+                        byte blinkStrength = blinkDetector.Detect((byte)poorSignal, (short)rawValue);
 
                         if(blinkStrength > 0) {
                             DataRow d = new DataRow { Type = Code.Blink, 
