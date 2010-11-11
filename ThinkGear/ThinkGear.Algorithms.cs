@@ -8,10 +8,6 @@
 
 
 
-
-
-
-
 using System;
 using System.Collections.Generic;
 
@@ -38,36 +34,35 @@ namespace NeuroSky.ThinkGear.Algorithms
         private const int SHIFTING_TERM = 4;
 
         private const int BUFFER_SIZE = 512;
-        private const int UPDATE_RATE = 64;     //WHAT DOES THIS DO?
 
-        private short i = 0;
+        private short i             = 0;
         private short bufferCounter = 0;
-        private short[] buffer = new short[BUFFER_SIZE];  /* initialize an array of size BUFFER_SIZE*/
+        private short[] buffer      = new short[BUFFER_SIZE];  /* initialize an array of size BUFFER_SIZE*/
 
-        private const int DATA_MEAN = 33;
-        private const int POS_VOLT_THRESHOLD = 298;  /* DATA_MEAN+265*/
-        private const int NEG_VOLT_THRESHOLD = -232; /* DATA_MEAN-265*/
+        private const int DATA_MEAN          = 33;
+        private const int POS_VOLT_THRESHOLD = 230;  /* DATA_MEAN+265*/
+        private const int NEG_VOLT_THRESHOLD = -200; /* DATA_MEAN-265*/
         private const int DISTANCE_THRESHOLD = 120;
 
-        private const int INNER_DISTANCE_THRESHOLD = 55;
+        private const int INNER_DISTANCE_THRESHOLD = 45;
 
         private const int MAX_LEFT_RIGHT = 25;
 
         private const int MEAN_VARIABILITY = 200;
-        private const int BLINK_LENGTH = 50;
-        private const int MIN_MAX_DIFF = 650;
+        private const int BLINK_LENGTH     = 50;
+        private const int MIN_MAX_DIFF     = 500;
 
-        private const int OFFHEAD_VALUE = 26;   //WHAT DOES THIS DO?
+        private const int POORSIGNAL_THRESHOLD = 51;   
 
         private BlinkState state = BlinkState.NO_BLINK;    /* initialize the variable "state" to NO_BLINK*/
 
         /* initialize various variables*/
         private short blinkStart = -1;
-        private short outerLow = -1;
-        private short innerLow = -1;
-        private short innerHigh = -1;
-        private short outerHigh = -1;
-        private short blinkEnd = -1;
+        private short outerLow   = -1;
+        private short innerLow   = -1;
+        private short innerHigh  = -1;
+        private short outerHigh  = -1;
+        private short blinkEnd   = -1;
 
         private short maxValue = 0;
         private short minValue = 0;
@@ -75,7 +70,7 @@ namespace NeuroSky.ThinkGear.Algorithms
         private short blinkStrength = 0;
 
         private double meanVariablityThreshold = 0;
-        private double average = 0;
+        private double average                 = 0;
 
 
 
@@ -86,7 +81,7 @@ namespace NeuroSky.ThinkGear.Algorithms
 
         public byte Detect(byte poorSignalQualityValue, short eegValue)
         {
-            if (poorSignalQualityValue < 51)    /*if poorSignal is less than 51, continue with algorithm*/
+            if (poorSignalQualityValue < POORSIGNAL_THRESHOLD)    /*if poorSignal is less than 51, continue with algorithm*/
             {
                 /* update the buffer with the latest eegValue*/
                 for (i = 0; i < BUFFER_SIZE - 1; i++)
@@ -101,7 +96,7 @@ namespace NeuroSky.ThinkGear.Algorithms
                     bufferCounter++;
                 }
 
-                if (bufferCounter > (BUFFER_SIZE - 1))    /* if the buffer is full (it has BUFFER_SIZE number of points)*/
+                if ( bufferCounter > (BUFFER_SIZE - 1) )    /* if the buffer is full (it has BUFFER_SIZE number of points)*/
                 {
                     switch (state)
                     {
@@ -110,28 +105,28 @@ namespace NeuroSky.ThinkGear.Algorithms
                             if (eegValue > POS_VOLT_THRESHOLD)
                             {
                                 blinkStart = -1;
-                                innerLow = -1;
-                                innerHigh = -1;
-                                outerHigh = -1;
-                                blinkEnd = -1;
+                                innerLow   = -1;
+                                innerHigh  = -1;
+                                outerHigh  = -1;
+                                blinkEnd   = -1;
 
                                 outerLow = BUFFER_SIZE - 1;
                                 maxValue = eegValue;
-                                state = BlinkState.NORMAL_BLINK_UPPER;
+                                state    = BlinkState.NORMAL_BLINK_UPPER;
                             }
 
                             
                             if (eegValue < NEG_VOLT_THRESHOLD)
                             {
                                 blinkStart = -1;
-                                innerLow = -1;
-                                innerHigh = -1;
-                                outerHigh = -1;
-                                blinkEnd = -1;
+                                innerLow   = -1;
+                                innerHigh  = -1;
+                                outerHigh  = -1;
+                                blinkEnd   = -1;
 
                                 outerLow = BUFFER_SIZE - 1;
                                 minValue = eegValue;
-                                state = BlinkState.INVERTED_BLINK_LOWER;
+                                state    = BlinkState.INVERTED_BLINK_LOWER;
                             }
 
                             break;
@@ -146,7 +141,7 @@ namespace NeuroSky.ThinkGear.Algorithms
                             outerLow--;		//decrement the index of outerlow to account for shifting of the buffer
 
                             //Monitors the innerLow value.
-                            if (eegValue < POS_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD)	//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
+                            if (eegValue <= POS_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD)	//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
                             {
                                 innerLow = BUFFER_SIZE - 2;		//then innerLow is defined to be the previous value
                             }
@@ -188,7 +183,7 @@ namespace NeuroSky.ThinkGear.Algorithms
                             outerLow--;
 
                             //Monitors the innerLow value.
-                            if (eegValue > NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)
+                            if (eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)
                             {
                                 innerLow = BUFFER_SIZE - 2;
                             }
@@ -225,7 +220,7 @@ namespace NeuroSky.ThinkGear.Algorithms
                             innerHigh--;
 
                             /* Monitors the outerHigh value*/
-                            if (eegValue > NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)	/* if the current value is greater than NEG_VOLT_THRESH and the previous value is less than NEG_VOLT_THRESH*/
+                            if (eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)	/* if the current value is greater than NEG_VOLT_THRESH and the previous value is less than NEG_VOLT_THRESH*/
                             {
                                 outerHigh = BUFFER_SIZE - 2;		/* then the previous value is defined to be outerHigh*/
                                 state = BlinkState.NORMAL_BLINK_VERIFY;
@@ -253,7 +248,7 @@ namespace NeuroSky.ThinkGear.Algorithms
                             innerHigh--;
 
                             //Monitors the outerHigh value.
-                            if ((eegValue < POS_VOLT_THRESHOLD) && (buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD))		//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
+                            if ((eegValue <= POS_VOLT_THRESHOLD) && (buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD))		//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
                             {
                                 outerHigh = BUFFER_SIZE - 2;			//then the previous value is defined as outerHigh
                                 state = BlinkState.INVERTED_BLINK_VERIFY;
