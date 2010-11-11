@@ -768,6 +768,7 @@ namespace NeuroSky.ThinkGear {
                         byte blinkStrength = blinkDetector.Detect((byte)poorSignal, (short)rawValue);
 
                         if(blinkStrength > 0) {
+                            //Console.WriteLine("Blinked with strength " + blinkStrength);  debugging
                             DataRow d = new DataRow { Type = Code.Blink, 
                                                       Time = currentTime, 
                                                       Data = new byte[1] { blinkStrength } };
