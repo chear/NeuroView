@@ -3,3 +3,5 @@ obj/
 */Properties/
 *.suo
 *.user
+*.pidb
+*.userprefs
