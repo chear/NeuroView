@@ -94,6 +94,7 @@ namespace NeuroSky.ThinkGear {
         private volatile bool IsFinding = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
+        private const int DISCONNECT_TIMER = 5000;
         private const int READ_TIMEOUT = 10000;
 
         public Connector() {
@@ -503,25 +504,36 @@ namespace NeuroSky.ThinkGear {
 
                 foreach (Connection port in ports) {
                     Packet returnPacket = new Packet();
-
+                    
                     try {
                         returnPacket = port.ReadPacket();
                     }
                     catch(Exception e) {
-                        Console.WriteLine("Caught exception on read: " + e);
-
-                        // catch the case where the port gets removed from APL
-                        // in the Disconnect call, but ReadThread is still processing
-                        // old cached data. this is to prevent Disconnect() being called
-                        // twice.
-                        if(activePortsList.Contains(port))
-                            Disconnect(port);
-
+                        Console.WriteLine("Caught exception on ReadPacket: " + e);
+                        
+                        if (port.PacketReceivedBefore) {
+                            port.PacketReceivedBefore = false;
+                            port.TimeoutStartTime = DateTime.UtcNow;
+                        }
+                        else {
+                            // catch the case where the port gets removed from APL
+                            // in the Disconnect call, but ReadThread is still processing
+                            // old cached data. this is to prevent Disconnect() being called
+                            // twice.
+                            if ((DateTime.UtcNow - port.TimeoutStartTime).TotalMilliseconds > DISCONNECT_TIMER) {
+                                if (activePortsList.Contains(port)) {
+                                    Disconnect(port);
+                                }
+                            }
+                        }
                         continue;
                     }
 
                     // Pass the data to the devices.
-                    DeliverPacket(returnPacket);
+                    if(returnPacket.DataRowArray.Length != 0){
+                        port.PacketReceivedBefore = true;
+                        DeliverPacket(returnPacket);
+                    }
                 }
 
                 Thread.Sleep(20);
@@ -552,13 +564,15 @@ namespace NeuroSky.ThinkGear {
             private DateTime UNIXSTARTTIME = new DateTime(1970, 1, 1, 0, 0, 0);
 
             private const int INITIAL_READ_TIMEOUT = 4000; //in milliseconds
+            
+            public bool PacketReceivedBefore = true;
+            public DateTime TimeoutStartTime;
 
             private const byte SYNC_BYTE = 0xAA;
             private const byte EXCODE_BYTE = 0x55;
             private const byte MULTI_BYTE = 0x80;
 
             private DateTime packetLastReceived;
-            public double TotalTimeoutTime = 0; //In milliseconds
 
             private BlinkDetector blinkDetector;
             private byte poorSignal = 200;

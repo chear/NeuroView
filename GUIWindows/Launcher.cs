@@ -49,20 +49,21 @@ namespace NeuroSky.MindView
         static void Main()
         {
             Application.Run(new Launcher());
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            UpdateConnectButton(true);
-            UpdateStatusLabel("Searching for MindSet...");
+            //UpdateConnectButton(true);
+            //UpdateStatusLabel("Searching for MindSet...");
 
-            mainForm.updateConnectButton(true);
-            mainForm.updateStatusLabel("Searching for MindSet...");
+            //mainForm.updateConnectButton(true);
+            //mainForm.updateStatusLabel("Searching for MindSet...");
             
             //Comment this line out if you want the splash screen to wait for good connection.
             UpdateVisibility(false);
 
-            connector.RefreshAvailableConnections();
+            //connector.RefreshAvailableConnections();
             
         }
 
