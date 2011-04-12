@@ -92,6 +92,7 @@ namespace NeuroSky.ThinkGear {
         private volatile bool FindThreadEnable = true;
 
         private volatile bool IsFinding = false;
+        private volatile bool StopScanNow = false;
 
         private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
         private const int DISCONNECT_TIMER = 5000;
@@ -205,6 +206,11 @@ namespace NeuroSky.ThinkGear {
             FindThreadEnable = false;
 
             this.Disconnect();
+        }
+
+        public void StopScan() {
+            //TODO: Stop the Port.Read rather than waiting for it to end.
+            StopScanNow = true;
         }
 
         /**
@@ -408,6 +414,8 @@ namespace NeuroSky.ThinkGear {
                     if(IsFinding)
                         lock(mindSetPorts) { mindSetPorts.Clear(); }
 
+                    StopScanNow = false;
+
                     foreach(Connection tempPort in ports) {
 #if DEBUG
                         Console.WriteLine("MVC scanning " + tempPort.PortName);
@@ -466,6 +474,11 @@ namespace NeuroSky.ThinkGear {
                             }
 
                             tempPort.Close();
+
+                            if (StopScanNow) {
+                                portsToConnect.Clear();
+                                break;
+                            }
                         }
 
                         lock(portsToConnect) { portsToConnect.Remove(tempPort); }
