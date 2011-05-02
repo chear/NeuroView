@@ -47,7 +47,7 @@ namespace NeuroSky.ThinkGear {
         Raw                 = 0x80,
         EEGPowerFloat       = 0x81,
         EEGPowerInt         = 0x83,
-        RawMS               = 0x90,
+        RawMSWithTimeStamp  = 0x90,
         Accelerometer       = 0x91,
         EMGPower            = 0x94,
         Offhead             = 0xC0,
@@ -446,6 +446,13 @@ namespace NeuroSky.ThinkGear {
                             }
 
                             if(returnPacket.DataRowArray != null && returnPacket.DataRowArray.Length > 0) {
+
+                                if (StopScanNow) {
+                                    tempPort.Close();
+                                    lock (portsToConnect) { portsToConnect.Clear(); }
+                                    break;
+                                }
+                                
                                 // found a valid ThinkGear device, so add it to the list of
                                 // valid ports
                                 if(IsFinding) {
@@ -476,9 +483,11 @@ namespace NeuroSky.ThinkGear {
                             tempPort.Close();
 
                             if (StopScanNow) {
-                                portsToConnect.Clear();
+                                lock (portsToConnect) { portsToConnect.Clear(); }
                                 break;
                             }
+
+                            
                         }
 
                         lock(portsToConnect) { portsToConnect.Remove(tempPort); }
@@ -536,6 +545,7 @@ namespace NeuroSky.ThinkGear {
                             if ((DateTime.UtcNow - port.TimeoutStartTime).TotalMilliseconds > DISCONNECT_TIMER) {
                                 if (activePortsList.Contains(port)) {
                                     Disconnect(port);
+
                                 }
                             }
                         }
