@@ -36,26 +36,27 @@ namespace NeuroSky.ThinkGear {
      * The raw CODE used in the packet
      */
     public enum Code: byte {
-        Battery             = 0x01,
-        PoorSignal          = 0x02,
-        Attention           = 0x04,
-        Meditation          = 0x05,
-        DampenedAtt         = 0x14,
-        DampenedMed         = 0x15,
-        Blink               = 0x16,
-        HeadsetID           = 0x7F,
-        Raw                 = 0x80,
-        EEGPowerFloat       = 0x81,
-        EEGPowerInt         = 0x83,
-        RawMSWithTimeStamp  = 0x90,
-        Accelerometer       = 0x91,
-        EMGPower            = 0x94,
-        Offhead             = 0xC0,
-        HeadsetConnect      = 0xD0,
-        HeadsetNotFound     = 0xD1,
-        HeadsetDisconnect   = 0xD2,
-        RequestDenied       = 0xD3,
-        DongleStatus        = 0xD4
+        Battery                 = 0x01,
+        PoorSignal              = 0x02,
+        Attention               = 0x04,
+        Meditation              = 0x05,
+        DampenedAtt             = 0x14,
+        DampenedMed             = 0x15,
+        Blink                   = 0x16,
+        HeadsetID               = 0x7F,
+        Raw                     = 0x80,
+        EEGPowerFloat           = 0x81,
+        EEGPowerInt             = 0x83,
+        RawMSWithTimeStamp      = 0x90,
+        RawMSWithoutTimeStamp   = 0xB0,
+        Accelerometer           = 0x91,
+        EMGPower                = 0x94,
+        Offhead                 = 0xC0,
+        HeadsetConnect          = 0xD0,
+        HeadsetNotFound         = 0xD1,
+        HeadsetDisconnect       = 0xD2,
+        RequestDenied           = 0xD3,
+        DongleStatus            = 0xD4
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -649,7 +650,8 @@ namespace NeuroSky.ThinkGear {
 
                 List<DataRow> dataRows = new List<DataRow>(256);
 
-                bytesRead = Read(buffer, 0, 1024);
+                ReadTimeout = INITIAL_READ_TIMEOUT;
+                bytesRead = Read(buffer, 0, 512);
 
                 for(int i = 0; i < bytesRead; i++) {
                     switch(parserState.packetState) {

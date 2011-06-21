@@ -5,10 +5,12 @@ using System.Text;
 
 namespace NeuroSky.ThinkGear.Parser
 {
+    
     /*
      * Old Parser code
      */
     // TODO:Really have to rename this guy. Yikes. Recommend "ParsedData".
+    
     public struct Parsed
     {
         public TimeStampData[] PoorSignalQuality;
@@ -30,6 +32,7 @@ namespace NeuroSky.ThinkGear.Parser
 
     }
 
+    
     public struct PowerEEGData
     {
         public double TimeStamp;
@@ -260,6 +263,107 @@ namespace NeuroSky.ThinkGear.Parser
                         //Console.WriteLine("\tEEG");
                         //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["RawCh1"], parsedRow["RawCh2"], parsedRow["RawCh3"]);
                         break;
+                   
+                    
+                    
+                    
+                    case(Code.RawMSWithoutTimeStamp):
+                        //see thinkcap_sdk wiki entry for full details on this code 0xB0 
+                        
+                        //Ch1
+                        //if DataL is equal to 3
+                        if (d.Data[1] == 3) {
+                            //if the 5th bit of DataH is equal to 1
+                            if ((d.Data[0] & 16) != 0) {
+                                //dataL should be 2
+                                d.Data[1] = 2;
+                            }
+                        }
+                        //take the lower 2 bits of DataH
+                        d.Data[0] = (byte)(d.Data[0] & 3);
+                        parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
+
+                        //Ch2
+                        if (d.Data.Length > 2) {
+                            if (d.Data[3] == 3) {
+                                if ((d.Data[2] & 16) != 0) {
+                                    d.Data[3] = 2;
+                                }
+                            }
+                            d.Data[2] = (byte)(d.Data[2] & 3);
+                            parsedRow.Add("RawCh2", (short)((d.Data[2] << 8) + d.Data[3]));
+                        }
+
+                        //Ch3
+                        if (d.Data.Length > 4) {
+                            if (d.Data[5] == 3) {
+                                if ((d.Data[4] & 16) != 0) {
+                                    d.Data[5] = 2;
+                                }
+                            }
+                            d.Data[4] = (byte)(d.Data[4] & 3);
+                            parsedRow.Add("RawCh3", (short)((d.Data[4] << 8) + d.Data[5]));
+                        }
+
+                        //Ch4
+                        if (d.Data.Length > 6) {
+                            if (d.Data[7] == 3) {
+                                if ((d.Data[6] & 16) != 0) {
+                                    d.Data[7] = 2;
+                                }
+                            }
+                            d.Data[6] = (byte)(d.Data[6] & 3);
+                            parsedRow.Add("RawCh4", (short)((d.Data[6] << 8) + d.Data[7]));
+                        }
+
+                        //Ch5
+                        if (d.Data.Length > 8) {
+                            if (d.Data[9] == 3) {
+                                if ((d.Data[8] & 16) != 0) {
+                                    d.Data[9] = 2;
+                                }
+                            }
+                            d.Data[8] = (byte)(d.Data[8] & 3);
+                            parsedRow.Add("RawCh5", (short)((d.Data[8] << 8) + d.Data[9]));
+                        }
+
+                        //Ch6
+                        if (d.Data.Length > 10) {
+                            if (d.Data[11] == 3) {
+                                if ((d.Data[10] & 16) != 0) {
+                                    d.Data[11] = 2;
+                                }
+                            }
+                            d.Data[10] = (byte)(d.Data[10] & 3);
+                            parsedRow.Add("RawCh6", (short)((d.Data[10] << 8) + d.Data[11]));
+                        }
+                        
+                        //Ch7
+                        if (d.Data.Length > 12) {
+                            if (d.Data[13] == 3) {
+                                if ((d.Data[12] & 16) != 0) {
+                                    d.Data[13] = 2;
+                                }
+                            }
+                            d.Data[12] = (byte)(d.Data[12] & 3);
+                            parsedRow.Add("RawCh7", (short)((d.Data[12] << 8) + d.Data[13]));
+                        }
+
+                        //Ch8
+                        if (d.Data.Length > 14)
+                        {
+                            if (d.Data[15] == 3)
+                            {
+                                if ((d.Data[14] & 16) != 0)
+                                {
+                                    d.Data[15] = 2;
+                                }
+                            }
+                            d.Data[14] = (byte)(d.Data[14] & 3);
+                            parsedRow.Add("RawCh8", (short)((d.Data[14] << 8) + d.Data[15]));
+                        }
+                        break;
+
                     case(Code.Accelerometer):
                         parsedRow.Add("AccelCh1", (short)((d.Data[0] << 8) + d.Data[1]));
                         if (d.Data.Length > 2) {
