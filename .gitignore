@@ -6,3 +6,4 @@ obj/
 *.pidb
 *.userprefs
 *.resources
+.DS_Store
