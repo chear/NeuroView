@@ -96,8 +96,8 @@ namespace NeuroSky.ThinkGear {
         private volatile bool IsFinding = false;
         private volatile bool StopScanNow = false;
 
-        private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
-        private const int DISCONNECT_TIMER = 5000;
+        private const int REMOVE_PORT_TIMER = 1000; //In milliseconds. Not used according to Masa
+        private const int DISCONNECT_TIMER = 5000;  
         private const int READ_TIMEOUT = 10000;
 
         public Connector() {
