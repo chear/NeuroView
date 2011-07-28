@@ -240,7 +240,7 @@ namespace NeuroSky.ThinkGear.Parser
                     case(Code.Raw):
                         parsedRow.Add("Raw", (short)((d.Data[0] << 8) + d.Data[1]));
                         break;
-                    case(Code.RawMSWithTimeStamp):
+                    case(Code.RawMSWithMultiTimeStamp):
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
                         if (d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
@@ -263,13 +263,44 @@ namespace NeuroSky.ThinkGear.Parser
                         //Console.WriteLine("\tEEG");
                         //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["RawCh1"], parsedRow["RawCh2"], parsedRow["RawCh3"]);
                         break;
-                   
-                    
-                    
-                    
+
+                    case (Code.RawMSWithSingleTimeStamp):
+                        parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
+                        if (d.Data.Length > 3)
+                        {
+                            parsedRow.Add("RawCh2", (short)((d.Data[2] << 8) + d.Data[3]));
+                        }
+                        if (d.Data.Length > 5)
+                        {
+                            parsedRow.Add("RawCh3", (short)((d.Data[4] << 8) + d.Data[5]));
+                        }
+                        if (d.Data.Length > 7)
+                        {
+                            parsedRow.Add("RawCh4", (short)((d.Data[6] << 8) + d.Data[7]));
+                        }
+                        if (d.Data.Length > 9)
+                        {
+                            parsedRow.Add("RawCh5", (short)((d.Data[8] << 8) + d.Data[9]));
+                        }
+                        if (d.Data.Length > 11)
+                        {
+                            parsedRow.Add("RawCh6", (short)((d.Data[10] << 8) + d.Data[11]));
+                        }
+                        if (d.Data.Length > 13)
+                        {
+                            parsedRow.Add("RawCh7", (short)((d.Data[12] << 8) + d.Data[13]));
+                        }
+                        if (d.Data.Length > 15)
+                        {
+                            parsedRow.Add("RawCh8", (short)((d.Data[14] << 8) + d.Data[15]));
+                        }
+                        //Console.WriteLine("\tEEG");
+                        //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["RawCh1"], parsedRow["RawCh2"], parsedRow["RawCh3"]);
+                        break;
+
                     case(Code.RawMSWithoutTimeStamp):
                         //see thinkcap_sdk wiki entry for full details on this code 0xB0 
-                        
+                      
                         //Ch1
                         //if DataL is equal to 3
                         if (d.Data[1] == 3) {
@@ -362,6 +393,7 @@ namespace NeuroSky.ThinkGear.Parser
                             d.Data[14] = (byte)(d.Data[14] & 3);
                             parsedRow.Add("RawCh8", (short)((d.Data[14] << 8) + d.Data[15]));
                         }
+
                         break;
 
                     case(Code.Accelerometer):
