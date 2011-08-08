@@ -240,7 +240,7 @@ namespace NeuroSky.ThinkGear.Parser
                     case(Code.Raw):
                         parsedRow.Add("Raw", (short)((d.Data[0] << 8) + d.Data[1]));
                         break;
-                    case(Code.RawMSWithMultiTimeStamp):
+                    case(Code.RawMSWithMultiTimeStamp): /* 0x90 */
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
                         if (d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
@@ -266,32 +266,25 @@ namespace NeuroSky.ThinkGear.Parser
 
                     case (Code.RawMSWithSingleTimeStamp):
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
-                        if (d.Data.Length > 3)
-                        {
+                        if (d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[2] << 8) + d.Data[3]));
                         }
-                        if (d.Data.Length > 5)
-                        {
+                        if (d.Data.Length > 5) {
                             parsedRow.Add("RawCh3", (short)((d.Data[4] << 8) + d.Data[5]));
                         }
-                        if (d.Data.Length > 7)
-                        {
+                        if (d.Data.Length > 7) {
                             parsedRow.Add("RawCh4", (short)((d.Data[6] << 8) + d.Data[7]));
                         }
-                        if (d.Data.Length > 9)
-                        {
+                        if (d.Data.Length > 9) {
                             parsedRow.Add("RawCh5", (short)((d.Data[8] << 8) + d.Data[9]));
                         }
-                        if (d.Data.Length > 11)
-                        {
+                        if (d.Data.Length > 11) {
                             parsedRow.Add("RawCh6", (short)((d.Data[10] << 8) + d.Data[11]));
                         }
-                        if (d.Data.Length > 13)
-                        {
+                        if (d.Data.Length > 13) {
                             parsedRow.Add("RawCh7", (short)((d.Data[12] << 8) + d.Data[13]));
                         }
-                        if (d.Data.Length > 15)
-                        {
+                        if (d.Data.Length > 15) {
                             parsedRow.Add("RawCh8", (short)((d.Data[14] << 8) + d.Data[15]));
                         }
                         //Console.WriteLine("\tEEG");
@@ -381,10 +374,8 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch8
-                        if (d.Data.Length > 14)
-                        {
-                            if (d.Data[15] == 3)
-                            {
+                        if (d.Data.Length > 14) {
+                            if (d.Data[15] == 3) {
                                 if ((d.Data[14] & 16) != 0)
                                 {
                                     d.Data[15] = 2;
@@ -417,8 +408,7 @@ namespace NeuroSky.ThinkGear.Parser
                         //Console.WriteLine("\t{0}\t{1}", parsedRow["OffheadCh1"], parsedRow["OffheadCh3"]);
                         break;
                     case(Code.EEGPowerInt):
-                        if (d.Data.Length == 24)
-                        {
+                        if (d.Data.Length == 24) {
                             parsedRow.Add("EegPowerDelta", (uint)(d.Data[0] << 16) + d.Data[1] << 8 + d.Data[2]);
                             parsedRow.Add("EegPowerTheta", (uint)(d.Data[3] << 16) + d.Data[4] << 8 + d.Data[5]);
                             parsedRow.Add("EegPowerAlpha1", (uint)(d.Data[6] << 16) + d.Data[7] << 8 + d.Data[8]);
@@ -427,9 +417,7 @@ namespace NeuroSky.ThinkGear.Parser
                             parsedRow.Add("EegPowerBeta2", (uint)(d.Data[15] << 16) + d.Data[16] << 8 + d.Data[17]);
                             parsedRow.Add("EegPowerGamma1", (uint)(d.Data[18] << 16) + d.Data[19] << 8 + d.Data[20]);
                             parsedRow.Add("EegPowerGamma2", (uint)(d.Data[21] << 16) + d.Data[22] << 8 + d.Data[23]);
-                        }
-                        else
-                        {
+                        } else {
                             parsedRow.Add("EegPowerDelta", 0);
                             parsedRow.Add("EegPowerTheta", 0);
                             parsedRow.Add("EegPowerAlpha1", 0);
