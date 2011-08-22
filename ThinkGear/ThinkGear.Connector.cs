@@ -274,7 +274,13 @@ namespace NeuroSky.ThinkGear {
         private void DisconnectionCleanup(Connection c, Device d) {
             if(c != null) {
                 lock(activePortsList) { activePortsList.Remove(c); }
-                c.Close();
+                try {
+                    c.Close();
+                } catch(System.IO.IOException e) {
+#if DEBUG
+                    Console.WriteLine("Device was removed: " + e);
+#endif
+                }
             }
 
             if(d != null) {

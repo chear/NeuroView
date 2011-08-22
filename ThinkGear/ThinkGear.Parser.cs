@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NeuroSky.ThinkGear.Parser
-{
-    
+namespace NeuroSky.ThinkGear.Parser {
+
     /*
      * Old Parser code
      */
     // TODO:Really have to rename this guy. Yikes. Recommend "ParsedData".
-    
-    public struct Parsed
-    {
+
+    public struct Parsed {
         public TimeStampData[] PoorSignalQuality;
         public TimeStampData[] Attention;
         public TimeStampData[] Meditation;
@@ -32,9 +30,7 @@ namespace NeuroSky.ThinkGear.Parser
 
     }
 
-    
-    public struct PowerEEGData
-    {
+    public struct PowerEEGData {
         public double TimeStamp;
         public double Delta;
         public double Theta;
@@ -45,12 +41,10 @@ namespace NeuroSky.ThinkGear.Parser
         public double Gamma1;
         public double Gamma2;
 
-        public PowerEEGData(double timeStamp, byte[] byteArray)
-        {
+        public PowerEEGData(double timeStamp, byte[] byteArray) {
             this.TimeStamp = timeStamp;
 
-            if (byteArray.Length == 24)
-            {
+            if(byteArray.Length == 24) {
                 this.Delta = (uint)(byteArray[0] << 16) + byteArray[1] << 8 + byteArray[2];
                 this.Theta = (uint)(byteArray[3] << 16) + byteArray[4] << 8 + byteArray[5];
                 this.Alpha1 = (uint)(byteArray[6] << 16) + byteArray[7] << 8 + byteArray[8];
@@ -59,9 +53,7 @@ namespace NeuroSky.ThinkGear.Parser
                 this.Beta2 = (uint)(byteArray[15] << 16) + byteArray[16] << 8 + byteArray[17];
                 this.Gamma1 = (uint)(byteArray[18] << 16) + byteArray[19] << 8 + byteArray[20];
                 this.Gamma2 = (uint)(byteArray[21] << 16) + byteArray[22] << 8 + byteArray[23];
-            }
-            else
-            {
+            } else {
                 Console.WriteLine("Got EEG Code but did not get the right amount of bytes.");
                 this.Delta = 0;
                 this.Theta = 0;
@@ -75,23 +67,19 @@ namespace NeuroSky.ThinkGear.Parser
         }
     }
 
-    public struct TimeStampData
-    {
+    public struct TimeStampData {
         public double TimeStamp;
         public double Value;
 
-        public TimeStampData(double timeStamp, double value)
-        {
+        public TimeStampData(double timeStamp, double value) {
             this.TimeStamp = timeStamp;
             this.Value = value;
         }
     }
 
-    public class MindSetParser
-    {
+    public class MindSetParser {
         // TODO: Make this Read method a static method so that we don't have to instantiate an object to use it.
-        public Parsed Read(DataRow[] dataRowArray)
-        {
+        public Parsed Read(DataRow[] dataRowArray) {
             Parsed tempParsed = new Parsed();
 
             List<TimeStampData> tempPoorSignal = new List<TimeStampData>();
@@ -109,10 +97,8 @@ namespace NeuroSky.ThinkGear.Parser
             List<TimeStampData> tempHeadsetDisconnect = new List<TimeStampData>();
             List<TimeStampData> tempHeadsetConnect = new List<TimeStampData>();
 
-            foreach (DataRow d in dataRowArray)
-            {
-                switch (d.Type)
-                {
+            foreach(DataRow d in dataRowArray) {
+                switch(d.Type) {
                     case (Code.PoorSignal):
                         tempPoorSignal.Add(new TimeStampData(d.Time, (double)d.Data[0]));
                         break;
@@ -131,7 +117,7 @@ namespace NeuroSky.ThinkGear.Parser
                     case (Code.Blink):
                         tempBlinkStrength.Add(new TimeStampData(d.Time, (int)d.Data[0]));
                         break;
-                    case(Code.Raw):
+                    case (Code.Raw):
                         tempRaw.Add(new TimeStampData(d.Time, (short)((d.Data[0] << 8) + d.Data[1])));
                         break;
                     case (Code.EMGPower):
@@ -149,7 +135,6 @@ namespace NeuroSky.ThinkGear.Parser
                     case (Code.HeadsetConnect):
                         tempHeadsetConnect.Add(new TimeStampData(d.Time, (int)((d.Data[0] << 8) + d.Data[1])));
                         break;
-
                 }
             }
 
@@ -170,13 +155,11 @@ namespace NeuroSky.ThinkGear.Parser
             return tempParsed;
         }
 
-        private byte[] ReverseBytes(byte[] inArray)
-        {
+        private byte[] ReverseBytes(byte[] inArray) {
             byte temp;
             int highCtr = inArray.Length - 1;
 
-            for (int ctr = 0; ctr < inArray.Length / 2; ctr++)
-            {
+            for(int ctr = 0; ctr < inArray.Length / 2; ctr++) {
                 temp = inArray[ctr];
                 inArray[ctr] = inArray[highCtr];
                 inArray[highCtr] = temp;
@@ -189,28 +172,23 @@ namespace NeuroSky.ThinkGear.Parser
      * End "Old Parser code..."
      */
 
-
-
     /*
      * New Parser Code
      */
     // New class name to reflect generality of this parser, able to expand capabilities in the future
-    public class TGParser
-    {
+    public class TGParser {
         // Variable containing parsed data
-        public Dictionary<string, double>[] ParsedData = new Dictionary<string,double>[0];
+        public Dictionary<string, double>[] ParsedData = new Dictionary<string, double>[0];
 
         // Variable indicating what type of data is streaming in
         public short TGType = 1;
 
-        public void Read(DataRow[] dataRowArray)
-        {
+        public void Read(DataRow[] dataRowArray) {
             // Variable to pass back
-            List<Dictionary<string,double>> parsedData = new List<Dictionary<string,double>>();
+            List<Dictionary<string, double>> parsedData = new List<Dictionary<string, double>>();
 
             // Loop through dataRowArray
-            foreach (DataRow d in dataRowArray)
-            {
+            foreach(DataRow d in dataRowArray) {
                 // Variable to fill up at each row of dataRowArray and empty out after each row is read
                 Dictionary<string, double> parsedRow = new Dictionary<string, double>();
 
@@ -220,44 +198,43 @@ namespace NeuroSky.ThinkGear.Parser
                 //Console.WriteLine("New Row for {0} with {1} and {2}", d.Time, d.Type, (double)d.Data[0]);
 
                 // Get payload values
-                switch (d.Type)
-                {
-                    case(Code.PoorSignal):
+                switch(d.Type) {
+                    case (Code.PoorSignal):
                         parsedRow.Add("PoorSignal", (double)d.Data[0]);
                         break;
-                    case(Code.Attention):
+                    case (Code.Attention):
                         parsedRow.Add("Attention", (double)d.Data[0]);
                         break;
-                    case(Code.Meditation):
+                    case (Code.Meditation):
                         parsedRow.Add("Meditation", (double)d.Data[0]);
                         break;
-                    case(Code.DampenedAtt):
+                    case (Code.DampenedAtt):
                         parsedRow.Add("DampenedAttn", (double)d.Data[0]);
                         break;
                     case (Code.DampenedMed):
                         parsedRow.Add("DampenedMed", (double)d.Data[0]);
                         break;
-                    case(Code.Raw):
+                    case (Code.Raw):
                         parsedRow.Add("Raw", (short)((d.Data[0] << 8) + d.Data[1]));
                         break;
-                    case(Code.RawMSWithMultiTimeStamp): /* 0x90 */
+                    case (Code.RawMSWithMultiTimeStamp): /* 0x90 */
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
-                        if (d.Data.Length > 3) {
+                        if(d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
                         }
-                        if (d.Data.Length > 6) {
+                        if(d.Data.Length > 6) {
                             parsedRow.Add("RawCh3", (short)((d.Data[6] << 8) + d.Data[7]));
                         }
-                        if (d.Data.Length > 9) {
+                        if(d.Data.Length > 9) {
                             parsedRow.Add("RawCh4", (short)((d.Data[9] << 8) + d.Data[10]));
                         }
-                        if (d.Data.Length > 12) {
+                        if(d.Data.Length > 12) {
                             parsedRow.Add("RawCh5", (short)((d.Data[12] << 8) + d.Data[13]));
                         }
-                        if (d.Data.Length > 15) {
+                        if(d.Data.Length > 15) {
                             parsedRow.Add("RawCh6", (short)((d.Data[15] << 8) + d.Data[16]));
                         }
-                        if (d.Data.Length > 18) {
+                        if(d.Data.Length > 18) {
                             parsedRow.Add("RawCh7", (short)((d.Data[18] << 8) + d.Data[19]));
                         }
                         //Console.WriteLine("\tEEG");
@@ -265,40 +242,64 @@ namespace NeuroSky.ThinkGear.Parser
                         break;
 
                     case (Code.RawMSWithSingleTimeStamp):
+                        parsedRow.Add("RawCh1", (short)((d.Data[1] << 8) + d.Data[2]));
+                        if(d.Data.Length > 3) {
+                            parsedRow.Add("RawCh2", (short)((d.Data[3] << 8) + d.Data[4]));
+                        }
+                        if(d.Data.Length > 5) {
+                            parsedRow.Add("RawCh3", (short)((d.Data[5] << 8) + d.Data[6]));
+                        }
+                        if(d.Data.Length > 7) {
+                            parsedRow.Add("RawCh4", (short)((d.Data[7] << 8) + d.Data[8]));
+                        }
+                        if(d.Data.Length > 9) {
+                            parsedRow.Add("RawCh5", (short)((d.Data[9] << 8) + d.Data[10]));
+                        }
+                        if(d.Data.Length > 11) {
+                            parsedRow.Add("RawCh6", (short)((d.Data[11] << 8) + d.Data[12]));
+                        }
+                        if(d.Data.Length > 13) {
+                            parsedRow.Add("RawCh7", (short)((d.Data[13] << 8) + d.Data[14]));
+                        }
+                        if(d.Data.Length > 15) {
+                            parsedRow.Add("RawCh8", (short)((d.Data[15] << 8) + d.Data[16]));
+                        }
+                        /*
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
-                        if (d.Data.Length > 3) {
+                        if(d.Data.Length > 3) {
                             parsedRow.Add("RawCh2", (short)((d.Data[2] << 8) + d.Data[3]));
                         }
-                        if (d.Data.Length > 5) {
+                        if(d.Data.Length > 5) {
                             parsedRow.Add("RawCh3", (short)((d.Data[4] << 8) + d.Data[5]));
                         }
-                        if (d.Data.Length > 7) {
+                        if(d.Data.Length > 7) {
                             parsedRow.Add("RawCh4", (short)((d.Data[6] << 8) + d.Data[7]));
                         }
-                        if (d.Data.Length > 9) {
+                        if(d.Data.Length > 9) {
                             parsedRow.Add("RawCh5", (short)((d.Data[8] << 8) + d.Data[9]));
                         }
-                        if (d.Data.Length > 11) {
+                        if(d.Data.Length > 11) {
                             parsedRow.Add("RawCh6", (short)((d.Data[10] << 8) + d.Data[11]));
                         }
-                        if (d.Data.Length > 13) {
+                        if(d.Data.Length > 13) {
                             parsedRow.Add("RawCh7", (short)((d.Data[12] << 8) + d.Data[13]));
                         }
-                        if (d.Data.Length > 15) {
+                        if(d.Data.Length > 15) {
                             parsedRow.Add("RawCh8", (short)((d.Data[14] << 8) + d.Data[15]));
                         }
+                         */
                         //Console.WriteLine("\tEEG");
                         //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["RawCh1"], parsedRow["RawCh2"], parsedRow["RawCh3"]);
                         break;
 
-                    case(Code.RawMSWithoutTimeStamp):
+                    case (Code.RawMSWithoutTimeStamp): /* 0xB0 */
                         //see thinkcap_sdk wiki entry for full details on this code 0xB0 
-                      
+
                         //Ch1
                         //if DataL is equal to 3
-                        if (d.Data[1] == 3) {
+                        if(d.Data[1] == 3) {
                             //if the 5th bit of DataH is equal to 1
-                            if ((d.Data[0] & 16) != 0) {
+                            if((d.Data[0] & 16) != 0) {
                                 //dataL should be 2
                                 d.Data[1] = 2;
                             }
@@ -308,9 +309,9 @@ namespace NeuroSky.ThinkGear.Parser
                         parsedRow.Add("RawCh1", (short)((d.Data[0] << 8) + d.Data[1]));
 
                         //Ch2
-                        if (d.Data.Length > 2) {
-                            if (d.Data[3] == 3) {
-                                if ((d.Data[2] & 16) != 0) {
+                        if(d.Data.Length > 2) {
+                            if(d.Data[3] == 3) {
+                                if((d.Data[2] & 16) != 0) {
                                     d.Data[3] = 2;
                                 }
                             }
@@ -319,9 +320,9 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch3
-                        if (d.Data.Length > 4) {
-                            if (d.Data[5] == 3) {
-                                if ((d.Data[4] & 16) != 0) {
+                        if(d.Data.Length > 4) {
+                            if(d.Data[5] == 3) {
+                                if((d.Data[4] & 16) != 0) {
                                     d.Data[5] = 2;
                                 }
                             }
@@ -330,9 +331,9 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch4
-                        if (d.Data.Length > 6) {
-                            if (d.Data[7] == 3) {
-                                if ((d.Data[6] & 16) != 0) {
+                        if(d.Data.Length > 6) {
+                            if(d.Data[7] == 3) {
+                                if((d.Data[6] & 16) != 0) {
                                     d.Data[7] = 2;
                                 }
                             }
@@ -341,9 +342,9 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch5
-                        if (d.Data.Length > 8) {
-                            if (d.Data[9] == 3) {
-                                if ((d.Data[8] & 16) != 0) {
+                        if(d.Data.Length > 8) {
+                            if(d.Data[9] == 3) {
+                                if((d.Data[8] & 16) != 0) {
                                     d.Data[9] = 2;
                                 }
                             }
@@ -352,20 +353,20 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch6
-                        if (d.Data.Length > 10) {
-                            if (d.Data[11] == 3) {
-                                if ((d.Data[10] & 16) != 0) {
+                        if(d.Data.Length > 10) {
+                            if(d.Data[11] == 3) {
+                                if((d.Data[10] & 16) != 0) {
                                     d.Data[11] = 2;
                                 }
                             }
                             d.Data[10] = (byte)(d.Data[10] & 3);
                             parsedRow.Add("RawCh6", (short)((d.Data[10] << 8) + d.Data[11]));
                         }
-                        
+
                         //Ch7
-                        if (d.Data.Length > 12) {
-                            if (d.Data[13] == 3) {
-                                if ((d.Data[12] & 16) != 0) {
+                        if(d.Data.Length > 12) {
+                            if(d.Data[13] == 3) {
+                                if((d.Data[12] & 16) != 0) {
                                     d.Data[13] = 2;
                                 }
                             }
@@ -374,10 +375,9 @@ namespace NeuroSky.ThinkGear.Parser
                         }
 
                         //Ch8
-                        if (d.Data.Length > 14) {
-                            if (d.Data[15] == 3) {
-                                if ((d.Data[14] & 16) != 0)
-                                {
+                        if(d.Data.Length > 14) {
+                            if(d.Data[15] == 3) {
+                                if((d.Data[14] & 16) != 0) {
                                     d.Data[15] = 2;
                                 }
                             }
@@ -387,28 +387,28 @@ namespace NeuroSky.ThinkGear.Parser
 
                         break;
 
-                    case(Code.Accelerometer):
+                    case (Code.Accelerometer):
                         parsedRow.Add("AccelCh1", (short)((d.Data[0] << 8) + d.Data[1]));
-                        if (d.Data.Length > 2) {
+                        if(d.Data.Length > 2) {
                             parsedRow.Add("AccelCh2", (short)((d.Data[2] << 8) + d.Data[3]));
                         }
-                        if (d.Data.Length > 4) {
+                        if(d.Data.Length > 4) {
                             parsedRow.Add("AccelCh3", (short)((d.Data[4] << 8) + d.Data[5]));
                         }
                         //Console.WriteLine("\tAccel");
                         //Console.WriteLine("\t{0}\t{1}\t{2}", parsedRow["AccelCh1"], parsedRow["AccelCh2"], parsedRow["AccelCh3"]);
                         break;
-                    case(Code.EMGPower):
+                    case (Code.EMGPower):
                         parsedRow.Add("EmgPower", BitConverter.ToSingle(ReverseBytes(d.Data), 0));
                         break;
-                    case(Code.Offhead):
+                    case (Code.Offhead):
                         parsedRow.Add("OffheadCh1", (short)((d.Data[0] << 8) + d.Data[1]));
                         parsedRow.Add("OffheadCh3", (short)((d.Data[2] << 8) + d.Data[3]));
                         //Console.WriteLine("\tOffhead ------------");
                         //Console.WriteLine("\t{0}\t{1}", parsedRow["OffheadCh1"], parsedRow["OffheadCh3"]);
                         break;
-                    case(Code.EEGPowerInt):
-                        if (d.Data.Length == 24) {
+                    case (Code.EEGPowerInt):
+                        if(d.Data.Length == 24) {
                             parsedRow.Add("EegPowerDelta", (uint)(d.Data[0] << 16) + d.Data[1] << 8 + d.Data[2]);
                             parsedRow.Add("EegPowerTheta", (uint)(d.Data[3] << 16) + d.Data[4] << 8 + d.Data[5]);
                             parsedRow.Add("EegPowerAlpha1", (uint)(d.Data[6] << 16) + d.Data[7] << 8 + d.Data[8]);
@@ -428,11 +428,11 @@ namespace NeuroSky.ThinkGear.Parser
                             parsedRow.Add("EegPowerGamma2", 0);
                         }
                         break;
-                    case(Code.DongleStatus):
+                    case (Code.DongleStatus):
                         parsedRow.Add("DongleStatus", (double)d.Data[0]);
                         break;
-                    case(Code.HeadsetDisconnect):
-                        parsedRow.Add("HeadsetDisconnect", (int)((d.Data[0]<<8) + d.Data[1]));
+                    case (Code.HeadsetDisconnect):
+                        parsedRow.Add("HeadsetDisconnect", (int)((d.Data[0] << 8) + d.Data[1]));
                         break;
                     case (Code.HeadsetConnect):
                         parsedRow.Add("HeadsetConnect", (int)((d.Data[0] << 8) + d.Data[1]));
@@ -449,21 +449,21 @@ namespace NeuroSky.ThinkGear.Parser
 
             // Assign the resulting array out to the class variable
             this.ParsedData = parsedData.ToArray();
-   
+
         }
         // End "public void Read(DataRow[] dataRowArray)..."
 
         private byte[] ReverseBytes(byte[] inArray) {
-          byte temp;
-          int highCtr = inArray.Length - 1;
+            byte temp;
+            int highCtr = inArray.Length - 1;
 
-          for (int ctr = 0; ctr < inArray.Length / 2; ctr++) {
-            temp = inArray[ctr];
-            inArray[ctr] = inArray[highCtr];
-            inArray[highCtr] = temp;
-            highCtr -= 1;
-          }
-          return inArray;
+            for(int ctr = 0; ctr < inArray.Length / 2; ctr++) {
+                temp = inArray[ctr];
+                inArray[ctr] = inArray[highCtr];
+                inArray[highCtr] = temp;
+                highCtr -= 1;
+            }
+            return inArray;
         }
     }
     /*
