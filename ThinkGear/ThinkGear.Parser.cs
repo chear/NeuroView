@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NeuroSky.ThinkGear.Parser {
-
+namespace NeuroSky.ThinkGear {
     /*
      * Old Parser code
      */

@@ -13,7 +13,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 using NeuroSky.ThinkGear;
-using NeuroSky.ThinkGear.Parser;
 
 using System.Xml;
 
