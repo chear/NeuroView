@@ -41,7 +41,7 @@ namespace NeuroSky.MindView
     };
 
 
-    public class GraphPanel: Panel
+    public class GraphPanel: System.Windows.Forms.UserControl
     {
         public LineGraph LineGraph;
         public BarGraph BarGraph;

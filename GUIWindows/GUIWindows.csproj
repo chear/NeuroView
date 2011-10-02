@@ -83,7 +83,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="GraphPanel.cs">
-      <SubType>Component</SubType>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Launcher.cs">
       <SubType>Form</SubType>

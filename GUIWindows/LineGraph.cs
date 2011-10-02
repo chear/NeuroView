@@ -31,7 +31,7 @@ namespace NeuroSky.MindView {
     public class LineGraph : System.Windows.Forms.UserControl {
 
         private System.ComponentModel.Container components = null;
-        private System.Windows.Forms.HScrollBar hScrollBar;
+        public System.Windows.Forms.HScrollBar hScrollBar;
         private System.Windows.Forms.Timer maxFrameRateTimer;
 
         //TODO: Implement list of a list for multiple data graphing
@@ -284,6 +284,10 @@ namespace NeuroSky.MindView {
 
             InitializeComponent();
 
+            this.Size = defaultSize;
+            this.BorderStyle = BorderStyle.FixedSingle;
+            this.scrollBarTop = frameHeight - this.hScrollBar.Height;
+            this.hScrollBar.Location = new System.Drawing.Point(0, scrollBarTop);
             this.DoubleBuffered = true;
 
             data0 = new List<DataPair>();
@@ -327,17 +331,14 @@ namespace NeuroSky.MindView {
             this.SuspendLayout();
 
             this.Name = "LineGraph";
-            this.Size = defaultSize;
             this.BackColor = Color.White;
-            this.BorderStyle = BorderStyle.FixedSingle;
 
-            scrollBarTop = frameHeight - this.hScrollBar.Height;
-            this.hScrollBar.Location = new System.Drawing.Point(0, scrollBarTop);
+           
             this.hScrollBar.Width = this.Width;
             this.hScrollBar.Visible = false;
             this.hScrollBar.Maximum = 1;
             this.hScrollBar.Minimum = 0;
-            this.hScrollBar.Value = this.hScrollBar.Maximum - 1;
+            this.hScrollBar.Value = 0;
             this.hScrollBar.ValueChanged += new System.EventHandler(this.hScrollBar_ValueChanged);
 
             this.Controls.AddRange(new System.Windows.Forms.Control[] { this.hScrollBar });

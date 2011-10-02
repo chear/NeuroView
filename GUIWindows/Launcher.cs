@@ -137,18 +137,6 @@ namespace NeuroSky.MindView
                 mainForm.timeStampIndex++;
             }
 
-            foreach (TimeStampData tsd in parsedData.Attention)
-            {
-                if (mainForm.attGraphPanel.LineGraph.data0.Count == 0) mainForm.attGraphPanel.LineGraph.Add(new DataPair(0, 0));
-                mainForm.attGraphPanel.LineGraph.Add(new DataPair((mainForm.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), tsd.Value));
-            }
-
-            foreach (TimeStampData tsd in parsedData.Meditation)
-            {
-                if (mainForm.medGraphPanel.LineGraph.data0.Count == 0) mainForm.medGraphPanel.LineGraph.Add(new DataPair(0, 0));
-                mainForm.medGraphPanel.LineGraph.Add(new DataPair((mainForm.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), tsd.Value));
-            }
-
             foreach (TimeStampData tsd in parsedData.PoorSignalQuality)
             {
                 mainForm.updatePQLabel("PQ: " + tsd.Value);
