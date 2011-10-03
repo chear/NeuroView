@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Ports;
 
 using NeuroSky.ThinkGear;
+using NeuroSky.ThinkGear.Parser;
 
 namespace testprogram {
     class Program {

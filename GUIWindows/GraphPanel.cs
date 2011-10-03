@@ -135,15 +135,7 @@ namespace NeuroSky.MindView
          */
         public void ValueUpdateTimer_Tick(object sender, EventArgs e)
         {
-            // Only do this if it is a line plot
-            if (this.PlotType == PlotType.Line) {
-                int lastIndex = this.LineGraph.data0.Count - 1;
-                if (lastIndex >= 0)
-                {
-                    this.ValueLabel.Text = this.LineGraph.data0[lastIndex].data.ToString();
-                }
-            }
-
+            
             // Only do this if it is a bar graph
             if (this.PlotType == PlotType.Bar)
             {
@@ -363,7 +355,9 @@ namespace NeuroSky.MindView
                 BarGraph.yAxisMin = 0;
                 BarGraph.pwrSpecWindow = 1;
             }
-            EnableValueDisplay();
+
+            //disable the value display
+            //EnableValueDisplay();
         }
         /* End "public void SetType(...)" */
 

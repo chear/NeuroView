@@ -23,7 +23,7 @@ namespace NeuroSky.MindView
         public GraphPanel rawGraphPanel;
         public TextBox portText;
         private Label statusLabel;
-        private Label poorSignalLabel;
+        public Label heartRateLabel;
         private Label fileLabel;
         private System.Windows.Forms.Button connectButton;
         private System.Windows.Forms.Button clearButton;
@@ -34,6 +34,7 @@ namespace NeuroSky.MindView
         private System.ComponentModel.Container components = null;
 
         public int timeStampIndex = 0;
+        public bool recordFlag;
 
         public DateTime RecordStartTime;
         private Label YMaxLabel;
@@ -46,6 +47,11 @@ namespace NeuroSky.MindView
         private TextBox XMinTextBox;
         public DateTime RecordStopTime;
 
+        public double poorQuality;
+
+        private string dataLogOutFile;
+        private System.IO.StreamWriter dataLogStream;
+
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate {};
 
@@ -56,14 +62,21 @@ namespace NeuroSky.MindView
 
             InitializeComponent();
 
+            recordFlag = false;
+
             rawGraphPanel.LineGraph.samplingRate = 512;
             rawGraphPanel.LineGraph.xAxisMax = 4;
             rawGraphPanel.LineGraph.xAxisMin = 0;
-            rawGraphPanel.LineGraph.yAxisMax = 2047;
-            rawGraphPanel.LineGraph.yAxisMin = -2048;
+            rawGraphPanel.LineGraph.yAxisMax = 32768;
+            rawGraphPanel.LineGraph.yAxisMin = -32767;
             rawGraphPanel.LineGraph.OptimizeScrollBar();
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
+
+            YMaxTextBox.Text = rawGraphPanel.LineGraph.yAxisMax.ToString();
+            YMinTextBox.Text = rawGraphPanel.LineGraph.yAxisMin.ToString();
+            XMaxTextBox.Text = rawGraphPanel.LineGraph.xAxisMax.ToString();
+            XMinTextBox.Text = rawGraphPanel.LineGraph.xAxisMin.ToString();
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
@@ -107,9 +120,8 @@ namespace NeuroSky.MindView
             this.stopButton = new System.Windows.Forms.Button();
             this.portText = new System.Windows.Forms.TextBox();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.poorSignalLabel = new System.Windows.Forms.Label();
+            this.heartRateLabel = new System.Windows.Forms.Label();
             this.fileLabel = new System.Windows.Forms.Label();
-            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.YMaxLabel = new System.Windows.Forms.Label();
             this.YMinLabel = new System.Windows.Forms.Label();
             this.XMaxLabel = new System.Windows.Forms.Label();
@@ -118,6 +130,7 @@ namespace NeuroSky.MindView
             this.YMinTextBox = new System.Windows.Forms.TextBox();
             this.XMaxTextBox = new System.Windows.Forms.TextBox();
             this.XMinTextBox = new System.Windows.Forms.TextBox();
+            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
             // connectButton
@@ -127,7 +140,7 @@ namespace NeuroSky.MindView
             this.connectButton.Size = new System.Drawing.Size(80, 24);
             this.connectButton.TabIndex = 1;
             this.connectButton.Text = "Connect";
-            this.connectButton.Click += new System.EventHandler(this.button1_Click);
+            this.connectButton.Click += new System.EventHandler(this.connectButton_Click);
             // 
             // clearButton
             // 
@@ -136,7 +149,7 @@ namespace NeuroSky.MindView
             this.clearButton.Size = new System.Drawing.Size(80, 24);
             this.clearButton.TabIndex = 1;
             this.clearButton.Text = "Clear";
-            this.clearButton.Click += new System.EventHandler(this.button2_Click);
+            this.clearButton.Click += new System.EventHandler(this.clearButton_Click);
             // 
             // recordButton
             // 
@@ -145,7 +158,7 @@ namespace NeuroSky.MindView
             this.recordButton.Size = new System.Drawing.Size(80, 24);
             this.recordButton.TabIndex = 1;
             this.recordButton.Text = "Record";
-            this.recordButton.Click += new System.EventHandler(this.button3_Click);
+            this.recordButton.Click += new System.EventHandler(this.recordButton_Click);
             // 
             // disconnectButton
             // 
@@ -163,7 +176,7 @@ namespace NeuroSky.MindView
             this.stopButton.Size = new System.Drawing.Size(80, 24);
             this.stopButton.TabIndex = 1;
             this.stopButton.Text = "Stop";
-            this.stopButton.Click += new System.EventHandler(this.stop_Click);
+            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
             // 
             // portText
             // 
@@ -175,19 +188,19 @@ namespace NeuroSky.MindView
             // 
             // statusLabel
             // 
-            this.statusLabel.Location = new System.Drawing.Point(7, 45);
+            this.statusLabel.Location = new System.Drawing.Point(12, 314);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(400, 24);
             this.statusLabel.TabIndex = 4;
             this.statusLabel.Text = "Type COM port to connect (Ex. COM1) and Press Connect";
             // 
-            // poorSignalLabel
+            // heartRateLabel
             // 
-            this.poorSignalLabel.Location = new System.Drawing.Point(827, 21);
-            this.poorSignalLabel.Name = "poorSignalLabel";
-            this.poorSignalLabel.Size = new System.Drawing.Size(50, 24);
-            this.poorSignalLabel.TabIndex = 5;
-            this.poorSignalLabel.Text = "PQ:";
+            this.heartRateLabel.Location = new System.Drawing.Point(792, 30);
+            this.heartRateLabel.Name = "heartRateLabel";
+            this.heartRateLabel.Size = new System.Drawing.Size(133, 24);
+            this.heartRateLabel.TabIndex = 5;
+            this.heartRateLabel.Text = "Heart Rate:";
             // 
             // fileLabel
             // 
@@ -196,13 +209,6 @@ namespace NeuroSky.MindView
             this.fileLabel.Size = new System.Drawing.Size(800, 24);
             this.fileLabel.TabIndex = 3;
             this.fileLabel.Text = "None";
-            // 
-            // rawGraphPanel
-            // 
-            this.rawGraphPanel.Location = new System.Drawing.Point(0, 72);
-            this.rawGraphPanel.Name = "rawGraphPanel";
-            this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
-            this.rawGraphPanel.TabIndex = 0;
             // 
             // YMaxLabel
             // 
@@ -276,6 +282,13 @@ namespace NeuroSky.MindView
             this.XMinTextBox.Text = " ";
             this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
             // 
+            // rawGraphPanel
+            // 
+            this.rawGraphPanel.Location = new System.Drawing.Point(0, 72);
+            this.rawGraphPanel.Name = "rawGraphPanel";
+            this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
+            this.rawGraphPanel.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(937, 347);
@@ -294,7 +307,7 @@ namespace NeuroSky.MindView
             this.Controls.Add(this.disconnectButton);
             this.Controls.Add(this.portText);
             this.Controls.Add(this.statusLabel);
-            this.Controls.Add(this.poorSignalLabel);
+            this.Controls.Add(this.heartRateLabel);
             this.Controls.Add(this.rawGraphPanel);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -306,7 +319,7 @@ namespace NeuroSky.MindView
         #endregion
 
         /*Connect Button Clicked*/
-        private void button1_Click(object sender, System.EventArgs e)
+        private void connectButton_Click(object sender, System.EventArgs e)
         {
 #if true
             ConnectButtonClicked(this, EventArgs.Empty);
@@ -332,96 +345,15 @@ namespace NeuroSky.MindView
 #endif
         }
 
+        //disconnect button clicked
         private void disconnect_Click(object sender, System.EventArgs e)
         {
             DisconnectButtonClicked(this, EventArgs.Empty);
         }
 
 
-        
-
-        private void AddDataInfo(ReportForm reportForm, string dataPath)
-        {
-            string txtPath = System.IO.Path.Combine(dataPath, "Info.xml");
-
-            if (File.Exists(txtPath))
-            {
-                XmlTextReader reader = new XmlTextReader(txtPath);
-                string tempStartTime = "None";
-                string tempStopTime = "None";
-
-                while(reader.Read())
-                {
-                    if (reader.NodeType == XmlNodeType.Element)
-                    {
-                        switch (reader.Name)
-                        {
-                            case "StartTime":
-                                reader.Read();
-                                tempStartTime = reader.Value;
-                                break;
-                            case "StopTime":
-                                reader.Read();
-                                tempStopTime = reader.Value;
-                                break;
-                        }
-                    }
-                }
-
-
-                reportForm.infoLabel.Text = "Start Time: " + tempStartTime + "     Stop Time: " + tempStopTime;
-
-                Console.WriteLine("StartTime: " + tempStartTime + " StopTime: " + tempStopTime);
-                
-            }
-
-        }
-
-        /*Opens and adds data to the form*/
-        private void OpenAddData(MainForm tempForm, string dataPath)
-        {
-            string rawPath = System.IO.Path.Combine(dataPath, rawGraphPanel.LineGraph.FileNameString);
-
-            tempForm.rawGraphPanel.LineGraph.RecordDataFlag = true;
-
-            if (File.Exists(rawPath))
-            {
-                DataPair[] tempDataPairArray = ParseCSVFile(rawPath);
-
-                foreach (DataPair d in tempDataPairArray)
-                {
-                    tempForm.rawGraphPanel.LineGraph.Add(d);
-                }
-            }
-
-            tempForm.rawGraphPanel.Invalidate();
-        }
-
-      
-
-        private DataPair[] ParseCSVFile(string filePath)
-        {
-            List<DataPair> tempDataPairList = new List<DataPair>();
-
-            using (StreamReader sr = new StreamReader(filePath))
-            {
-                /*Initialize the string and reads the first header line.*/
-                string line = sr.ReadLine();
-
-                while ((line = sr.ReadLine()) != null)
-                {
-                    string[] tempString = line.Split(new char[] { ',' });
-
-                    tempDataPairList.Add(new DataPair(Convert.ToDouble(tempString[0]), Convert.ToDouble(tempString[1])));
-                }
-
-                return tempDataPairList.ToArray();
-            }
-
-        }
-
         /*Clear Button Clicked*/
-        private void button2_Click(object sender, System.EventArgs e)
+        private void clearButton_Click(object sender, System.EventArgs e)
         {
             rawGraphPanel.LineGraph.Clear();
 
@@ -430,31 +362,41 @@ namespace NeuroSky.MindView
             rawGraphPanel.LineGraph.Invalidate();
         }
 
+
         /*Record Button Clicked*/
-        private void button3_Click(object sender, System.EventArgs e)
+        private void recordButton_Click(object sender, System.EventArgs e)
         {
             recordButton.Enabled = false;
             recordButton.Visible = false;
-            
+
+            //save linegraph data in a seperate file
+            //rawGraphPanel.LineGraph.SaveDataFlag = false;
+            //rawGraphPanel.LineGraph.RecordDataFlag = true;
+
             /*Clear Block*/
             rawGraphPanel.LineGraph.Clear();
-            timeStampIndex = 0;
+            rawGraphPanel.LineGraph.timeStampIndex = 0;
 
-            /*Turn on recording*/
-            rawGraphPanel.LineGraph.RecordDataFlag = true;
-
-            /*Specify the folder to be saved*/
-            RecordStartTime = DateTime.Now;
-            
             stopButton.Enabled = true;
             stopButton.Visible = true;
 
+            // Create new file
+            dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
+            + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
+
+            // Create new filestream, appendable
+            this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
+
+            recordFlag = true;
         }
 
-        private void stop_Click(object sender, System.EventArgs e)
+        //stop button clicked
+        private void stopButton_Click(object sender, System.EventArgs e)
         {
             rawGraphPanel.LineGraph.SaveDataFlag = true;
             rawGraphPanel.LineGraph.RecordDataFlag = false;
+
+            recordFlag = false;
 
             stopButton.Enabled = false;
             stopButton.Visible = false;
@@ -463,55 +405,41 @@ namespace NeuroSky.MindView
             recordButton.Visible = true;
 
             RecordStopTime = DateTime.Now;
+
+            dataLogStream.Close();
         }
 
-        int numberFilesSaved = 0;
+        /**
+        * Record out the received data to a datalog file
+        */
+        public void recordData(ThinkGear.DataRow[] dataRowArray)
+        {
+            if (dataLogStream != null)
+            {
+                foreach (DataRow dr in dataRowArray)
+                {
+                    //write the timestamp
+                    dataLogStream.Write(dr.Time.ToString("#0.000") + ": " + (dr.Type.GetHashCode().ToString("X").PadLeft(2, '0')) + " ");
+                    
+                    foreach (byte b in dr.Data)
+                    {
+                        dataLogStream.Write(b.ToString("X").PadLeft(2, '0') + " ");
+                    }
+                    dataLogStream.Write(dataLogStream.NewLine);
+                }
+            }
+        }
 
+
+        //when data saving is done
         void OnDataSavingFinished(object sender, EventArgs e)
         {
-            GraphPanel tempGraphPanel = (GraphPanel)sender;
-
-            numberFilesSaved++;
-
-            if (numberFilesSaved == 3)
-            {
-                string tempPath = System.IO.Path.Combine(dataRootFolder, tempFolderName);
-
-                MessageBox.Show("Data has been saved to the following directory:\n" + tempPath, "Data Saved",
-                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                numberFilesSaved = 0;
-
-                CreateInfoFile(tempPath);
-            }
+           //no need for this currently
         }
 
-        void CreateInfoFile( string dataFolderPath )
-        {
-            string txtPath = System.IO.Path.Combine(dataFolderPath, "Info.xml");
 
-            if (!System.IO.File.Exists(txtPath))
-            {
-                XmlTextWriter xmlWriter = new XmlTextWriter(txtPath, System.Text.Encoding.UTF8);
-                xmlWriter.Formatting = Formatting.Indented;
-                xmlWriter.WriteStartDocument();
-                xmlWriter.WriteStartElement("DataInfo");
-                xmlWriter.WriteStartElement("StartTime");
-                xmlWriter.WriteString(RecordStartTime.ToString());
-                xmlWriter.WriteEndElement();
-                xmlWriter.WriteStartElement("StopTime");
-                xmlWriter.WriteString(RecordStopTime.ToString());
-                xmlWriter.WriteEndElement();
-                xmlWriter.WriteEndElement();
-                xmlWriter.WriteEndDocument();
-                xmlWriter.Flush();
-                xmlWriter.Close();
-                
-            }
-        }
-
+        //update the connect button status
         delegate void updateConnectButtonDelegate(bool connected);
-
         public void updateConnectButton(bool connected)
         {
             if (this.InvokeRequired)
@@ -543,26 +471,25 @@ namespace NeuroSky.MindView
                 }
 
             }
-
         }
 
-        delegate void updatePQLabelDelegate(string tempText);
-
-        public void updatePQLabel(string tempText)
+        //update the PQ Label status
+        delegate void updateHeartRateLabelDelegate(string tempText);
+        public void updateHeartRateLabel(string tempText)
         {
             if (this.InvokeRequired)
             {
-                updatePQLabelDelegate del = new updatePQLabelDelegate(updatePQLabel);
+                updateHeartRateLabelDelegate del = new updateHeartRateLabelDelegate(updateHeartRateLabel);
                 this.Invoke(del, new object[] { tempText });
             }
             else
             {
-                this.poorSignalLabel.Text = tempText;
+                this.heartRateLabel.Text = tempText;
             }
         }
 
-        delegate void updateStatusLabelDelegate(string tempText);
 
+        delegate void updateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText)
         {
             if (this.InvokeRequired)
@@ -576,6 +503,7 @@ namespace NeuroSky.MindView
             }
         }
 
+
         protected override void OnSizeChanged(EventArgs e)
         {
 
@@ -584,15 +512,18 @@ namespace NeuroSky.MindView
 
             /*Update Locations*/
 
-
             base.OnSizeChanged(e);
         }
 
+
         private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
+            
             // If the key pressed was "Enter"
             if (e.KeyChar == (char)13)
             {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
                 //verify that the string entered in the box is actually a number
                 try
                 {
@@ -605,11 +536,13 @@ namespace NeuroSky.MindView
             }
         }
 
+
         private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // If the key pressed was "Enter"
             if (e.KeyChar == (char)13)
             {
+                e.Handled = true;
                 //verify that the string entered in the box is actually a number
                 try
                 {
@@ -622,11 +555,13 @@ namespace NeuroSky.MindView
             }
         }
 
+
         private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // If the key pressed was "Enter"
             if (e.KeyChar == (char)13)
             {
+                e.Handled = true;
                 //verify that the string entered in the box is actually a number
                 try
                 {
@@ -639,11 +574,13 @@ namespace NeuroSky.MindView
             }
         }
 
+
         private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // If the key pressed was "Enter"
             if (e.KeyChar == (char)13)
             {
+                e.Handled = true;
                 //verify that the string entered in the box is actually a number
                 try
                 {
@@ -656,5 +593,6 @@ namespace NeuroSky.MindView
             }
         }
 
-    }/*End of MainForm*/
+    }
+    /*End of MainForm*/
 }

@@ -57,7 +57,8 @@ namespace NeuroSky.ThinkGear {
         HeadsetNotFound          = 0xD1,
         HeadsetDisconnect        = 0xD2,
         RequestDenied            = 0xD3,
-        DongleStatus             = 0xD4
+        DongleStatus             = 0xD4,
+        HeartRate                = 0x03
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -96,8 +97,8 @@ namespace NeuroSky.ThinkGear {
         private volatile bool IsFinding = false;
         private volatile bool StopScanNow = false;
 
-        private const int REMOVE_PORT_TIMER = 1000; //In milliseconds. Not used according to Masa
-        private const int DISCONNECT_TIMER = 5000;  
+        private const int REMOVE_PORT_TIMER = 1000; //In milliseconds
+        private const int DISCONNECT_TIMER = 5000;
         private const int READ_TIMEOUT = 10000;
 
         public Connector() {
@@ -274,13 +275,7 @@ namespace NeuroSky.ThinkGear {
         private void DisconnectionCleanup(Connection c, Device d) {
             if(c != null) {
                 lock(activePortsList) { activePortsList.Remove(c); }
-                try {
-                    c.Close();
-                } catch(System.IO.IOException e) {
-#if DEBUG
-                    Console.WriteLine("Device was removed: " + e);
-#endif
-                }
+                c.Close();
             }
 
             if(d != null) {

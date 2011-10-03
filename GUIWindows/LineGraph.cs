@@ -45,6 +45,7 @@ namespace NeuroSky.MindView {
 
         public double xAxisMax, xAxisMin; //In seconds 
         public double yAxisMax, yAxisMin;
+        public int timeStampIndex;
 
         public bool RecordDataFlag = false;
         public bool SaveDataFlag = false;
@@ -52,6 +53,7 @@ namespace NeuroSky.MindView {
         public string FolderNameString = "Test";
         public string FileNameString = "FileName";
         public string FileHeaderString = "Test, Test";
+        public string graphName = "ECG";
 
         public bool hScrollBarInUse = false;
 
@@ -198,15 +200,32 @@ namespace NeuroSky.MindView {
 
 
             // Set number of labels to create
-            if (xAxisMax >= 10) {
+            if (xAxisMax >= 100)
+            {
+                stepSize = 20;
+            }
+            else if (xAxisMax >= 50)
+            {
+                stepSize = 10;
+            }
+            else if (xAxisMax >= 10)
+            {
                 stepSize = 2;
-            } else if (xAxisMax >= 5) {
+            }
+            else if (xAxisMax >= 5)
+            {
                 stepSize = 1;
-            } else if (xAxisMax >= 2) {
+            }
+            else if (xAxisMax >= 2)
+            {
                 stepSize = 0.5;
-            } else if (xAxisMax >= 1) {
+            }
+            else if (xAxisMax >= 1)
+            {
                 stepSize = 0.2;
-            } else {
+            }
+            else
+            {
                 stepSize = 0.1;
             }
 

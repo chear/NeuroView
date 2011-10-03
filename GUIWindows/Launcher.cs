@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 
 using NeuroSky.ThinkGear;
+using NeuroSky.ThinkGear.Parser;
 
 namespace NeuroSky.MindView
 {
@@ -71,7 +72,6 @@ namespace NeuroSky.MindView
             UpdateConnectButton(false);
             mainForm.updateConnectButton(false);
             mainForm.updateStatusLabel("Unable to connect.");
-            UpdateStatusLabel("Unable to connect. Make sure the headset is turned on and paired.");
         }
 
         void OnDeviceFound(object sender, EventArgs e)
@@ -79,7 +79,6 @@ namespace NeuroSky.MindView
             Connector.PortEventArgs de = (Connector.PortEventArgs)e;
 
             string tempPortName = de.PortName;
-            UpdateStatusLabel("Device found on " + tempPortName + ". Connecting...");
             mainForm.updateStatusLabel("Device found on " + tempPortName + ". Connecting...");
 
             connector.Connect(tempPortName);
@@ -89,8 +88,6 @@ namespace NeuroSky.MindView
         void OnDeviceValidating(object sender, EventArgs e)
         {
             Connector.ConnectionEventArgs ce = (Connector.ConnectionEventArgs)e;
-
-            UpdateStatusLabel("Validating " + ce.Connection.PortName + ".");
 
             mainForm.updateStatusLabel("Validating " + ce.Connection.PortName + ".");
         }
@@ -125,37 +122,47 @@ namespace NeuroSky.MindView
             Device.DataEventArgs de = (Device.DataEventArgs)e;
 
             ThinkGear.DataRow[] tempDataRowArray = de.DataRowArray;
-            Parsed parsedData = new Parsed();
 
-            MindSetParser mindSetParser = new MindSetParser();
+            TGParser thinkGearParser = new TGParser();
+            thinkGearParser.Read(de.DataRowArray);
 
-            parsedData = mindSetParser.Read(de.DataRowArray);
-
-            foreach (TimeStampData tsd in parsedData.Raw)
+            // Pass off data for recording
+            if (mainForm.recordFlag == true)
             {
-                mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), tsd.Value));
-                mainForm.timeStampIndex++;
+                //save the datalog.txt
+                mainForm.recordData(de.DataRowArray);
             }
-
-            foreach (TimeStampData tsd in parsedData.PoorSignalQuality)
+            
+            /* Loop through new parsed data */
+            for (int i = 0; i < thinkGearParser.ParsedData.Length; i++)
             {
-                mainForm.updatePQLabel("PQ: " + tsd.Value);
-            }
+                // Check for the data flag for each panel
+                if (thinkGearParser.ParsedData[i].ContainsKey("Raw"))
+                {
+                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
 
-#if false
-            foreach(PowerEEGData ped in parsedData.PowerEEGData)
-            {
-                Console.WriteLine("Time: " + ped.TimeStamp +
-                                  "\nDelta: " + ped.Delta +
-                                  "\nTheta: " + ped.Theta +
-                                  "\nAlpha1: " + ped.Alpha1 +
-                                  "\nAlpha2: " + ped.Alpha2 +
-                                  "\nBeta1: " + ped.Beta1 +
-                                  "\nBeta2: " + ped.Beta2 +
-                                  "\nGamma1: " + ped.Gamma1 +
-                                  "\nGamma2: " + ped.Gamma2);
+                    // Incremenet timer
+                    mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                }
+
+                if (thinkGearParser.ParsedData[i].ContainsKey("PoorSignal"))
+                {
+                    mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
+                }
+
+                if (thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
+                {
+                    if (mainForm.poorQuality == 200)
+                    {
+                        mainForm.updateHeartRateLabel("Heart Rate: " + thinkGearParser.ParsedData[i]["HeartRate"]);
+                    }
+                    else
+                    {
+                        mainForm.updateHeartRateLabel("Heart Rate: Poor signal");
+                    }
+                }
+                /* End "Check for the data flag for each panel..." */            
             }
-#endif
         }
 
         void OnConnectButtonClicked(object sender, EventArgs e)
@@ -210,23 +217,8 @@ namespace NeuroSky.MindView
             mainForm.updateConnectButton(false);
         }
 
-        delegate void UpdateStatusLabelDelegate(string tempText);
-
-        public void UpdateStatusLabel(string tempText)
-        {
-            if (this.InvokeRequired)
-            {
-                UpdateStatusLabelDelegate del = new UpdateStatusLabelDelegate(UpdateStatusLabel);
-                this.Invoke(del, new object[] { tempText });
-            }
-            else
-            {
-                this.textBox2.Text = tempText;
-            }
-        }
-
+         
         delegate void UpdateVisibilityDelegate(bool enable);
-
         public void UpdateVisibility(bool enable)
         {
             if (this.InvokeRequired)
@@ -255,8 +247,8 @@ namespace NeuroSky.MindView
             }
         }
 
-        delegate void UpdateConnectButtonDelegate(bool connected);
 
+        delegate void UpdateConnectButtonDelegate(bool connected);
         public void UpdateConnectButton(bool connected)
         {
             if (this.InvokeRequired)

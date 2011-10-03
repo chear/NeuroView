@@ -227,15 +227,24 @@ namespace NeuroSky.MindView
 
 
             // Set number of labels to create
-            if (numberOfBins >= 100) {
-                groupSize = 20;
-            } else if (numberOfBins >= 50) {
+            if (numberOfBins >= 100)
+            {
+                groupSize = 25;
+            }
+            else if (numberOfBins >= 50)
+            {
                 groupSize = 10;
-            } else if (numberOfBins >= 30) {
+            }
+            else if (numberOfBins >= 30)
+            {
                 groupSize = 5;
-            } else if (numberOfBins >= 20) {
+            }
+            else if (numberOfBins >= 20)
+            {
                 groupSize = 2;
-            } else {
+            }
+            else
+            {
                 groupSize = 1;
             }
 
