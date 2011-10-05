@@ -58,7 +58,10 @@ namespace NeuroSky.ThinkGear {
         HeadsetDisconnect        = 0xD2,
         RequestDenied            = 0xD3,
         DongleStatus             = 0xD4,
-        HeartRate                = 0x03
+        HeartRate                = 0x03,
+        EGODebug1                = 0x84,
+        EGODebug2                = 0x08,
+        EGODebug3                = 0x85
     };
 
     // The main controller that connects the connections to a specific device.  

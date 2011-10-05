@@ -23,7 +23,7 @@ namespace NeuroSky.MindView
         public GraphPanel rawGraphPanel;
         public TextBox portText;
         private Label statusLabel;
-        public Label heartRateLabel;
+        public Label realtimeHeartRateLabel;
         private Label fileLabel;
         private System.Windows.Forms.Button connectButton;
         private System.Windows.Forms.Button clearButton;
@@ -48,9 +48,22 @@ namespace NeuroSky.MindView
         public DateTime RecordStopTime;
 
         public double poorQuality;
+        private int ADCValue;
+
+        private double realTimeHeartBeatValue;
+        public double averageHeartBeatValue;
+        private double[] averageHeartBeatValueIndex;
+        private int averageHeartBeatIndexLength;
+        private int averageHeartBeatCounter;
 
         private string dataLogOutFile;
         private System.IO.StreamWriter dataLogStream;
+
+        private string ECGLogOutFile;
+        public Label averageHeartRateLabel;
+        private Label realtimeHeartRateLabelIndicator;
+        private Label averageHeartRateLabelIndicator;
+        private System.IO.StreamWriter ECGLogStream;
 
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate {};
@@ -69,6 +82,7 @@ namespace NeuroSky.MindView
             rawGraphPanel.LineGraph.xAxisMin = 0;
             rawGraphPanel.LineGraph.yAxisMax = 32768;
             rawGraphPanel.LineGraph.yAxisMin = -32767;
+            rawGraphPanel.Label.Text = "ECG";
             rawGraphPanel.LineGraph.OptimizeScrollBar();
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
@@ -83,6 +97,12 @@ namespace NeuroSky.MindView
 
             stopButton.Visible = false;
             stopButton.Enabled = false;
+
+            realTimeHeartBeatValue = 0;
+            averageHeartBeatValue = 0;
+            averageHeartBeatCounter = 0;
+            averageHeartBeatIndexLength = 45;
+            averageHeartBeatValueIndex = new double[averageHeartBeatIndexLength];
 
             this.MinimumSize = new Size(945,  381);
             this.MaximumSize = new Size(3000,  381);
@@ -120,7 +140,7 @@ namespace NeuroSky.MindView
             this.stopButton = new System.Windows.Forms.Button();
             this.portText = new System.Windows.Forms.TextBox();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.heartRateLabel = new System.Windows.Forms.Label();
+            this.realtimeHeartRateLabel = new System.Windows.Forms.Label();
             this.fileLabel = new System.Windows.Forms.Label();
             this.YMaxLabel = new System.Windows.Forms.Label();
             this.YMinLabel = new System.Windows.Forms.Label();
@@ -130,12 +150,15 @@ namespace NeuroSky.MindView
             this.YMinTextBox = new System.Windows.Forms.TextBox();
             this.XMaxTextBox = new System.Windows.Forms.TextBox();
             this.XMinTextBox = new System.Windows.Forms.TextBox();
+            this.averageHeartRateLabel = new System.Windows.Forms.Label();
+            this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
+            this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
             // connectButton
             // 
-            this.connectButton.Location = new System.Drawing.Point(100, 15);
+            this.connectButton.Location = new System.Drawing.Point(136, 26);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(80, 24);
             this.connectButton.TabIndex = 1;
@@ -162,7 +185,7 @@ namespace NeuroSky.MindView
             // 
             // disconnectButton
             // 
-            this.disconnectButton.Location = new System.Drawing.Point(100, 15);
+            this.disconnectButton.Location = new System.Drawing.Point(136, 26);
             this.disconnectButton.Name = "disconnectButton";
             this.disconnectButton.Size = new System.Drawing.Size(80, 24);
             this.disconnectButton.TabIndex = 1;
@@ -180,7 +203,7 @@ namespace NeuroSky.MindView
             // 
             // portText
             // 
-            this.portText.Location = new System.Drawing.Point(10, 17);
+            this.portText.Location = new System.Drawing.Point(12, 26);
             this.portText.Name = "portText";
             this.portText.Size = new System.Drawing.Size(80, 20);
             this.portText.TabIndex = 2;
@@ -192,15 +215,16 @@ namespace NeuroSky.MindView
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(400, 24);
             this.statusLabel.TabIndex = 4;
-            this.statusLabel.Text = "Type COM port to connect (Ex. COM1) and Press Connect";
+            this.statusLabel.Text = "Type COM port to connect and press Connect";
             // 
-            // heartRateLabel
+            // realtimeHeartRateLabel
             // 
-            this.heartRateLabel.Location = new System.Drawing.Point(792, 30);
-            this.heartRateLabel.Name = "heartRateLabel";
-            this.heartRateLabel.Size = new System.Drawing.Size(133, 24);
-            this.heartRateLabel.TabIndex = 5;
-            this.heartRateLabel.Text = "Heart Rate:";
+            this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(837, 9);
+            this.realtimeHeartRateLabel.Name = "realtimeHeartRateLabel";
+            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(90, 24);
+            this.realtimeHeartRateLabel.TabIndex = 5;
+            this.realtimeHeartRateLabel.Text = " ";
             // 
             // fileLabel
             // 
@@ -282,6 +306,33 @@ namespace NeuroSky.MindView
             this.XMinTextBox.Text = " ";
             this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
             // 
+            // averageHeartRateLabel
+            // 
+            this.averageHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.averageHeartRateLabel.Location = new System.Drawing.Point(837, 39);
+            this.averageHeartRateLabel.Name = "averageHeartRateLabel";
+            this.averageHeartRateLabel.Size = new System.Drawing.Size(90, 24);
+            this.averageHeartRateLabel.TabIndex = 14;
+            this.averageHeartRateLabel.Text = " ";
+            // 
+            // realtimeHeartRateLabelIndicator
+            // 
+            this.realtimeHeartRateLabelIndicator.AutoSize = true;
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(718, 14);
+            this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
+            this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(113, 13);
+            this.realtimeHeartRateLabelIndicator.TabIndex = 15;
+            this.realtimeHeartRateLabelIndicator.Text = "Real Time Heart Rate:";
+            // 
+            // averageHeartRateLabelIndicator
+            // 
+            this.averageHeartRateLabelIndicator.AutoSize = true;
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(726, 44);
+            this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
+            this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(105, 13);
+            this.averageHeartRateLabelIndicator.TabIndex = 16;
+            this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Location = new System.Drawing.Point(0, 72);
@@ -292,6 +343,9 @@ namespace NeuroSky.MindView
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(937, 347);
+            this.Controls.Add(this.averageHeartRateLabelIndicator);
+            this.Controls.Add(this.realtimeHeartRateLabelIndicator);
+            this.Controls.Add(this.averageHeartRateLabel);
             this.Controls.Add(this.XMinTextBox);
             this.Controls.Add(this.XMaxTextBox);
             this.Controls.Add(this.YMinTextBox);
@@ -307,7 +361,7 @@ namespace NeuroSky.MindView
             this.Controls.Add(this.disconnectButton);
             this.Controls.Add(this.portText);
             this.Controls.Add(this.statusLabel);
-            this.Controls.Add(this.heartRateLabel);
+            this.Controls.Add(this.realtimeHeartRateLabel);
             this.Controls.Add(this.rawGraphPanel);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -374,8 +428,8 @@ namespace NeuroSky.MindView
             //rawGraphPanel.LineGraph.RecordDataFlag = true;
 
             /*Clear Block*/
-            rawGraphPanel.LineGraph.Clear();
-            rawGraphPanel.LineGraph.timeStampIndex = 0;
+            //rawGraphPanel.LineGraph.Clear();
+            //rawGraphPanel.LineGraph.timeStampIndex = 0;
 
             stopButton.Enabled = true;
             stopButton.Visible = true;
@@ -384,8 +438,12 @@ namespace NeuroSky.MindView
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
 
+            ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
+            + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
+
             // Create new filestream, appendable
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
+            this.ECGLogStream = new System.IO.StreamWriter(ECGLogOutFile, true);
 
             recordFlag = true;
         }
@@ -407,25 +465,122 @@ namespace NeuroSky.MindView
             RecordStopTime = DateTime.Now;
 
             dataLogStream.Close();
+            ECGLogStream.Close();
         }
 
+        public void updateAverageHeartBeatValue(double heartBeatValue)
+        {
+            //if it's a good signal
+            if (poorQuality == 200)
+            {
+                //if the buffer isnt full yet, add to the buffer. return the realtime heartbeat value
+                if (averageHeartBeatCounter < averageHeartBeatIndexLength)
+                {
+                    averageHeartBeatValueIndex[averageHeartBeatCounter] = heartBeatValue;
+                    averageHeartBeatCounter++;
+                    
+                    averageHeartBeatValue = 0;
+
+                    updateAverageHeartRateLabel("");
+                }
+                //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
+                else
+                {
+                    //set the counter to the length of the index, to make sure that it doesn't become huge after looping so many times
+                    averageHeartBeatCounter = averageHeartBeatIndexLength;
+
+                    //shift the buffer
+                    for (int i = 0; i < averageHeartBeatIndexLength-1; i++)
+                    {
+                        averageHeartBeatValueIndex[i] = averageHeartBeatValueIndex[i+1];
+                    }
+                    averageHeartBeatValueIndex[averageHeartBeatIndexLength-1] = heartBeatValue;
+
+                    //calculate the average
+                    //reset
+                    averageHeartBeatValue = 0;
+                    for (int i = 0; i < averageHeartBeatIndexLength; i++)
+                    {
+                        averageHeartBeatValue += (averageHeartBeatValueIndex[i]);
+                    }
+                    averageHeartBeatValue = (averageHeartBeatValue / averageHeartBeatIndexLength);
+
+                    updateAverageHeartRateLabel(averageHeartBeatValue.ToString());
+                }
+            }
+            //else poor signal
+            else
+            {
+                //set the counter back to zero. when its good signal again, it will refill the 30 seconds of new data before outputting average value
+                averageHeartBeatCounter = 0;
+                
+                //for now, set the averageheartbeatvalue to zero
+                averageHeartBeatValue = 0;
+
+                updateAverageHeartRateLabel("");
+            }
+        }
+        
+
+
         /**
-        * Record out the received data to a datalog file
+        * Record out the received data to a dataLog file
+        * Record the RAW ECG value and heartbeat to an ECGLog file
         */
         public void recordData(ThinkGear.DataRow[] dataRowArray)
         {
-            if (dataLogStream != null)
+            if ((dataLogStream != null) && (ECGLogStream != null))
             {
                 foreach (DataRow dr in dataRowArray)
                 {
-                    //write the timestamp
-                    dataLogStream.Write(dr.Time.ToString("#0.000") + ": " + (dr.Type.GetHashCode().ToString("X").PadLeft(2, '0')) + " ");
-                    
-                    foreach (byte b in dr.Data)
+                    //suppress the EGODebug1, EGODebug2, and EGODebug3 outputs
+                    if ((dr.Type.GetHashCode() != 0x84) && (dr.Type.GetHashCode() != 0x08) && (dr.Type.GetHashCode() != 0x85))
                     {
-                        dataLogStream.Write(b.ToString("X").PadLeft(2, '0') + " ");
+                        //write the timestamp
+                        dataLogStream.Write(dr.Time.ToString("#0.000") + ": " + (dr.Type.GetHashCode().ToString("X").PadLeft(2, '0')) + " ");
+                        
+                        //save the heartbeat value for printing in EGCLog
+                        if (dr.Type.GetHashCode() == 0x03)
+                        {
+                            if (poorQuality != 0)
+                            {
+                                realTimeHeartBeatValue = dr.Data[0];
+                            }
+                            else
+                            {
+                                realTimeHeartBeatValue = 0;
+                            }
+                        }
+
+                        //print out the hex values into datalog
+                        foreach (byte b in dr.Data)
+                        {
+                            dataLogStream.Write(b.ToString("X").PadLeft(2, '0') + " ");
+                        }
+                        dataLogStream.Write(dataLogStream.NewLine);
                     }
-                    dataLogStream.Write(dataLogStream.NewLine);
+
+                    //also print to the EGCLog
+                    if (dr.Type.GetHashCode() == 0x80)
+                    {
+                        //write the timestamp
+                        ECGLogStream.Write(dr.Time.ToString("#0.000") + ": ");
+
+                        //print out the EGC waveform and heartbeat values into EGCLog
+                        if (dr.Type.GetHashCode() == 0x80)
+                        {
+                            ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
+                            if (ADCValue >= 0)
+                            {
+                                ECGLogStream.Write(" " + ADCValue.ToString("#00000") + "  " + realTimeHeartBeatValue);
+                            }
+                            else
+                            {
+                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + realTimeHeartBeatValue);
+                            }
+                            ECGLogStream.Write(ECGLogStream.NewLine);
+                        }
+                    }
                 }
             }
         }
@@ -473,21 +628,35 @@ namespace NeuroSky.MindView
             }
         }
 
-        //update the PQ Label status
-        delegate void updateHeartRateLabelDelegate(string tempText);
-        public void updateHeartRateLabel(string tempText)
+        //update the realtime heart rate label status
+        delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
+        public void updateRealTimeHeartRateLabel(string tempString)
         {
             if (this.InvokeRequired)
             {
-                updateHeartRateLabelDelegate del = new updateHeartRateLabelDelegate(updateHeartRateLabel);
-                this.Invoke(del, new object[] { tempText });
+                updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
+                this.Invoke(del, new object[] { tempString });
             }
             else
             {
-                this.heartRateLabel.Text = tempText;
+                this.realtimeHeartRateLabel.Text = tempString;
             }
         }
 
+        //update the average heart rate label status
+        delegate void updateAverageHeartRateLabelDelegate(string tempString);
+        public void updateAverageHeartRateLabel(string tempString)
+        {
+            if (this.InvokeRequired)
+            {
+                updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
+                this.Invoke(del, new object[] { tempString });
+            }
+            else
+            {
+                this.averageHeartRateLabel.Text = tempString;
+            }
+        }
 
         delegate void updateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText)

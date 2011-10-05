@@ -452,6 +452,7 @@ namespace NeuroSky.ThinkGear.Parser
                     case (Code.HeadsetConnect):
                         parsedRow.Add("HeadsetConnect", (int)((d.Data[0] << 8) + d.Data[1]));
                         break;
+
                 }
                 // End "switch (d.Type)..."
 

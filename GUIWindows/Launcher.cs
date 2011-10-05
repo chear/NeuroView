@@ -145,6 +145,7 @@ namespace NeuroSky.MindView
                     mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
                 }
 
+                //save the poorsignal value
                 if (thinkGearParser.ParsedData[i].ContainsKey("PoorSignal"))
                 {
                     mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
@@ -152,13 +153,18 @@ namespace NeuroSky.MindView
 
                 if (thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
                 {
+                    mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+
                     if (mainForm.poorQuality == 200)
                     {
-                        mainForm.updateHeartRateLabel("Heart Rate: " + thinkGearParser.ParsedData[i]["HeartRate"]);
+                        mainForm.updateRealTimeHeartRateLabel(thinkGearParser.ParsedData[i]["HeartRate"].ToString());
                     }
                     else
                     {
-                        mainForm.updateHeartRateLabel("Heart Rate: Poor signal");
+                        //ZERO means poor signal
+                        mainForm.updateRealTimeHeartRateLabel("0");
+                        mainForm.updateAverageHeartRateLabel("0");
+                        mainForm.poorQuality = thinkGearParser.ParsedData[i]["HeartRate"];
                     }
                 }
                 /* End "Check for the data flag for each panel..." */            

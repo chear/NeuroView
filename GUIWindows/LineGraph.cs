@@ -82,6 +82,7 @@ namespace NeuroSky.MindView {
             hScrollBarInUse = false;
         }
 
+
         public void FitAllData() {
             xAxisMax = (data0.Count) / (double)samplingRate;
         }
