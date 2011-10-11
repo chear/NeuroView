@@ -16,10 +16,8 @@ using NeuroSky.ThinkGear;
 
 using System.Xml;
 
-namespace NeuroSky.MindView
-{
-    public class MainForm : System.Windows.Forms.Form
-    {
+namespace NeuroSky.MindView {
+    public class MainForm : System.Windows.Forms.Form {
         public GraphPanel rawGraphPanel;
         public TextBox portText;
         private Label statusLabel;
@@ -50,11 +48,17 @@ namespace NeuroSky.MindView
         public double poorQuality;
         private int ADCValue;
 
-        private double realTimeHeartBeatValue;
-        public double averageHeartBeatValue;
-        private double[] averageHeartBeatValueIndex;
-        private int averageHeartBeatIndexLength;
-        private int averageHeartBeatCounter;
+        public double ASICHBValue;     //actual value coming out of the chip
+
+        public double realTimeHBValue;
+        private int realTimeHBBufferLength;
+        private int realTimeHBCounter;
+        private double[] realTimeHBValueBuffer;
+
+        public double avgHBValue;
+        private int avgHBBufferLength;
+        private int avgHBCounter;
+        private double[] avgHBValueBuffer;
 
         private string dataLogOutFile;
         private System.IO.StreamWriter dataLogStream;
@@ -66,12 +70,11 @@ namespace NeuroSky.MindView
         private System.IO.StreamWriter ECGLogStream;
 
         public event EventHandler ConnectButtonClicked = delegate { };
-        public event EventHandler DisconnectButtonClicked = delegate {};
+        public event EventHandler DisconnectButtonClicked = delegate { };
 
 
 
-        public MainForm()
-        {
+        public MainForm() {
 
             InitializeComponent();
 
@@ -81,7 +84,7 @@ namespace NeuroSky.MindView
             rawGraphPanel.LineGraph.xAxisMax = 4;
             rawGraphPanel.LineGraph.xAxisMin = 0;
             rawGraphPanel.LineGraph.yAxisMax = 32768;
-            rawGraphPanel.LineGraph.yAxisMin = -32767;
+            rawGraphPanel.LineGraph.yAxisMin = -32768;
             rawGraphPanel.Label.Text = "ECG";
             rawGraphPanel.LineGraph.OptimizeScrollBar();
             rawGraphPanel.EnableValueDisplay();
@@ -98,30 +101,34 @@ namespace NeuroSky.MindView
             stopButton.Visible = false;
             stopButton.Enabled = false;
 
-            realTimeHeartBeatValue = 0;
-            averageHeartBeatValue = 0;
-            averageHeartBeatCounter = 0;
-            averageHeartBeatIndexLength = 45;
-            averageHeartBeatValueIndex = new double[averageHeartBeatIndexLength];
+            ASICHBValue = 0;
 
-            this.MinimumSize = new Size(945,  381);
-            this.MaximumSize = new Size(3000,  381);
+            avgHBValue = 0;
+            avgHBValue = 0;
+            avgHBCounter = 0;
+            avgHBBufferLength = 45;
+            avgHBValueBuffer = new double[avgHBBufferLength];
+
+            realTimeHBValue = 0;
+            realTimeHBCounter = 0;
+            realTimeHBBufferLength = 4;
+            realTimeHBValueBuffer = new double[realTimeHBBufferLength];
+
+            this.MinimumSize = new Size(945, 381);
+            this.MaximumSize = new Size(945, 381);
 
         }
 
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        protected override void Dispose(bool disposing)
-        {
+        protected override void Dispose(bool disposing) {
             Console.WriteLine("Disposing MainForm.");
-            if (disposing)
-            {
-                if (components != null)
-                {
+            if(disposing) {
+                if(components != null) {
                     components.Dispose();
                 }
-                
+
             }
             base.Dispose(disposing);
         }
@@ -131,8 +138,7 @@ namespace NeuroSky.MindView
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
         /// </summary>
-        private void InitializeComponent()
-        {
+        private void InitializeComponent() {
             this.connectButton = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.recordButton = new System.Windows.Forms.Button();
@@ -158,7 +164,7 @@ namespace NeuroSky.MindView
             // 
             // connectButton
             // 
-            this.connectButton.Location = new System.Drawing.Point(136, 26);
+            this.connectButton.Location = new System.Drawing.Point(136, 24);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(80, 24);
             this.connectButton.TabIndex = 1;
@@ -171,7 +177,7 @@ namespace NeuroSky.MindView
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(80, 24);
             this.clearButton.TabIndex = 1;
-            this.clearButton.Text = "Clear";
+            this.clearButton.Text = "Clear Graph";
             this.clearButton.Click += new System.EventHandler(this.clearButton_Click);
             // 
             // recordButton
@@ -185,7 +191,7 @@ namespace NeuroSky.MindView
             // 
             // disconnectButton
             // 
-            this.disconnectButton.Location = new System.Drawing.Point(136, 26);
+            this.disconnectButton.Location = new System.Drawing.Point(136, 24);
             this.disconnectButton.Name = "disconnectButton";
             this.disconnectButton.Size = new System.Drawing.Size(80, 24);
             this.disconnectButton.TabIndex = 1;
@@ -220,9 +226,9 @@ namespace NeuroSky.MindView
             // realtimeHeartRateLabel
             // 
             this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(837, 9);
+            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(876, 9);
             this.realtimeHeartRateLabel.Name = "realtimeHeartRateLabel";
-            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(90, 24);
+            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(50, 24);
             this.realtimeHeartRateLabel.TabIndex = 5;
             this.realtimeHeartRateLabel.Text = " ";
             // 
@@ -309,16 +315,16 @@ namespace NeuroSky.MindView
             // averageHeartRateLabel
             // 
             this.averageHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.averageHeartRateLabel.Location = new System.Drawing.Point(837, 39);
+            this.averageHeartRateLabel.Location = new System.Drawing.Point(876, 39);
             this.averageHeartRateLabel.Name = "averageHeartRateLabel";
-            this.averageHeartRateLabel.Size = new System.Drawing.Size(90, 24);
+            this.averageHeartRateLabel.Size = new System.Drawing.Size(50, 24);
             this.averageHeartRateLabel.TabIndex = 14;
             this.averageHeartRateLabel.Text = " ";
             // 
             // realtimeHeartRateLabelIndicator
             // 
             this.realtimeHeartRateLabelIndicator.AutoSize = true;
-            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(718, 14);
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(757, 14);
             this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
             this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(113, 13);
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
@@ -327,7 +333,7 @@ namespace NeuroSky.MindView
             // averageHeartRateLabelIndicator
             // 
             this.averageHeartRateLabelIndicator.AutoSize = true;
-            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(726, 44);
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(765, 44);
             this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
             this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(105, 13);
             this.averageHeartRateLabelIndicator.TabIndex = 16;
@@ -373,15 +379,14 @@ namespace NeuroSky.MindView
         #endregion
 
         /*Connect Button Clicked*/
-        private void connectButton_Click(object sender, System.EventArgs e)
-        {
+        private void connectButton_Click(object sender, System.EventArgs e) {
 #if true
-            ConnectButtonClicked(this, EventArgs.Empty);
-
             this.connectButton.Enabled = false;
             this.portText.Enabled = false;
 
             rawGraphPanel.LineGraph.Clear();
+
+            ConnectButtonClicked(this, EventArgs.Empty);  
 #else
             double tempData = 0;
 
@@ -400,15 +405,13 @@ namespace NeuroSky.MindView
         }
 
         //disconnect button clicked
-        private void disconnect_Click(object sender, System.EventArgs e)
-        {
+        private void disconnect_Click(object sender, System.EventArgs e) {
             DisconnectButtonClicked(this, EventArgs.Empty);
         }
 
 
         /*Clear Button Clicked*/
-        private void clearButton_Click(object sender, System.EventArgs e)
-        {
+        private void clearButton_Click(object sender, System.EventArgs e) {
             rawGraphPanel.LineGraph.Clear();
 
             timeStampIndex = 0;
@@ -418,8 +421,7 @@ namespace NeuroSky.MindView
 
 
         /*Record Button Clicked*/
-        private void recordButton_Click(object sender, System.EventArgs e)
-        {
+        private void recordButton_Click(object sender, System.EventArgs e) {
             recordButton.Enabled = false;
             recordButton.Visible = false;
 
@@ -449,8 +451,7 @@ namespace NeuroSky.MindView
         }
 
         //stop button clicked
-        private void stopButton_Click(object sender, System.EventArgs e)
-        {
+        private void stopButton_Click(object sender, System.EventArgs e) {
             rawGraphPanel.LineGraph.SaveDataFlag = true;
             rawGraphPanel.LineGraph.RecordDataFlag = false;
 
@@ -468,115 +469,146 @@ namespace NeuroSky.MindView
             ECGLogStream.Close();
         }
 
-        public void updateAverageHeartBeatValue(double heartBeatValue)
-        {
+        public void updateAverageHeartBeatValue(double heartBeatValue) {
             //if it's a good signal
-            if (poorQuality == 200)
-            {
-                //if the buffer isnt full yet, add to the buffer. return the realtime heartbeat value
-                if (averageHeartBeatCounter < averageHeartBeatIndexLength)
-                {
-                    averageHeartBeatValueIndex[averageHeartBeatCounter] = heartBeatValue;
-                    averageHeartBeatCounter++;
-                    
-                    averageHeartBeatValue = 0;
+            if(poorQuality == 200) {
+                //if the buffer isnt full yet, add to the buffer. return the average heartbeat value based on however
+                //much data is in the buffer currently
+                if(avgHBCounter < avgHBBufferLength) {
+                    avgHBValueBuffer[avgHBCounter] = heartBeatValue;
+                    avgHBCounter++;
 
-                    updateAverageHeartRateLabel("");
+                    avgHBValue = 0;
+                    for(int i = 0; i < avgHBCounter; i++) {
+                        avgHBValue += avgHBValueBuffer[i];
+                    }
+                    avgHBValue = avgHBValue / avgHBCounter;
+
+                    //update the label
+                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString());
                 }
-                //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
-                else
-                {
+                    //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
+                else {
                     //set the counter to the length of the index, to make sure that it doesn't become huge after looping so many times
-                    averageHeartBeatCounter = averageHeartBeatIndexLength;
+                    avgHBCounter = avgHBBufferLength;
 
                     //shift the buffer
-                    for (int i = 0; i < averageHeartBeatIndexLength-1; i++)
-                    {
-                        averageHeartBeatValueIndex[i] = averageHeartBeatValueIndex[i+1];
+                    for(int i = 0; i < avgHBBufferLength - 1; i++) {
+                        avgHBValueBuffer[i] = avgHBValueBuffer[i + 1];
                     }
-                    averageHeartBeatValueIndex[averageHeartBeatIndexLength-1] = heartBeatValue;
+                    avgHBValueBuffer[avgHBBufferLength - 1] = heartBeatValue;
 
                     //calculate the average
                     //reset
-                    averageHeartBeatValue = 0;
-                    for (int i = 0; i < averageHeartBeatIndexLength; i++)
-                    {
-                        averageHeartBeatValue += (averageHeartBeatValueIndex[i]);
+                    avgHBValue = 0;
+                    for(int i = 0; i < avgHBBufferLength; i++) {
+                        avgHBValue += (avgHBValueBuffer[i]);
                     }
-                    averageHeartBeatValue = (averageHeartBeatValue / averageHeartBeatIndexLength);
+                    avgHBValue = (avgHBValue / avgHBBufferLength);
 
-                    updateAverageHeartRateLabel(averageHeartBeatValue.ToString());
+                    //display the average heartbeat (rounded to nearest int)
+                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString());
                 }
             }
-            //else poor signal
-            else
-            {
+                //else poor signal
+            else {
                 //set the counter back to zero. when its good signal again, it will refill the 30 seconds of new data before outputting average value
-                averageHeartBeatCounter = 0;
-                
-                //for now, set the averageheartbeatvalue to zero
-                averageHeartBeatValue = 0;
+                avgHBCounter = 0;
 
-                updateAverageHeartRateLabel("");
+                //for now, set the avgHBValue to zero
+                avgHBValue = 0;
+
+                //since poor signal, display 0 as average heartbeat
+                updateAverageHeartRateLabel("0");
             }
         }
-        
+
+        public void updateRealTimeHeartBeatValue(double heartBeatValue) {
+            //if it's a good signal
+            if(poorQuality == 200) {
+                //if the buffer isnt full yet, add to the buffer. return the average heartbeat value based on however
+                //much data is in the buffer currently
+                if(realTimeHBCounter < realTimeHBBufferLength) {
+                    realTimeHBValueBuffer[realTimeHBCounter] = heartBeatValue;
+                    realTimeHBCounter++;
+
+                    realTimeHBValue = 0;
+                    for(int i = 0; i < realTimeHBCounter; i++) {
+                        realTimeHBValue += realTimeHBValueBuffer[i];
+                    }
+                    realTimeHBValue = realTimeHBValue / realTimeHBCounter;
+
+                    //update the label
+                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString());
+                }
+                    //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
+                else {
+                    //set the counter to the length of the index, to make sure that it doesn't become huge after looping so many times
+                    realTimeHBCounter = realTimeHBBufferLength;
+
+                    //shift the buffer
+                    for(int i = 0; i < realTimeHBBufferLength - 1; i++) {
+                        realTimeHBValueBuffer[i] = realTimeHBValueBuffer[i + 1];
+                    }
+                    realTimeHBValueBuffer[realTimeHBBufferLength - 1] = heartBeatValue;
+
+                    //calculate the average
+                    //reset
+                    realTimeHBValue = 0;
+                    for(int i = 0; i < realTimeHBBufferLength; i++) {
+                        realTimeHBValue += (realTimeHBValueBuffer[i]);
+                    }
+                    realTimeHBValue = (realTimeHBValue / realTimeHBBufferLength);
+
+                    //display the average heartbeat (rounded to nearest int)
+                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString());
+                }
+            }
+                //else poor signal
+            else {
+                //set the counter back to zero. when its good signal again, it will refill the 30 seconds of new data before outputting average value
+                realTimeHBCounter = 0;
+
+                //for now, set the avgHBValue to zero
+                realTimeHBValue = 0;
+
+                //since poor signal, display 0 as average heartbeat
+                updateRealTimeHeartRateLabel("0");
+            }
+        }
 
 
         /**
         * Record out the received data to a dataLog file
         * Record the RAW ECG value and heartbeat to an ECGLog file
         */
-        public void recordData(ThinkGear.DataRow[] dataRowArray)
-        {
-            if ((dataLogStream != null) && (ECGLogStream != null))
-            {
-                foreach (DataRow dr in dataRowArray)
-                {
+        public void recordData(ThinkGear.DataRow[] dataRowArray) {
+            if((dataLogStream != null) && (ECGLogStream != null)) {
+                foreach(DataRow dr in dataRowArray) {
                     //suppress the EGODebug1, EGODebug2, and EGODebug3 outputs
-                    if ((dr.Type.GetHashCode() != 0x84) && (dr.Type.GetHashCode() != 0x08) && (dr.Type.GetHashCode() != 0x85))
-                    {
+                    if((dr.Type.GetHashCode() != 0x84) && (dr.Type.GetHashCode() != 0x08) && (dr.Type.GetHashCode() != 0x85)) {
                         //write the timestamp
                         dataLogStream.Write(dr.Time.ToString("#0.000") + ": " + (dr.Type.GetHashCode().ToString("X").PadLeft(2, '0')) + " ");
-                        
-                        //save the heartbeat value for printing in EGCLog
-                        if (dr.Type.GetHashCode() == 0x03)
-                        {
-                            if (poorQuality != 0)
-                            {
-                                realTimeHeartBeatValue = dr.Data[0];
-                            }
-                            else
-                            {
-                                realTimeHeartBeatValue = 0;
-                            }
-                        }
 
                         //print out the hex values into datalog
-                        foreach (byte b in dr.Data)
-                        {
+                        foreach(byte b in dr.Data) {
                             dataLogStream.Write(b.ToString("X").PadLeft(2, '0') + " ");
                         }
                         dataLogStream.Write(dataLogStream.NewLine);
                     }
 
                     //also print to the EGCLog
-                    if (dr.Type.GetHashCode() == 0x80)
-                    {
+                    if(dr.Type.GetHashCode() == 0x80) {
                         //write the timestamp
                         ECGLogStream.Write(dr.Time.ToString("#0.000") + ": ");
 
-                        //print out the EGC waveform and heartbeat values into EGCLog
-                        if (dr.Type.GetHashCode() == 0x80)
-                        {
+                        //print out the EGC waveform, ASIC heartbeat value, and "real time" heartbeat value into EGCLog
+                        if(dr.Type.GetHashCode() == 0x80) {
                             ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
-                            if (ADCValue >= 0)
-                            {
-                                ECGLogStream.Write(" " + ADCValue.ToString("#00000") + "  " + realTimeHeartBeatValue);
-                            }
-                            else
-                            {
-                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + realTimeHeartBeatValue);
+                            if(ADCValue >= 0) {
+                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
+                            } else {
+                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
                             }
                             ECGLogStream.Write(ECGLogStream.NewLine);
                         }
@@ -587,25 +619,19 @@ namespace NeuroSky.MindView
 
 
         //when data saving is done
-        void OnDataSavingFinished(object sender, EventArgs e)
-        {
-           //no need for this currently
+        void OnDataSavingFinished(object sender, EventArgs e) {
+            //no need for this currently
         }
 
 
         //update the connect button status
         delegate void updateConnectButtonDelegate(bool connected);
-        public void updateConnectButton(bool connected)
-        {
-            if (this.InvokeRequired)
-            {
+        public void updateConnectButton(bool connected) {
+            if(this.InvokeRequired) {
                 updateConnectButtonDelegate del = new updateConnectButtonDelegate(updateConnectButton);
                 this.Invoke(del, new object[] { connected });
-            }
-            else
-            {
-                if (connected)
-                {
+            } else {
+                if(connected) {
                     this.connectButton.Enabled = false;
                     this.connectButton.Visible = false;
 
@@ -613,9 +639,7 @@ namespace NeuroSky.MindView
 
                     this.disconnectButton.Enabled = true;
                     this.disconnectButton.Visible = true;
-                }
-                else
-                {
+                } else {
                     this.disconnectButton.Enabled = false;
                     this.disconnectButton.Visible = false;
 
@@ -630,51 +654,38 @@ namespace NeuroSky.MindView
 
         //update the realtime heart rate label status
         delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
-        public void updateRealTimeHeartRateLabel(string tempString)
-        {
-            if (this.InvokeRequired)
-            {
+        public void updateRealTimeHeartRateLabel(string tempString) {
+            if(this.InvokeRequired) {
                 updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
                 this.Invoke(del, new object[] { tempString });
-            }
-            else
-            {
+            } else {
                 this.realtimeHeartRateLabel.Text = tempString;
             }
         }
 
         //update the average heart rate label status
         delegate void updateAverageHeartRateLabelDelegate(string tempString);
-        public void updateAverageHeartRateLabel(string tempString)
-        {
-            if (this.InvokeRequired)
-            {
+        public void updateAverageHeartRateLabel(string tempString) {
+            if(this.InvokeRequired) {
                 updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
                 this.Invoke(del, new object[] { tempString });
-            }
-            else
-            {
+            } else {
                 this.averageHeartRateLabel.Text = tempString;
             }
         }
 
         delegate void updateStatusLabelDelegate(string tempText);
-        public void updateStatusLabel(string tempText)
-        {
-            if (this.InvokeRequired)
-            {
+        public void updateStatusLabel(string tempText) {
+            if(this.InvokeRequired) {
                 updateStatusLabelDelegate del = new updateStatusLabelDelegate(updateStatusLabel);
                 this.Invoke(del, new object[] { tempText });
-            }
-            else
-            {
+            } else {
                 this.statusLabel.Text = tempText;
             }
         }
 
 
-        protected override void OnSizeChanged(EventArgs e)
-        {
+        protected override void OnSizeChanged(EventArgs e) {
 
             /*Update dimension*/
             rawGraphPanel.Width = this.Width - 10;
@@ -685,78 +696,58 @@ namespace NeuroSky.MindView
         }
 
 
-        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            
+        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+
             // If the key pressed was "Enter"
-            if (e.KeyChar == (char)13)
-            {
+            if(e.KeyChar == (char)13) {
                 //suppress the beep sounds by setting e.Handled = true
                 e.Handled = true;
                 //verify that the string entered in the box is actually a number
-                try
-                {
+                try {
                     rawGraphPanel.LineGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
-                }
-                catch (Exception exp)
-                {
+                } catch(Exception exp) {
                     Console.WriteLine("error at YMax textbox: " + exp.Message);
                 }
             }
         }
 
 
-        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
+        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
             // If the key pressed was "Enter"
-            if (e.KeyChar == (char)13)
-            {
+            if(e.KeyChar == (char)13) {
                 e.Handled = true;
                 //verify that the string entered in the box is actually a number
-                try
-                {
+                try {
                     rawGraphPanel.LineGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
-                }
-                catch (Exception exp)
-                {
+                } catch(Exception exp) {
                     Console.WriteLine("error at YMin textbox: " + exp.Message);
                 }
             }
         }
 
 
-        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
+        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
             // If the key pressed was "Enter"
-            if (e.KeyChar == (char)13)
-            {
+            if(e.KeyChar == (char)13) {
                 e.Handled = true;
                 //verify that the string entered in the box is actually a number
-                try
-                {
+                try {
                     rawGraphPanel.LineGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
-                }
-                catch (Exception exp)
-                {
+                } catch(Exception exp) {
                     Console.WriteLine("error at XMax textbox: " + exp.Message);
                 }
             }
         }
 
 
-        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
+        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
             // If the key pressed was "Enter"
-            if (e.KeyChar == (char)13)
-            {
+            if(e.KeyChar == (char)13) {
                 e.Handled = true;
                 //verify that the string entered in the box is actually a number
-                try
-                {
+                try {
                     rawGraphPanel.LineGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
-                }
-                catch (Exception exp)
-                {
+                } catch(Exception exp) {
                     Console.WriteLine("error at XMin textbox: " + exp.Message);
                 }
             }

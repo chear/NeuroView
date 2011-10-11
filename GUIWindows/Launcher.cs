@@ -139,7 +139,17 @@ namespace NeuroSky.MindView
                 // Check for the data flag for each panel
                 if (thinkGearParser.ParsedData[i].ContainsKey("Raw"))
                 {
-                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
+                    //send data to be graphed to the rawGraphPanel.
+                    //if the poorQuality value is 200, send the actual data
+                    if (mainForm.poorQuality == 200)
+                    {
+                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
+                    }
+                    //if poorquality is 0, just send flatline (zero)
+                    else
+                    {
+                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                    }
 
                     // Incremenet timer
                     mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
@@ -153,19 +163,9 @@ namespace NeuroSky.MindView
 
                 if (thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
                 {
+                    mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
                     mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
-
-                    if (mainForm.poorQuality == 200)
-                    {
-                        mainForm.updateRealTimeHeartRateLabel(thinkGearParser.ParsedData[i]["HeartRate"].ToString());
-                    }
-                    else
-                    {
-                        //ZERO means poor signal
-                        mainForm.updateRealTimeHeartRateLabel("0");
-                        mainForm.updateAverageHeartRateLabel("0");
-                        mainForm.poorQuality = thinkGearParser.ParsedData[i]["HeartRate"];
-                    }
+                    mainForm.updateRealTimeHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
                 }
                 /* End "Check for the data flag for each panel..." */            
             }
@@ -212,6 +212,7 @@ namespace NeuroSky.MindView
 
             MessageBox.Show("You must enter a valid COM port name. (Ex. COM1 or 1)\nYou may also type in 'Auto' for auto-connection.", "Invalid Input Error",
                             MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            //mainForm.updateConnectButton(false);
             mainForm.updateConnectButton(false);
             return;
 

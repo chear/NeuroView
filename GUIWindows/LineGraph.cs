@@ -15,15 +15,6 @@ using System.Threading;
 
 
 
-public struct DataPair {
-    public double timeStamp;
-    public double data;
-
-    public DataPair(double t, double d) {
-        timeStamp = t;
-        data = d;
-    }
-}
 
 
 namespace NeuroSky.MindView {
@@ -37,8 +28,7 @@ namespace NeuroSky.MindView {
         //TODO: Implement list of a list for multiple data graphing
         public List<List<DataPair>> dataPoints;
 
-        public List<DataPair> data0;
-        public List<DataPair> data1;
+        public List<DataPair> data0;    //store the data
         public int frameHeight = 240;
         public int frameWidth = 760;
         public int samplingRate = 10;
@@ -62,17 +52,26 @@ namespace NeuroSky.MindView {
 
         private int numberOfPoints;
 
+        private double averageValue;
+
         private Thread saveDataThread;
 
         public event EventHandler DataSavingFinished = delegate { };
 
-        public void Add(DataPair p) {
-
-            data0.Add(p);
+        
+        public void Add(DataPair p) 
+        {
+            lock (data0)
+            {
+                data0.Add(p);
+            }
         }
 
         public void Clear() {
-            data0.Clear();
+            lock (data0)
+            {
+                data0.Clear();
+            }
 
             //Initialize Horizontal Scrollbar
             hScrollBar.Visible = false;
@@ -87,7 +86,29 @@ namespace NeuroSky.MindView {
             xAxisMax = (data0.Count) / (double)samplingRate;
         }
 
-        protected override void OnPaint(PaintEventArgs pe) {
+
+        public void removeDCOffset()
+        {
+            averageValue = 0;
+            //calculate average value of data0
+            for (int i = 0; i < data0.Count; i++)
+            {
+                averageValue += data0[i].data;
+            }
+            averageValue = Math.Round(averageValue / data0.Count);
+
+            lock (data0)
+            {
+                //subtract the average value of data0 from all values of data0
+                for (int i = 0; i < data0.Count; i++)
+                {
+                    data0[i].data = data0[i].data - averageValue;
+                }
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs pe)
+        {
 
             Graphics drawingSurface = pe.Graphics;
             Pen myPen = new Pen(Color.Blue, 1);
@@ -99,25 +120,45 @@ namespace NeuroSky.MindView {
             numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate)) + 1;
             double timeStampOffset = 0;
 
-            /*Makes sures that the graph has at least two points to graph a line*/
-            if ((data0 != null) && (data0.Count > 1)) {
-                /*If recording is not enable trim the excess values*/
-                if (!this.RecordDataFlag) {
-                    if (this.SaveDataFlag) {
-                        if (saveDataThread == null || !saveDataThread.IsAlive) {
-                            saveDataThread = new Thread(this.SaveData);
-                            saveDataThread.Start();
+            lock (data0)
+            {
+                /*Makes sures that the graph has at least two points to graph a line*/
+                if ((data0 != null) && (data0.Count > 1))
+                {
+                    /*If recording is not enable trim the excess values*/
+                    if (!this.RecordDataFlag)
+                    {
+                        if (this.SaveDataFlag)
+                        {
+                            if (saveDataThread == null || !saveDataThread.IsAlive)
+                            {
+                                saveDataThread = new Thread(this.SaveData);
+                                saveDataThread.Start();
+                            }
+                        }
+                        else
+                        {
+                            hScrollBar.Visible = false;
+                            //if (data0.Count > numberOfPoints * 2)     //shift the buffer every once in a while (more efficient)
+                            if (data0.Count > numberOfPoints)           //continuously shift the buffer
+                            {
+                                data0.RemoveRange(0, data0.Count - numberOfPoints);
+                            }
                         }
                     }
-                    else {
-                        hScrollBar.Visible = false;
-                        while (data0.Count > numberOfPoints) {
-                            data0.RemoveAt(0);
-                        }
+
+                    //comment out the following line to disable DC offset removal
+                    removeDCOffset();
+
+                    if (data0.Count > numberOfPoints)
+                    {
+                        timeStampOffset = DrawGraph(data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).ToArray(), drawingSurface, myPen);
+                    }
+                    else
+                    {
+                        timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
                     }
                 }
-
-                timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
             }
 
             //TODO: Draw Axis
@@ -314,7 +355,7 @@ namespace NeuroSky.MindView {
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
-            maxFrameRateTimer.Interval = 25; //In milliseconds
+            maxFrameRateTimer.Interval = 40; //In milliseconds
             maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
             maxFrameRateTimer.Start();
 
@@ -444,4 +485,17 @@ namespace NeuroSky.MindView {
 
     }/*End of LineGraph Class*/
 
+}
+
+
+//change this from a struct to a DataPair, so that we
+//can modify the values within the list as we wish
+public class DataPair {
+    public double timeStamp;
+    public double data;
+
+    public DataPair(double t, double d) {
+        timeStamp = t;
+        data = d;
+    }
 }

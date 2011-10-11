@@ -36,7 +36,6 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
@@ -57,21 +56,11 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label1.Location = new System.Drawing.Point(53, 51);
+            this.label1.Location = new System.Drawing.Point(69, 60);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(235, 46);
             this.label1.TabIndex = 1;
             this.label1.Text = "EGO Demo";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label2.Location = new System.Drawing.Point(257, 97);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(81, 13);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Ver. 0.1 - EN";
             // 
             // label3
             // 
@@ -92,14 +81,13 @@
             this.BackColor = System.Drawing.SystemColors.Window;
             this.ClientSize = new System.Drawing.Size(383, 327);
             this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Name = "Launcher";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "MindView Lite";
+            this.Text = "EGODemo";
             this.Load += new System.EventHandler(this.Launcher_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -110,7 +98,6 @@
 
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
     }
 }
