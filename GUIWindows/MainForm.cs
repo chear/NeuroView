@@ -19,7 +19,6 @@ using System.Xml;
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         public GraphPanel rawGraphPanel;
-        public GraphPanel graphPanel1;
         public TextBox portText;
         private Label statusLabel;
         public Label realtimeHeartRateLabel;
@@ -92,17 +91,6 @@ namespace NeuroSky.MindView {
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
             rawGraphPanel.LineGraph.DCRemovalEnabled = true;
 
-
-            graphPanel1.LineGraph.samplingRate = 512;
-            graphPanel1.LineGraph.xAxisMax = 4;
-            graphPanel1.LineGraph.xAxisMin = 0;
-            graphPanel1.LineGraph.yAxisMax = 32768;
-            graphPanel1.LineGraph.yAxisMin = -32768;
-            graphPanel1.LineGraph.DCRemovalEnabled = false;
-            graphPanel1.Label.Text = "No DC Filter";
-
-
-
             YMaxTextBox.Text = rawGraphPanel.LineGraph.yAxisMax.ToString();
             YMinTextBox.Text = rawGraphPanel.LineGraph.yAxisMin.ToString();
             XMaxTextBox.Text = rawGraphPanel.LineGraph.xAxisMax.ToString();
@@ -127,8 +115,8 @@ namespace NeuroSky.MindView {
             realTimeHBBufferLength = 4;
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
 
-            //this.MinimumSize = new Size(945, 381);
-            //this.MaximumSize = new Size(945, 381);
+            //this.MinimumSize = new Size(947, 371);
+            //this.MaximumSize = new Size(947, 371);
 
         }
 
@@ -173,7 +161,6 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
-            this.graphPanel1 = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
             // connectButton
@@ -187,7 +174,7 @@ namespace NeuroSky.MindView {
             // 
             // clearButton
             // 
-            this.clearButton.Location = new System.Drawing.Point(830, 299);
+            this.clearButton.Location = new System.Drawing.Point(831, 294);
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(80, 24);
             this.clearButton.TabIndex = 1;
@@ -196,7 +183,7 @@ namespace NeuroSky.MindView {
             // 
             // recordButton
             // 
-            this.recordButton.Location = new System.Drawing.Point(700, 299);
+            this.recordButton.Location = new System.Drawing.Point(701, 294);
             this.recordButton.Name = "recordButton";
             this.recordButton.Size = new System.Drawing.Size(80, 24);
             this.recordButton.TabIndex = 1;
@@ -214,7 +201,7 @@ namespace NeuroSky.MindView {
             // 
             // stopButton
             // 
-            this.stopButton.Location = new System.Drawing.Point(700, 299);
+            this.stopButton.Location = new System.Drawing.Point(701, 294);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(80, 24);
             this.stopButton.TabIndex = 1;
@@ -360,17 +347,9 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
             this.rawGraphPanel.TabIndex = 0;
             // 
-            // graphPanel1
-            // 
-            this.graphPanel1.Location = new System.Drawing.Point(0, 409);
-            this.graphPanel1.Name = "graphPanel1";
-            this.graphPanel1.Size = new System.Drawing.Size(938, 203);
-            this.graphPanel1.TabIndex = 17;
-            // 
             // MainForm
             // 
-            this.ClientSize = new System.Drawing.Size(1174, 724);
-            this.Controls.Add(this.graphPanel1);
+            this.ClientSize = new System.Drawing.Size(939, 337);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
             this.Controls.Add(this.averageHeartRateLabel);
@@ -711,8 +690,6 @@ namespace NeuroSky.MindView {
 
             /*Update dimension*/
             rawGraphPanel.Width = this.Width - 10;
-
-            graphPanel1.Width = this.Width - 10;
 
             /*Update Locations*/
 
