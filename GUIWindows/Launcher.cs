@@ -141,18 +141,23 @@ namespace NeuroSky.MindView
                 {
                     //send data to be graphed to the rawGraphPanel.
                     //if the poorQuality value is 200, send the actual data
-                    if (mainForm.poorQuality == 200)
+                    if ((mainForm.poorQuality == 200) || (mainForm.poorQuality == 0))
                     {
                         mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
+
+                        mainForm.graphPanel1.LineGraph.Add(new DataPair((mainForm.graphPanel1.LineGraph.timeStampIndex / (double)mainForm.graphPanel1.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
                     }
                     //if poorquality is 0, just send flatline (zero)
                     else
                     {
                         mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                        
                     }
 
                     // Incremenet timer
                     mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                    mainForm.graphPanel1.LineGraph.timeStampIndex++;
+
                 }
 
                 //save the poorsignal value

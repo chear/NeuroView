@@ -656,7 +656,13 @@ namespace NeuroSky.ThinkGear {
                 List<DataRow> dataRows = new List<DataRow>(256);
 
                 ReadTimeout = INITIAL_READ_TIMEOUT;
-                bytesRead = Read(buffer, 0, 512);
+
+                try {
+                    bytesRead = Read(buffer, 0, 512);
+                    ReadTimeout = INITIAL_READ_TIMEOUT;
+                } catch(Exception e) {
+                    Console.WriteLine("caught exception at read serial: " + e.Message);
+                }
 
                 for(int i = 0; i < bytesRead; i++) {
                     switch(parserState.packetState) {

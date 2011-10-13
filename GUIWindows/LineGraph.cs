@@ -28,7 +28,9 @@ namespace NeuroSky.MindView {
         //TODO: Implement list of a list for multiple data graphing
         public List<List<DataPair>> dataPoints;
 
-        public List<DataPair> data0;    //store the data
+        public List<DataPair> data0;          //store the data
+        public DataPair[] data0noDC;          //store the DC removed data into this array
+
         public int frameHeight = 240;
         public int frameWidth = 760;
         public int samplingRate = 10;
@@ -52,19 +54,30 @@ namespace NeuroSky.MindView {
 
         private int numberOfPoints;
 
+        private int DCOffsetCounter;
+
+        public bool DCRemovalEnabled = false;
+
         private double averageValue;
 
         private Thread saveDataThread;
 
         public event EventHandler DataSavingFinished = delegate { };
 
-        
+
         public void Add(DataPair p) 
         {
             lock (data0)
             {
                 data0.Add(p);
             }
+
+            /*
+            if(DCRemovalEnabled)
+            {
+                removeDCOffset();
+            }
+            */
         }
 
         public void Clear() {
@@ -89,23 +102,43 @@ namespace NeuroSky.MindView {
 
         public void removeDCOffset()
         {
-            averageValue = 0;
-            //calculate average value of data0
-            for (int i = 0; i < data0.Count; i++)
-            {
-                averageValue += data0[i].data;
-            }
-            averageValue = Math.Round(averageValue / data0.Count);
+            DCOffsetCounter++;
 
-            lock (data0)
+            //run this function every 0.5 seconds
+            if(DCOffsetCounter >= 0)
             {
-                //subtract the average value of data0 from all values of data0
-                for (int i = 0; i < data0.Count; i++)
+                lock(data0)
                 {
-                    data0[i].data = data0[i].data - averageValue;
+                    if(data0.Count > numberOfPoints)
+                    {
+                        data0noDC = new DataPair[numberOfPoints];
+                        data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).CopyTo(data0noDC);
+                    } else
+                    {
+                        data0noDC = new DataPair[data0.Count];
+                        data0.CopyTo(data0noDC);
+                    }
                 }
+
+                //loop through all the values to calculate the average
+                averageValue = 0;
+                for(int i = 0; i < data0noDC.Length; i++)
+                {
+                    averageValue = averageValue + data0noDC[i].data;
+                }
+                averageValue = (averageValue / data0noDC.Length);
+
+                //loop through all the values and subtract the average
+                for(int i = 0; i < data0noDC.Length; i++)
+                {
+                    data0noDC[i].data = data0noDC[i].data - averageValue;
+                }
+
+                //reset the counter
+                DCOffsetCounter = 0;
             }
         }
+
 
         protected override void OnPaint(PaintEventArgs pe)
         {
@@ -139,24 +172,26 @@ namespace NeuroSky.MindView {
                         else
                         {
                             hScrollBar.Visible = false;
-                            //if (data0.Count > numberOfPoints * 2)     //shift the buffer every once in a while (more efficient)
-                            if (data0.Count > numberOfPoints)           //continuously shift the buffer
+                            if (data0.Count > numberOfPoints * 3)     //shift the buffer every once in a while (more efficient)
                             {
                                 data0.RemoveRange(0, data0.Count - numberOfPoints);
                             }
                         }
                     }
 
-                    //comment out the following line to disable DC offset removal
-                    removeDCOffset();
-
-                    if (data0.Count > numberOfPoints)
+                    if(DCRemovalEnabled)
                     {
-                        timeStampOffset = DrawGraph(data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).ToArray(), drawingSurface, myPen);
-                    }
-                    else
+                        removeDCOffset();
+                        timeStampOffset = DrawGraph(data0noDC, drawingSurface, myPen);
+                    } else
                     {
-                        timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
+                        if(data0.Count > numberOfPoints)
+                        {
+                            timeStampOffset = DrawGraph(data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).ToArray(), drawingSurface, myPen);
+                        } else
+                        {
+                            timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
+                        }
                     }
                 }
             }
@@ -352,6 +387,7 @@ namespace NeuroSky.MindView {
             this.DoubleBuffered = true;
 
             data0 = new List<DataPair>();
+            data0noDC = new DataPair[512];
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
@@ -488,9 +524,7 @@ namespace NeuroSky.MindView {
 }
 
 
-//change this from a struct to a DataPair, so that we
-//can modify the values within the list as we wish
-public class DataPair {
+public struct DataPair {
     public double timeStamp;
     public double data;
 

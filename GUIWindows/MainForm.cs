@@ -19,6 +19,7 @@ using System.Xml;
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         public GraphPanel rawGraphPanel;
+        public GraphPanel graphPanel1;
         public TextBox portText;
         private Label statusLabel;
         public Label realtimeHeartRateLabel;
@@ -89,6 +90,18 @@ namespace NeuroSky.MindView {
             rawGraphPanel.LineGraph.OptimizeScrollBar();
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
+            rawGraphPanel.LineGraph.DCRemovalEnabled = true;
+
+
+            graphPanel1.LineGraph.samplingRate = 512;
+            graphPanel1.LineGraph.xAxisMax = 4;
+            graphPanel1.LineGraph.xAxisMin = 0;
+            graphPanel1.LineGraph.yAxisMax = 32768;
+            graphPanel1.LineGraph.yAxisMin = -32768;
+            graphPanel1.LineGraph.DCRemovalEnabled = false;
+            graphPanel1.Label.Text = "No DC Filter";
+
+
 
             YMaxTextBox.Text = rawGraphPanel.LineGraph.yAxisMax.ToString();
             YMinTextBox.Text = rawGraphPanel.LineGraph.yAxisMin.ToString();
@@ -114,8 +127,8 @@ namespace NeuroSky.MindView {
             realTimeHBBufferLength = 4;
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
 
-            this.MinimumSize = new Size(945, 381);
-            this.MaximumSize = new Size(945, 381);
+            //this.MinimumSize = new Size(945, 381);
+            //this.MaximumSize = new Size(945, 381);
 
         }
 
@@ -160,6 +173,7 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
+            this.graphPanel1 = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
             // connectButton
@@ -346,9 +360,17 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
             this.rawGraphPanel.TabIndex = 0;
             // 
+            // graphPanel1
+            // 
+            this.graphPanel1.Location = new System.Drawing.Point(0, 409);
+            this.graphPanel1.Name = "graphPanel1";
+            this.graphPanel1.Size = new System.Drawing.Size(938, 203);
+            this.graphPanel1.TabIndex = 17;
+            // 
             // MainForm
             // 
-            this.ClientSize = new System.Drawing.Size(937, 347);
+            this.ClientSize = new System.Drawing.Size(1174, 724);
+            this.Controls.Add(this.graphPanel1);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
             this.Controls.Add(this.averageHeartRateLabel);
@@ -689,6 +711,8 @@ namespace NeuroSky.MindView {
 
             /*Update dimension*/
             rawGraphPanel.Width = this.Width - 10;
+
+            graphPanel1.Width = this.Width - 10;
 
             /*Update Locations*/
 
