@@ -628,7 +628,7 @@ namespace NeuroSky.MindView {
                         if(dr.Type.GetHashCode() == 0x80) {
                             ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
                             if(ADCValue >= 0) {
-                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
+                                ECGLogStream.Write(" " + ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
                             } else {
                                 ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
                             }
