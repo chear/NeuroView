@@ -104,18 +104,17 @@ namespace NeuroSky.MindView {
             DCOffsetCounter++;
 
             //run this function every .5 seconds
-            if(DCOffsetCounter >= samplingRate/2)
+            if(DCOffsetCounter >= samplingRate/64)
             {
+                DCOffset = 0;
                 lock(data0)
                 {
-                    DCOffset = 0;
                     if(data0.Count > numberOfPoints)
                     {
                         for(int i = data0.Count - numberOfPoints; i < data0.Count; i++)
                         {
                             DCOffset = DCOffset + data0[i].data;
                         }
-                        DCOffset = customRound(DCOffset / numberOfPoints);
 
                     } else
                     {
@@ -123,10 +122,12 @@ namespace NeuroSky.MindView {
                         {
                             DCOffset = DCOffset + data0[i].data;
                         }
-                        DCOffset = customRound(DCOffset / numberOfPoints);
                     }
                 }
                 
+                //calculate the DCOffset
+                DCOffset = customRound(DCOffset / numberOfPoints);
+
                 //reset the counter
                 DCOffsetCounter = 0;
             }
@@ -391,7 +392,7 @@ namespace NeuroSky.MindView {
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
-            maxFrameRateTimer.Interval = 40; //In milliseconds
+            maxFrameRateTimer.Interval = 5; //In milliseconds
             maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
             maxFrameRateTimer.Start();
 

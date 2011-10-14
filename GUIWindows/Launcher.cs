@@ -19,6 +19,9 @@ namespace NeuroSky.MindView
         private Connector connector;
 
         MainForm mainForm;
+        Device device;
+
+        private byte[] byteToSend;      //byte to send for EGO
 
         public Launcher()
         {
@@ -96,6 +99,9 @@ namespace NeuroSky.MindView
         {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
+            //save the device
+            device = de.Device;
+
             mainForm.updateStatusLabel("Connected to a headset on " + de.Device.PortName + ".");
 
             de.Device.DataReceived += new EventHandler(OnDataReceived);
@@ -136,6 +142,15 @@ namespace NeuroSky.MindView
             /* Loop through new parsed data */
             for (int i = 0; i < thinkGearParser.ParsedData.Length; i++)
             {
+                if(thinkGearParser.ParsedData[i].ContainsKey("EGODebug2"))
+                {
+                    if(byteToSend == null)
+                    {
+                        byteToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };
+                        connector.Send(device.PortName, byteToSend);
+                    }
+                }
+
                 // Check for the data flag for each panel
                 if (thinkGearParser.ParsedData[i].ContainsKey("Raw"))
                 {

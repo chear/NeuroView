@@ -653,12 +653,21 @@ namespace NeuroSky.MindView {
             }
         }
 
+        
         //update the realtime heart rate label status
         delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
         public void updateRealTimeHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
-                updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
-                this.Invoke(del, new object[] { tempString });
+                //try catch necessary for handling case when form is disposing
+                try
+                {
+                    updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
+                    this.Invoke(del, new object[] { tempString });
+                } catch (Exception e)
+                {
+                    Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
+                }
+            
             } else {
                 this.realtimeHeartRateLabel.Text = tempString;
             }
@@ -668,13 +677,22 @@ namespace NeuroSky.MindView {
         delegate void updateAverageHeartRateLabelDelegate(string tempString);
         public void updateAverageHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
-                updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
-                this.Invoke(del, new object[] { tempString });
+                //try catch necessary for handling case when form is disposing
+                try
+                {
+                    updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
+                    this.Invoke(del, new object[] { tempString });
+                } catch (Exception e)
+                {
+                    Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
+                }
+
             } else {
                 this.averageHeartRateLabel.Text = tempString;
             }
         }
-
+       
+         
         delegate void updateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText) {
             if(this.InvokeRequired) {
