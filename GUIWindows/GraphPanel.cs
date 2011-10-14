@@ -81,7 +81,8 @@ namespace NeuroSky.MindView
             }
 
             ValueUpdateTimer = new Timer();
-            ValueUpdateTimer.Interval = 200; //In milliseconds.
+            //ValueUpdateTimer.Interval = 200; //In milliseconds.
+            ValueUpdateTimer.Interval = 16; //In milliseconds.
             ValueUpdateTimer.Tick += new EventHandler(ValueUpdateTimer_Tick);
         }
 

@@ -395,7 +395,7 @@ namespace NeuroSky.MindView
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
-            maxFrameRateTimer.Interval = 25; //In milliseconds
+            maxFrameRateTimer.Interval = 16; //In milliseconds
             maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
             maxFrameRateTimer.Start();
 

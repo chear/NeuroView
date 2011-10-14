@@ -18,10 +18,12 @@ namespace NeuroSky.MindView
     {
         private Connector connector;
 
-        MainForm mainForm;
-        Device device;
+        MainForm    mainForm;
+        Device      device;
 
-        private byte[] byteToSend;      //byte to send for EGO
+        private byte[]  byteToSend;     //byte to send for EGO
+        private int     rawCounter;     //counter for delay of EGO output
+        private int     delay;          //delay for lead on/lead off
 
         public Launcher()
         {
@@ -43,6 +45,9 @@ namespace NeuroSky.MindView
 
             this.MaximumSize = new Size(383, 327);
             this.MinimumSize = this.MaximumSize;
+
+            rawCounter = 0;     //initially zero
+            delay = 512 * 5;    //5 seconds delay
         }
 
         /// <summary>
@@ -139,9 +144,11 @@ namespace NeuroSky.MindView
                 mainForm.recordData(de.DataRowArray);
             }
             
+            
             /* Loop through new parsed data */
             for (int i = 0; i < thinkGearParser.ParsedData.Length; i++)
             {
+                //send the configuration bytes to the chip. this happens immediately and only once
                 if(thinkGearParser.ParsedData[i].ContainsKey("EGODebug2"))
                 {
                     if(byteToSend == null)
@@ -151,38 +158,110 @@ namespace NeuroSky.MindView
                     }
                 }
 
-                // Check for the data flag for each panel
-                if (thinkGearParser.ParsedData[i].ContainsKey("Raw"))
-                {
-                    //send data to be graphed to the rawGraphPanel.
-                    //if the poorQuality value is 200, send the actual data
-                    if (mainForm.poorQuality == 200)
-                    {
-                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
-                    }
-                    //if poorquality is 0, just send flatline (zero)
-                    else
-                    {
-                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));   
-                    }
-
-                    // Incremenet timer
-                    mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-                    
-                }
-
-                //save the poorsignal value
-                if (thinkGearParser.ParsedData[i].ContainsKey("PoorSignal"))
+                //save the poorsignal value. this is always updated
+                if(thinkGearParser.ParsedData[i].ContainsKey("PoorSignal"))
                 {
                     mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
                 }
 
-                if (thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
+
+                if(thinkGearParser.ParsedData[i].ContainsKey("Raw"))
                 {
-                    mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
-                    mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
-                    mainForm.updateRealTimeHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+                    //if signal is good
+                    if(mainForm.poorQuality == 200)
+                    {
+                        rawCounter++;
+
+                        //if "delay" seconds have passed, plot the data itself
+                        if(rawCounter >= delay)
+                        {
+                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
+                        } 
+                        //otherwise plot zero (flatline)
+                        else
+                        {
+                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                        }
+
+                        // Incremenet timer
+                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+
+                    } 
+                    //otherwise signal is bad, plot zero. reset counter
+                    else
+                    {
+                        rawCounter = 0;
+
+                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                    }
                 }
+                
+                
+                
+                
+                
+                /*
+                
+                //look for raw data. if enough raw data has been accumulated, start parsing stuff
+                //otherwise just throw away the data
+                if(thinkGearParser.ParsedData[i].ContainsKey("Raw"))
+                {
+                    //if "delay" seconds have passed since lead on, start plotting stuff
+                    if(rawCounter >= delay)
+                    {
+                        //send data to be graphed to the rawGraphPanel.
+                        //if the poorQuality value is 200, send the actual data
+                        if(mainForm.poorQuality == 200)
+                        {
+                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
+                        }
+
+                        //if poorquality is 0, that means it's lead off. just plot zero, then reset the counter and wait another "delay" number of seconds
+                        else
+                        {
+                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                            rawCounter = 0;
+                        }
+
+                        // Incremenet timer
+                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                    } 
+                    //otherwise, just send flatline (zero) and increment timer
+                    else
+                    {
+                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
+                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                        rawCounter = 0;
+                    }
+                }
+                */
+                
+
+
+                if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
+                {
+                    //if the "delay" number of seconds have passed, pass the heartrate value
+                    if(rawCounter >= delay)
+                    {
+                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
+                        mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+                        mainForm.updateRealTimeHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+                    } 
+                    //otherwise just pass a value of 0 to make it think its poor signal
+                    else
+                    {
+                        mainForm.updateAverageHeartBeatValue(0);
+                        mainForm.updateRealTimeHeartBeatValue(0);
+
+                        //but still pass the correct heartbeat value for ecglog.txt
+                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
+                    }
+                }
+
                 /* End "Check for the data flag for each panel..." */            
             }
         }

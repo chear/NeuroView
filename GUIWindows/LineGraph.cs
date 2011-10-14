@@ -56,7 +56,7 @@ namespace NeuroSky.MindView {
         private int DCOffsetCounter;
         public bool DCRemovalEnabled;
         private double DCOffset = 0;
-        private int roundPrecision = 500;    //number of digits precision. ie 500 means round to +/- 500
+        private int roundPrecision = 5;    //number of digits precision. ie 500 means round to +/- 500
 
         private Thread saveDataThread;
 
@@ -104,7 +104,7 @@ namespace NeuroSky.MindView {
             DCOffsetCounter++;
 
             //run this function every .5 seconds
-            if(DCOffsetCounter >= samplingRate/64)
+            if(DCOffsetCounter >= samplingRate/16)
             {
                 DCOffset = 0;
                 lock(data0)
@@ -392,7 +392,7 @@ namespace NeuroSky.MindView {
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
-            maxFrameRateTimer.Interval = 5; //In milliseconds
+            maxFrameRateTimer.Interval = 16; //In milliseconds
             maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
             maxFrameRateTimer.Start();
 
