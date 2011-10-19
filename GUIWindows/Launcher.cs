@@ -199,49 +199,6 @@ namespace NeuroSky.MindView
                 }
                 
                 
-                
-                
-                
-                /*
-                
-                //look for raw data. if enough raw data has been accumulated, start parsing stuff
-                //otherwise just throw away the data
-                if(thinkGearParser.ParsedData[i].ContainsKey("Raw"))
-                {
-                    //if "delay" seconds have passed since lead on, start plotting stuff
-                    if(rawCounter >= delay)
-                    {
-                        //send data to be graphed to the rawGraphPanel.
-                        //if the poorQuality value is 200, send the actual data
-                        if(mainForm.poorQuality == 200)
-                        {
-                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
-                        }
-
-                        //if poorquality is 0, that means it's lead off. just plot zero, then reset the counter and wait another "delay" number of seconds
-                        else
-                        {
-                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
-                            rawCounter = 0;
-                        }
-
-                        // Incremenet timer
-                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-
-                    } 
-                    //otherwise, just send flatline (zero) and increment timer
-                    else
-                    {
-                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
-                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-
-                        rawCounter = 0;
-                    }
-                }
-                */
-                
-
-
                 if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
                 {
                     //if the "delay" number of seconds have passed, pass the heartrate value
@@ -317,6 +274,9 @@ namespace NeuroSky.MindView
         {
             connector.Disconnect();
             mainForm.updateConnectButton(false);
+
+            //make the byteToSend null so it will be resent when pressing connect
+            byteToSend = null;
         }
 
          
