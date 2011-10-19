@@ -21,7 +21,7 @@ namespace NeuroSky.MindView
         MainForm    mainForm;
         Device      device;
 
-        private byte[]  byteToSend;     //byte to send for EGO
+        private byte[]  bytesToSend;     //bytes to send for EGO
         private int     rawCounter;     //counter for delay of EGO output
         private int     delay;          //delay for lead on/lead off
 
@@ -151,10 +151,10 @@ namespace NeuroSky.MindView
                 //send the configuration bytes to the chip. this happens immediately and only once
                 if(thinkGearParser.ParsedData[i].ContainsKey("EGODebug2"))
                 {
-                    if(byteToSend == null)
+                    if(bytesToSend == null)
                     {
-                        byteToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };
-                        connector.Send(device.PortName, byteToSend);
+                        bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };
+                        connector.Send(device.PortName, bytesToSend);
                     }
                 }
 
@@ -276,7 +276,7 @@ namespace NeuroSky.MindView
             mainForm.updateConnectButton(false);
 
             //make the byteToSend null so it will be resent when pressing connect
-            byteToSend = null;
+            bytesToSend = null;
         }
 
          

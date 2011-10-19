@@ -107,7 +107,7 @@ namespace NeuroSky.MindView {
             avgHBValue = 0;
             avgHBValue = 0;
             avgHBCounter = 0;
-            avgHBBufferLength = 45;
+            avgHBBufferLength = 30;
             avgHBValueBuffer = new double[avgHBBufferLength];
 
             realTimeHBValue = 0;
@@ -115,8 +115,8 @@ namespace NeuroSky.MindView {
             realTimeHBBufferLength = 4;
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
 
-            //this.MinimumSize = new Size(947, 371);
-            //this.MaximumSize = new Size(947, 371);
+            this.MinimumSize = new Size(947, 371);
+            this.MaximumSize = new Size(947, 371);
 
         }
 
@@ -708,6 +708,7 @@ namespace NeuroSky.MindView {
 
             /*Update dimension*/
             rawGraphPanel.Width = this.Width - 10;
+            //rawGraphPanel.Height = this.Height
 
             /*Update Locations*/
 
