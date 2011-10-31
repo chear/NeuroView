@@ -45,6 +45,10 @@ namespace NeuroSky.MindView {
         private TextBox XMinTextBox;
         public DateTime RecordStopTime;
 
+        public Label averageHeartRateLabel;
+        private Label realtimeHeartRateLabelIndicator;
+        private Label averageHeartRateLabelIndicator;
+
         public double poorQuality;
         private int ADCValue;
 
@@ -62,16 +66,13 @@ namespace NeuroSky.MindView {
 
         private string dataLogOutFile;
         private System.IO.StreamWriter dataLogStream;
-
         private string ECGLogOutFile;
-        public Label averageHeartRateLabel;
-        private Label realtimeHeartRateLabelIndicator;
-        private Label averageHeartRateLabelIndicator;
         private System.IO.StreamWriter ECGLogStream;
+        private string directoryToSave; //= Directory.GetCurrentDirectory();
+        //private string folderToSave = "\\Data\\";
 
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
-
 
 
         public MainForm() {
@@ -114,6 +115,9 @@ namespace NeuroSky.MindView {
             realTimeHBCounter = 0;
             realTimeHBBufferLength = 4;
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
+
+            //set the directory to save data as the current directory\Data folder
+            directoryToSave = string.Concat(Directory.GetCurrentDirectory(), "\\Data\\");
 
             this.MinimumSize = new Size(947, 371);
             this.MaximumSize = new Size(947, 371);
@@ -372,7 +376,7 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.rawGraphPanel);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "EGODemo";
+            this.Text = "BMD100 PC Starter Software";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -437,12 +441,23 @@ namespace NeuroSky.MindView {
             stopButton.Enabled = true;
             stopButton.Visible = true;
 
-            // Create new file
+            // Create new file and save to the "Data" folder
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
-
+            dataLogOutFile = string.Concat(directoryToSave, dataLogOutFile);
+            
             ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
+            ECGLogOutFile = string.Concat(directoryToSave, ECGLogOutFile);
+
+            //try making a new directory if it doesn't exist
+            try {
+                if(!Directory.Exists(directoryToSave)) {
+                    Directory.CreateDirectory(directoryToSave);
+                }
+            } catch (Exception ex) {
+                Console.WriteLine("caught exception at create directory: " + ex.Message);
+            }
 
             // Create new filestream, appendable
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
@@ -606,11 +621,7 @@ namespace NeuroSky.MindView {
                         //print out the EGC waveform, ASIC heartbeat value, and "real time" heartbeat value into EGCLog
                         if(dr.Type.GetHashCode() == 0x80) {
                             ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
-                            if(ADCValue >= 0) {
-                                ECGLogStream.Write(" " + ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
-                            } else {
-                                ECGLogStream.Write(ADCValue.ToString("#00000") + "  " + ASICHBValue + " " + Math.Round(realTimeHBValue));
-                            }
+                            ECGLogStream.Write(ADCValue.ToString().PadLeft(6, ' ') + " " + ASICHBValue.ToString().PadLeft(3, ' ') + " " + Math.Round(realTimeHBValue).ToString().PadLeft(3, ' '));
                             ECGLogStream.Write(ECGLogStream.NewLine);
                         }
                     }

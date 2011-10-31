@@ -43,7 +43,7 @@ namespace NeuroSky.MindView
 
             InitializeComponent();
 
-            this.MaximumSize = new Size(383, 327);
+            this.MaximumSize = new Size(391, 361);
             this.MinimumSize = this.MaximumSize;
 
             rawCounter = 0;     //initially zero
@@ -107,7 +107,7 @@ namespace NeuroSky.MindView
             //save the device
             device = de.Device;
 
-            mainForm.updateStatusLabel("Connected to a headset on " + de.Device.PortName + ".");
+            mainForm.updateStatusLabel("Connected to a device on " + de.Device.PortName + ".");
 
             de.Device.DataReceived += new EventHandler(OnDataReceived);
             mainForm.updateConnectButton(true);
@@ -120,7 +120,7 @@ namespace NeuroSky.MindView
         {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
 
-            mainForm.updateStatusLabel("Disconnected from a headset on " + de.Device.PortName + ".");
+            mainForm.updateStatusLabel("Disconnected from a device on " + de.Device.PortName + ".");
 
             mainForm.updateConnectButton(false);
 
@@ -153,7 +153,8 @@ namespace NeuroSky.MindView
                 {
                     if(bytesToSend == null)
                     {
-                        bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };
+                        //bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };  //original
+                        bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x04, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };    //custom code
                         connector.Send(device.PortName, bytesToSend);
                     }
                 }
