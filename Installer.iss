@@ -20,7 +20,7 @@ DisableFinishedPage=no
 DefaultGroupName=NeuroSky
 
 ;Output file configuration
-OutputBaseFilename="BMD100 Developer Tool"
+OutputBaseFilename="BMD100 PC Starter Software"
 OutputDir="Installer"
 
 [Tasks]
