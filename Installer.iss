@@ -1,4 +1,4 @@
-#define VERSION "1.0.0"
+#define VERSION "1.0.4"
 
 [Setup]
 ;Application name configuration
@@ -16,25 +16,27 @@ DisableWelcomePage=no
 DisableProgramGroupPage=yes
 DisableDirPage=yes
 DisableReadyPage=no
+AlwaysShowDirOnReadyPage=yes
 DisableFinishedPage=no
 DefaultGroupName=NeuroSky
 
 ;Output file configuration
-OutputBaseFilename="BMD100 PC Starter Software"
-OutputDir="Installer"
+OutputBaseFilename="BMD100 Setup"
+OutputDir="CD"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkablealone
 
 [Files]
-Source: "GUIWindows\bin\Release\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
+Source: "CD\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
 
 
 [Icons]
-Name: "{group}\Toshiba Wake Project"; Filename: "{app}\BMD100.exe"
-Name: "{userdesktop}\Toshiba Wake Project"; Filename: "{app}\BMD100.exe"; Tasks: desktopicon; IconFilename: "{app}\BMD100.ico"
+Name: "{group}\BMD100"; Filename: "{app}\"
+Name: "{userdesktop}\BMD100 PC Starter Software"; Filename: "{app}\PC Starter Software\BMD100.exe"; Tasks: desktopicon; IconFilename: "{app}\PC Starter Software\BMD100.ico"
 
 
-
+[Run]
+Filename: "{app}\Bluetooth Driver\Setup.exe"
 
 

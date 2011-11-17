@@ -59,9 +59,9 @@ namespace NeuroSky.ThinkGear {
         RequestDenied            = 0xD3,
         DongleStatus             = 0xD4,
         HeartRate                = 0x03,
-        EGODebug1                = 0x84,
-        EGODebug2                = 0x08,
-        EGODebug3                = 0x85
+        BMDTrim                  = 0x08,
+        BMDDebug1                = 0x84,
+        BMDDebug2                = 0x85
     };
 
     // The main controller that connects the connections to a specific device.  
@@ -89,7 +89,7 @@ namespace NeuroSky.ThinkGear {
         private List<Connection> activePortsList;       // ports that are currently connected
         private List<Device> deviceList;                // devices that are currently connected
 
-        private const int DEFAULT_BAUD_RATE = 115200;
+        private const int DEFAULT_BAUD_RATE = 57600;
 
         private Thread findThread;
         private Thread readThread;
@@ -607,6 +607,7 @@ namespace NeuroSky.ThinkGear {
             private byte poorSignal = 200;
 
             private bool blinkPacketFound = false;
+            private bool enableBlinkDetector = false;
 
             private byte[] buffer;
             private int payloadBytesRemaining = 0;
@@ -635,7 +636,7 @@ namespace NeuroSky.ThinkGear {
             public Connection(String portName) {
                 buffer = new byte[1024];
 
-                BaudRate = 115200;
+                BaudRate = 57600;
                 ReadTimeout = INITIAL_READ_TIMEOUT;
 
                 PortName = portName;
@@ -657,7 +658,7 @@ namespace NeuroSky.ThinkGear {
 
                 ReadTimeout = INITIAL_READ_TIMEOUT;
                 bytesRead = Read(buffer, 0, 512);
-
+                
                 for(int i = 0; i < bytesRead; i++) {
                     switch(parserState.packetState) {
                         case ParserStatuses.Sync0:
@@ -805,8 +806,14 @@ namespace NeuroSky.ThinkGear {
                     if (tempDataRow.Type == Code.Blink) {
                       blinkPacketFound = true;               
                     }
+
+                    //if this is an EGO chip, skip blink detection
+                    if(tempDataRow.Type == Code.BMDTrim) {
+                        enableBlinkDetector = false;
+                    }
+
                     // check if a blink was detected every time a raw packet is received
-                    if(!blinkPacketFound && tempDataRow.Type == Code.Raw) {
+                    if(enableBlinkDetector && !blinkPacketFound && tempDataRow.Type == Code.Raw) {
                         short rawValue = (short)((tempDataRow.Data[0] << 8) + tempDataRow.Data[1]);
                         
                         byte blinkStrength = blinkDetector.Detect((byte)poorSignal, (short)rawValue);

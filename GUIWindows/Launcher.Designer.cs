@@ -67,12 +67,12 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(26, 146);
+            this.label2.Location = new System.Drawing.Point(39, 146);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(335, 87);
+            this.label2.Size = new System.Drawing.Size(306, 87);
             this.label2.TabIndex = 2;
-            this.label2.Text = "Please turn on the device,\r\nplace your fingers on the\r\nelectrodes, and click Cont" +
-                "inue";
+            this.label2.Text = "Please turn on the device,\r\nplace your fingers on the\r\nsensors, and click Continu" +
+                "e";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Launcher

@@ -149,12 +149,11 @@ namespace NeuroSky.MindView
             for (int i = 0; i < thinkGearParser.ParsedData.Length; i++)
             {
                 //send the configuration bytes to the chip. this happens immediately and only once
-                if(thinkGearParser.ParsedData[i].ContainsKey("EGODebug2"))
+                if(thinkGearParser.ParsedData[i].ContainsKey("BMDTrim"))
                 {
                     if(bytesToSend == null)
                     {
-                        //bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };  //original
-                        bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x04, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["EGODebug2"] };    //custom code
+                        bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["BMDTrim"] };
                         connector.Send(device.PortName, bytesToSend);
                     }
                 }

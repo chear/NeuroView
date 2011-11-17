@@ -6,4 +6,6 @@ obj/
 *.pidb
 *.userprefs
 *.resources
+/CD/Bluetooth Driver/
+*.BDM100 Setup.exe
 .DS_Store

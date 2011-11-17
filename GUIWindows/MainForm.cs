@@ -459,9 +459,17 @@ namespace NeuroSky.MindView {
                 Console.WriteLine("caught exception at create directory: " + ex.Message);
             }
 
-            // Create new filestream, appendable
+            // Create new filestream, appendable. write the headers
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
             this.ECGLogStream = new System.IO.StreamWriter(ECGLogOutFile, true);
+
+            if(dataLogStream != null) {
+                this.dataLogStream.WriteLine("timestamp: CODE VALUEBYTE(S)");
+            }
+
+            if(ECGLogStream != null) {
+                this.ECGLogStream.WriteLine("timestamp: ADC HeartRate4sAverage HeartRate30sAverage");
+            }
 
             recordFlag = true;
         }
