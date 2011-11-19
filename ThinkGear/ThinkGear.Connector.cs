@@ -59,7 +59,7 @@ namespace NeuroSky.ThinkGear {
         RequestDenied            = 0xD3,
         DongleStatus             = 0xD4,
         HeartRate                = 0x03,
-        BMDTrim                  = 0x08,
+        BMDConfig                = 0x08,
         BMDDebug1                = 0x84,
         BMDDebug2                = 0x85
     };
@@ -808,7 +808,7 @@ namespace NeuroSky.ThinkGear {
                     }
 
                     //if this is an EGO chip, skip blink detection
-                    if(tempDataRow.Type == Code.BMDTrim) {
+                    if(tempDataRow.Type == Code.BMDConfig) {
                         enableBlinkDetector = false;
                     }
 
