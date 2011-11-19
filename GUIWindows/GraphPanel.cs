@@ -7,12 +7,10 @@ using System.Drawing;
 
 using System.Windows.Forms;
 
-namespace NeuroSky.MindView
-{
+namespace NeuroSky.MindView {
     /* Possible types of device */
     // Underscores here will tranform into spaces in the device list menu
-    public enum DeviceType
-    {
+    public enum DeviceType {
         MindSet = 0,            // Original MindSet
         Circlet = 1,            // Circlet, 1 Channel, headband form factor
         Bandana = 2,            // Bandana, 2 Channel on MSB, nothing else
@@ -22,8 +20,7 @@ namespace NeuroSky.MindView
 
 
     /* Possible types of data */
-    public enum DataType
-    {
+    public enum DataType {
         EEG = 1,        // Raw EEG
         Accel = 2,      // Accelerometer
         Offhead = 3,    // Offhead score
@@ -34,15 +31,13 @@ namespace NeuroSky.MindView
 
 
     /* Possible plotting types */
-    public enum PlotType
-    {
+    public enum PlotType {
         Line = 1,       // Line graphs
         Bar = 2         // Bar graphs
     };
 
 
-    public class GraphPanel: System.Windows.Forms.UserControl
-    {
+    public class GraphPanel : System.Windows.Forms.UserControl {
         public LineGraph LineGraph;
         public BarGraph BarGraph;
         public Label Label;
@@ -55,34 +50,149 @@ namespace NeuroSky.MindView
         public DataType DataType;
         public PlotType PlotType;
 
+        public TextBox YMaxTextBox;
+        public TextBox YMinTextBox;
+        public TextBox XMaxTextBox;
+        public TextBox XMinTextBox;
+
+        public Label YMaxLabel;
+        public Label YMinLabel;
+        public Label XMaxLabel;
+        public Label XMinLabel;
+
+        private int delta;
+
         private System.ComponentModel.Container components = null;
         private Timer ValueUpdateTimer;
 
         public event EventHandler DataSavingFinished = delegate { };
+
+        //get or set the xAxisMax value
+        public double xAxisMax {
+            get {
+                if(this.PlotType == PlotType.Bar) {
+                    return BarGraph.xAxisMax;
+                } else {
+                    return LineGraph.xAxisMax;
+                }
+            }
+            set {
+                if(this.PlotType == PlotType.Bar) {
+                    BarGraph.xAxisMax = value;
+                } else {
+                    LineGraph.xAxisMax = value;
+                }
+                XMaxTextBox.Text = value.ToString();
+            }
+        }
+
+        //get or set the xAxisMin value
+        public double xAxisMin {
+            get {
+                if(this.PlotType == PlotType.Bar) {
+                    return BarGraph.xAxisMin;
+                } else {
+                    return LineGraph.xAxisMin;
+                }
+            }
+            set {
+                if(this.PlotType == PlotType.Bar) {
+                    BarGraph.xAxisMin = value;
+                } else {
+                    LineGraph.xAxisMin = value;
+                }
+                XMinTextBox.Text = value.ToString();
+            }
+        }
+
+        //get or set the yAxisMax value
+        public double yAxisMax {
+            get {
+                if(this.PlotType == PlotType.Bar) {
+                    return BarGraph.yAxisMax;
+                } else {
+                    return LineGraph.yAxisMax;
+                }
+            }
+            set {
+                if(this.PlotType == PlotType.Bar) {
+                    BarGraph.yAxisMax = value;
+                } else {
+                    LineGraph.yAxisMax = value;
+                }
+                YMaxTextBox.Text = value.ToString();
+            }
+        }
+
+
+        //get or set the xAxisMin value
+        public double yAxisMin {
+            get {
+                if(this.PlotType == PlotType.Bar) {
+                    return BarGraph.yAxisMin;
+                } else {
+                    return LineGraph.yAxisMin;
+                }
+            }
+            set {
+                if(this.PlotType == PlotType.Bar) {
+                    BarGraph.yAxisMin = value;
+                } else {
+                    LineGraph.yAxisMin = value;
+                }
+                YMinTextBox.Text = value.ToString();
+            }
+        }
+
+
+        //get or set the samplingRate value
+        public int samplingRate {
+            get {
+                if(this.PlotType == PlotType.Bar) {
+                    return BarGraph.samplingRate;
+                } else {
+                    return LineGraph.samplingRate;
+                }
+            }
+            set {
+                if(this.PlotType == PlotType.Bar) {
+                    BarGraph.samplingRate = value;
+                } else {
+                    LineGraph.samplingRate = value;
+                }
+            }
+        }
+
+        public void OptimizeScrollBar() {
+            if(this.PlotType == PlotType.Bar) {
+                BarGraph.OptimizeScrollBar();
+            } else {
+                LineGraph.OptimizeScrollBar();
+            }
+
+        }
 
         /**
          * Overloaded Initializer
          * 
          * Defaults to line plot
          */
-        public GraphPanel() : this(PlotType.Line)
-        {
+        public GraphPanel()
+            : this(PlotType.Line) {
         }
 
         /**
          * Initializer
          */
-        public GraphPanel(PlotType plotType)
-        {
-            InitializeComponent(plotType);
+        public GraphPanel(PlotType PlotType) {
+            InitializeComponent(PlotType);
 
-            if (this.PlotType == PlotType.Line) {
+            if(this.PlotType == PlotType.Line) {
                 LineGraph.DataSavingFinished += new EventHandler(LineGraph_DataSavingFinished);
             }
 
             ValueUpdateTimer = new Timer();
-            //ValueUpdateTimer.Interval = 200; //In milliseconds.
-            ValueUpdateTimer.Interval = 16; //In milliseconds.
+            ValueUpdateTimer.Interval = 200; //In milliseconds.
             ValueUpdateTimer.Tick += new EventHandler(ValueUpdateTimer_Tick);
         }
 
@@ -91,19 +201,18 @@ namespace NeuroSky.MindView
          * Clears the line or bar graph,depending on the type
          */
         public void Clear() {
-            if (this.PlotType == PlotType.Bar) {
+            if(this.PlotType == PlotType.Bar) {
                 BarGraph.Clear();
-            } else if (this.PlotType == PlotType.Line) {
+            } else if(this.PlotType == PlotType.Line) {
                 LineGraph.Clear();
             }
         }
 
-        
+
         /**
          * Start the timer for the numeric value updates
          */
-        public void EnableValueDisplay()
-        {
+        public void EnableValueDisplay() {
             ValueUpdateTimer.Start();
         }
 
@@ -112,9 +221,9 @@ namespace NeuroSky.MindView
          * Invalidates the data stream momentarily
          */
         public void Invalidate() {
-            if (this.PlotType == PlotType.Bar) {
+            if(this.PlotType == PlotType.Bar) {
                 BarGraph.Invalidate();
-            } else if (this.PlotType == PlotType.Line) {
+            } else if(this.PlotType == PlotType.Line) {
                 LineGraph.Invalidate();
             }
         }
@@ -123,8 +232,7 @@ namespace NeuroSky.MindView
         /**
          * Saving is finished.
          */
-        void LineGraph_DataSavingFinished(object sender, EventArgs e)
-        {
+        void LineGraph_DataSavingFinished(object sender, EventArgs e) {
             DataSavingFinished(this, EventArgs.Empty);
         }
 
@@ -134,15 +242,12 @@ namespace NeuroSky.MindView
          * 
          * Updates numerical values printed on the graph panel.
          */
-        public void ValueUpdateTimer_Tick(object sender, EventArgs e)
-        {
-            
+        public void ValueUpdateTimer_Tick(object sender, EventArgs e) {
+
             // Only do this if it is a bar graph
-            if (this.PlotType == PlotType.Bar)
-            {
+            if(this.PlotType == PlotType.Bar) {
                 // Check a power spectrum has already been computed
-                if (this.BarGraph.oldPwr.Length == this.BarGraph.numberOfPoints)
-                {
+                if(this.BarGraph.oldPwr.Length == this.BarGraph.numberOfPoints) {
                     int precision = 3;
 
 
@@ -155,7 +260,7 @@ namespace NeuroSky.MindView
                     int v60low = 59;
                     int v60hi = 61;
                     double pwr60 = 0;
-                    for( int i= v60low; i <= v60hi; i++) {
+                    for(int i = v60low; i <= v60hi; i++) {
                         pwr60 = pwr60 + this.BarGraph.oldPwr[i * (int)this.BarGraph.pwrSpecWindow];
                     }
                     pwr60 = Math.Round(pwr60, precision);
@@ -169,27 +274,22 @@ namespace NeuroSky.MindView
         /**
          * Clear out the resources
          */
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (components != null)
-                {
+        protected override void Dispose(bool disposing) {
+            if(disposing) {
+                if(components != null) {
                     components.Dispose();
                 }
             }
             base.Dispose(disposing);
         }
-        
+
 
         /**
          * Set parameters relating to device and data type
          */
-        public void SetTypes(DeviceType deviceType, DataType dataType)
-        {
+        public void SetTypes(DeviceType deviceType, DataType dataType) {
             // Catch DeviceType exceptions
-            switch (deviceType)
-            {
+            switch(deviceType) {
                 case DeviceType.MindSet:
                     break;
                 case DeviceType.Circlet:
@@ -212,12 +312,10 @@ namespace NeuroSky.MindView
 
 
             // Set parameters for the device and data types
-            switch (dataType)
-            {
+            switch(dataType) {
                 // EEG
                 case DataType.EEG:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.MindSet:
                             LineGraph.samplingRate = 512;
                             LineGraph.yAxisMax = 2047;
@@ -251,8 +349,7 @@ namespace NeuroSky.MindView
 
                 // Accelerometer
                 case DataType.Accel:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.Bandana_P300:
                             LineGraph.samplingRate = 85;
                             LineGraph.yAxisMax = 4100;
@@ -266,8 +363,7 @@ namespace NeuroSky.MindView
 
                 // Offhead
                 case DataType.Offhead:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.Bandana_P300:
                             LineGraph.samplingRate = 1;
                             LineGraph.yAxisMax = 4100;
@@ -281,8 +377,7 @@ namespace NeuroSky.MindView
 
                 // eSense Attention
                 case DataType.Attn:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.MindSet:
                             LineGraph.samplingRate = 1;
                             LineGraph.yAxisMax = 105;
@@ -296,8 +391,7 @@ namespace NeuroSky.MindView
 
                 // eSense Meditation
                 case DataType.Med:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.MindSet:
                             LineGraph.samplingRate = 1;
                             LineGraph.yAxisMax = 105;
@@ -310,8 +404,7 @@ namespace NeuroSky.MindView
                     break;
 
                 case DataType.Pwr:
-                    switch (deviceType)
-                    {
+                    switch(deviceType) {
                         case DeviceType.MindSet:
                             BarGraph.samplingRate = 512;
                             break;
@@ -345,16 +438,41 @@ namespace NeuroSky.MindView
 
 
             // Set other default settings for the line and bar plots
-            if (this.PlotType == PlotType.Line) {
+            if(this.PlotType == PlotType.Line) {
                 LineGraph.xAxisMax = 4;
                 LineGraph.xAxisMin = 0;
                 LineGraph.OptimizeScrollBar();
-            } else if (this.PlotType == PlotType.Bar) {
+            } else if(this.PlotType == PlotType.Bar) {
                 BarGraph.xAxisMax = 60;
                 BarGraph.xAxisMin = 1;
                 BarGraph.yAxisMax = 25;
                 BarGraph.yAxisMin = 0;
                 BarGraph.pwrSpecWindow = 1;
+            }
+
+            //update the GUI boxes with the XMax,XMin,YMax,YMin values
+            if(PlotType == PlotType.Bar) {
+                this.YMaxTextBox.Text = BarGraph.yAxisMax.ToString();
+            } else {
+                this.YMaxTextBox.Text = LineGraph.yAxisMax.ToString();
+            }
+
+            if(PlotType == PlotType.Bar) {
+                this.YMinTextBox.Text = BarGraph.yAxisMin.ToString();
+            } else {
+                this.YMinTextBox.Text = LineGraph.yAxisMin.ToString();
+            }
+
+            if(PlotType == PlotType.Bar) {
+                this.XMaxTextBox.Text = BarGraph.xAxisMax.ToString();
+            } else {
+                this.XMaxTextBox.Text = LineGraph.xAxisMax.ToString();
+            }
+
+            if(PlotType == PlotType.Bar) {
+                this.XMinTextBox.Text = BarGraph.xAxisMin.ToString();
+            } else {
+                this.XMinTextBox.Text = LineGraph.xAxisMin.ToString();
             }
 
             //disable the value display
@@ -365,12 +483,11 @@ namespace NeuroSky.MindView
 
 
         #region Windows Form Designer generated code
-        private void InitializeComponent(PlotType plotType)
-        {
-            if (plotType == PlotType.Line) {
+        private void InitializeComponent(PlotType plotType) {
+            if(plotType == PlotType.Line) {
                 this.LineGraph = new NeuroSky.MindView.LineGraph();
                 this.PlotType = PlotType.Line;
-            } else if (plotType == PlotType.Bar) {
+            } else if(plotType == PlotType.Bar) {
                 this.BarGraph = new NeuroSky.MindView.BarGraph();
                 this.PlotType = PlotType.Bar;
                 this.Label15 = new System.Windows.Forms.Label();
@@ -379,22 +496,35 @@ namespace NeuroSky.MindView
                 this.Value60 = new System.Windows.Forms.Label();
             }
             this.Label = new System.Windows.Forms.Label();
-            this.ValueLabel = new System.Windows.Forms.Label(); 
+            this.ValueLabel = new System.Windows.Forms.Label();
+
+            this.YMaxTextBox = new System.Windows.Forms.TextBox();
+            this.YMinTextBox = new System.Windows.Forms.TextBox();
+            this.XMaxTextBox = new System.Windows.Forms.TextBox();
+            this.XMinTextBox = new System.Windows.Forms.TextBox();
+
+            this.YMaxLabel = new System.Windows.Forms.Label();
+            this.YMinLabel = new System.Windows.Forms.Label();
+            this.XMaxLabel = new System.Windows.Forms.Label();
+            this.XMinLabel = new System.Windows.Forms.Label();
+
             this.SuspendLayout();
             // 
             // lineGraph
             // 
-            if (plotType == PlotType.Line) {
+            if(plotType == PlotType.Line) {
                 this.BorderStyle = BorderStyle.FixedSingle;
                 this.LineGraph.Location = new System.Drawing.Point(100, 0);
                 this.LineGraph.Name = "lineGraph";
                 this.LineGraph.Size = new System.Drawing.Size(700, 200);
                 this.LineGraph.TabIndex = 0;
             }
+
+
             //
             // BarGraph
             //
-            if (plotType == PlotType.Bar) {
+            if(plotType == PlotType.Bar) {
                 this.BorderStyle = BorderStyle.FixedSingle;
                 this.BarGraph.Location = new System.Drawing.Point(100, 0);
                 this.BarGraph.Name = "barGraph";
@@ -404,7 +534,7 @@ namespace NeuroSky.MindView
             //
             // Label15
             //
-            if (plotType == PlotType.Bar) {
+            if(plotType == PlotType.Bar) {
                 this.Label15.Location = new System.Drawing.Point(10, 40);
                 this.Label15.Text = " ";
                 this.Label15.Size = new System.Drawing.Size(80, 20);
@@ -414,7 +544,7 @@ namespace NeuroSky.MindView
             //
             // Value15
             //
-            if (plotType == PlotType.Bar) {
+            if(plotType == PlotType.Bar) {
                 this.Value15.Location = new System.Drawing.Point(10, 55);
                 this.Value15.Text = " ";
                 this.Value15.Size = new System.Drawing.Size(80, 20);
@@ -423,76 +553,169 @@ namespace NeuroSky.MindView
             //
             // Label60
             //
-            if (plotType == PlotType.Bar) {
+            if(plotType == PlotType.Bar) {
                 this.Label60.Location = new System.Drawing.Point(10, 90);
                 this.Label60.Text = " ";
                 this.Label60.Size = new System.Drawing.Size(80, 20);
                 this.Label60.TextAlign = ContentAlignment.TopCenter;
                 this.Label60.Font = new Font(Label60.Font, FontStyle.Italic);
             }
+
             //
             // Value60
             //
-            if (plotType == PlotType.Bar) {
+            if(plotType == PlotType.Bar) {
                 this.Value60.Location = new System.Drawing.Point(10, 105);
                 this.Value60.Text = " ";
                 this.Value60.Size = new System.Drawing.Size(80, 20);
                 this.Value60.TextAlign = ContentAlignment.TopCenter;
             }
+
             // 
             // Label
             // 
             this.Label.Location = new System.Drawing.Point(0, 0);
             this.Label.Name = "label";
-            this.Label.Size = new System.Drawing.Size(101, 200);
+            this.Label.Size = new System.Drawing.Size(100, 15);
             this.Label.TextAlign = ContentAlignment.TopCenter;
             this.Label.TabIndex = 0;
             this.Label.Font = new Font(Label.Font, FontStyle.Bold);
             this.Label.Text = "Label";
             this.Label.BorderStyle = BorderStyle.FixedSingle;
+
             // 
             // ValueLabel
             // 
-            this.ValueLabel.Location = new System.Drawing.Point(10,20);
+            this.ValueLabel.Location = new System.Drawing.Point(10, 20);
             this.ValueLabel.Text = " ";
             this.ValueLabel.Size = new System.Drawing.Size(80, 20);
             this.ValueLabel.TextAlign = ContentAlignment.TopCenter;
+
+
+            // 
+            // YMaxTextBox
+            // 
+            this.YMaxTextBox.Location = new System.Drawing.Point(47, 34);
+            this.YMaxTextBox.Name = "YMaxTextBox";
+            this.YMaxTextBox.Size = new System.Drawing.Size(43, 20);
+            this.YMaxTextBox.TabIndex = 10;
+            this.YMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMaxTextBox_KeyPress);
+
+            // 
+            // YMinTextBox
+            // 
+            this.YMinTextBox.Location = new System.Drawing.Point(47, 77);
+            this.YMinTextBox.Name = "YMaxTextBox";
+            this.YMinTextBox.Size = new System.Drawing.Size(43, 20);
+            this.YMinTextBox.TabIndex = 10;
+            this.YMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMinTextBox_KeyPress);
+
+            // 
+            // XMaxTextBox
+            // 
+            this.XMaxTextBox.Location = new System.Drawing.Point(47, 120);
+            this.XMaxTextBox.Name = "YMaxTextBox";
+            this.XMaxTextBox.Size = new System.Drawing.Size(43, 20);
+            this.XMaxTextBox.TabIndex = 10;
+            this.XMaxTextBox.Text = " ";
+            this.XMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMaxTextBox_KeyPress);
+
+            // 
+            // XMinTextBox
+            // 
+            this.XMinTextBox.Location = new System.Drawing.Point(47, 163);
+            this.XMinTextBox.Name = "YMaxTextBox";
+            this.XMinTextBox.Size = new System.Drawing.Size(43, 20);
+            this.XMinTextBox.TabIndex = 10;
+            this.XMinTextBox.Text = " ";
+            this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
+
+            //
+            // YMaxLabel
+            //
+            this.YMaxLabel.Location = new System.Drawing.Point(6, 36);
+            this.YMaxLabel.Name = "YMaxLabel";
+            this.YMaxLabel.Size = new System.Drawing.Size(43, 20);
+            this.YMaxLabel.TabIndex = 10;
+            this.YMaxLabel.Text = "Y Max";
+
+            //
+            // YMinLabel
+            //
+            this.YMinLabel.Location = new System.Drawing.Point(6, 79);
+            this.YMinLabel.Name = "YMinLabel";
+            this.YMinLabel.Size = new System.Drawing.Size(43, 20);
+            this.YMinLabel.TabIndex = 10;
+            this.YMinLabel.Text = "Y Min";
+
+            //
+            // XMaxLabel
+            //
+            this.XMaxLabel.Location = new System.Drawing.Point(6, 122);
+            this.XMaxLabel.Name = "XMaxLabel";
+            this.XMaxLabel.Size = new System.Drawing.Size(43, 20);
+            this.XMaxLabel.TabIndex = 10;
+            this.XMaxLabel.Text = "X Max";
+
+            //
+            // XMinLabel
+            //
+            this.XMinLabel.Location = new System.Drawing.Point(6, 165);
+            this.XMinLabel.Name = "XMinLabel";
+            this.XMinLabel.Size = new System.Drawing.Size(43, 20);
+            this.XMinLabel.TabIndex = 10;
+            this.XMinLabel.Text = "X Min";
+
+
             // 
             // GraphPanel
             // 
             this.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.Size = new System.Drawing.Size(800, 200);
+            this.Controls.Add(this.YMaxTextBox);
+            this.Controls.Add(this.YMinTextBox);
+            this.Controls.Add(this.XMaxTextBox);
+            this.Controls.Add(this.XMinTextBox);
+            this.Controls.Add(this.YMaxLabel);
+            this.Controls.Add(this.YMinLabel);
+            this.Controls.Add(this.XMaxLabel);
+            this.Controls.Add(this.XMinLabel);
             this.Controls.Add(this.ValueLabel);
             this.Controls.Add(this.Label);
-            if (plotType == PlotType.Line) {
+
+
+
+            if(plotType == PlotType.Line) {
                 this.Controls.Add(this.LineGraph);
-            } else if (plotType == PlotType.Bar) {
+            } else if(plotType == PlotType.Bar) {
                 this.Controls.Add(this.BarGraph);
                 this.Controls.Add(this.Label15);
                 this.Controls.Add(this.Value15);
                 this.Controls.Add(this.Label60);
                 this.Controls.Add(this.Value60);
             }
+
             this.ResumeLayout(false);
 
         }
         #endregion
 
-        protected override void OnSizeChanged(EventArgs e)
-        {
+
+
+        protected override void OnSizeChanged(EventArgs e) {
             //Adjust the Height
             this.Label.Height = this.Size.Height;
-            if (this.PlotType == PlotType.Line) {
+            if(this.PlotType == PlotType.Line) {
                 this.LineGraph.Height = this.Size.Height;
-            } else if (this.PlotType == PlotType.Bar) {
+            } else if(this.PlotType == PlotType.Bar) {
                 this.BarGraph.Height = this.Size.Height;
             }
 
             //Adjust the Width
             this.Label.Width = 101;
-            if (this.PlotType == PlotType.Line) {
+            if(this.PlotType == PlotType.Line) {
                 this.LineGraph.Width = this.Size.Width - 100;
-            } else if (this.PlotType == PlotType.Bar) {
+            } else if(this.PlotType == PlotType.Bar) {
                 this.BarGraph.Width = this.Size.Width - 100;
             }
 
@@ -500,7 +723,7 @@ namespace NeuroSky.MindView
             this.ValueLabel.Left = 10;
             //this.ValueLabel.Top = this.Size.Height*2/3;
             this.ValueLabel.Top = 20;
-            if (this.PlotType == PlotType.Bar) {
+            if(this.PlotType == PlotType.Bar) {
                 this.Label15.Left = 10;
                 this.Label15.Top = 40;
                 this.Label15.BringToFront();
@@ -517,9 +740,107 @@ namespace NeuroSky.MindView
                 this.Value60.Top = 105;
                 this.Value60.BringToFront();
             }
+
+            delta = (int)((this.Height - Label.Location.Y - Label.PreferredHeight - YMaxTextBox.PreferredHeight * 4) / 5);
+
+            YMaxTextBox.Location = new Point(YMaxTextBox.Location.X, delta + Label.Location.Y + Label.PreferredHeight);
+            YMaxLabel.Location = new Point(YMaxLabel.Location.X, YMaxTextBox.Location.Y + 2);
+
+            YMinTextBox.Location = new Point(YMinTextBox.Location.X, YMaxTextBox.Location.Y + YMaxTextBox.Height + delta);
+            YMinLabel.Location = new Point(YMinLabel.Location.X, YMinTextBox.Location.Y + 2);
+
+            XMaxTextBox.Location = new Point(XMaxTextBox.Location.X, YMinTextBox.Location.Y + YMinTextBox.Height + delta);
+            XMaxLabel.Location = new Point(XMaxLabel.Location.X, XMaxTextBox.Location.Y + 2);
+
+            XMinTextBox.Location = new Point(XMinTextBox.Location.X, XMaxTextBox.Location.Y + XMaxTextBox.Height + delta);
+            XMinLabel.Location = new Point(XMinLabel.Location.X, XMinTextBox.Location.Y + 2);
+                
             base.OnSizeChanged(e);
-            
+
         }
-        
+
+        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    if(this.PlotType == PlotType.Line) {
+                        LineGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
+                    } else {
+                        BarGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
+                    }
+                } catch(Exception ex) {
+
+                }
+            }
+        }
+
+
+        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    if(this.PlotType == PlotType.Line) {
+                        LineGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
+                    } else {
+                        BarGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
+                    }
+                } catch(Exception ex) {
+
+                }
+            }
+        }
+
+
+        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    if(this.PlotType == PlotType.Line) {
+                        LineGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
+                    } else {
+                        BarGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
+                    }
+                } catch(Exception ex) {
+
+                }
+            }
+        }
+
+
+        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    if(this.PlotType == PlotType.Line) {
+                        LineGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
+                    } else {
+                        BarGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
+                    }
+                } catch(Exception ex) {
+
+                }
+            }
+        }
+
     }
 }

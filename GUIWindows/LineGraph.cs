@@ -13,10 +13,6 @@ using System.Collections.Generic;
 
 using System.Threading;
 
-
-
-
-
 namespace NeuroSky.MindView {
 
     public class LineGraph : System.Windows.Forms.UserControl {
@@ -63,22 +59,17 @@ namespace NeuroSky.MindView {
         public event EventHandler DataSavingFinished = delegate { };
 
 
-        public void Add(DataPair p) 
-        {
-            lock (data0)
-            {
+        public void Add(DataPair p) {
+            lock(data0) {
                 data0.Add(p);
             }
 
-            
-            if(DCRemovalEnabled)
-            {
+            if(DCRemovalEnabled) {
                 calculateDCOffset();
             }
-            
-            
         }
-
+            
+            
         public void Clear() {
             lock (data0)
             {
@@ -98,33 +89,26 @@ namespace NeuroSky.MindView {
             xAxisMax = (data0.Count) / (double)samplingRate;
         }
 
-        
-        public void calculateDCOffset()
-        {
+
+        public void calculateDCOffset() {
             DCOffsetCounter++;
 
             //run this function every .5 seconds
-            if(DCOffsetCounter >= samplingRate/16)
-            {
+            if(DCOffsetCounter >= samplingRate / 16) {
                 DCOffset = 0;
-                lock(data0)
-                {
-                    if(data0.Count > numberOfPoints)
-                    {
-                        for(int i = data0.Count - numberOfPoints; i < data0.Count; i++)
-                        {
+                lock(data0) {
+                    if(data0.Count > numberOfPoints) {
+                        for(int i = data0.Count - numberOfPoints; i < data0.Count; i++) {
                             DCOffset = DCOffset + data0[i].data;
                         }
 
-                    } else
-                    {
-                        for(int i = 0; i < data0.Count; i++)
-                        {
+                    } else {
+                        for(int i = 0; i < data0.Count; i++) {
                             DCOffset = DCOffset + data0[i].data;
                         }
                     }
                 }
-                
+
                 //calculate the DCOffset
                 DCOffset = customRound(DCOffset / numberOfPoints);
 
@@ -154,41 +138,32 @@ namespace NeuroSky.MindView {
             numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate)) + 1;
             double timeStampOffset = 0;
 
-            lock (data0)
-            {
+            lock(data0) {
                 /*Makes sures that the graph has at least two points to graph a line*/
-                if ((data0 != null) && (data0.Count > 1))
-                {
+                if((data0 != null) && (data0.Count > 1)) {
                     /*If recording is not enable trim the excess values*/
-                    if (!this.RecordDataFlag)
-                    {
-                        if (this.SaveDataFlag)
-                        {
-                            if (saveDataThread == null || !saveDataThread.IsAlive)
-                            {
+                    if(!this.RecordDataFlag) {
+                        if(this.SaveDataFlag) {
+                            if(saveDataThread == null || !saveDataThread.IsAlive) {
                                 saveDataThread = new Thread(this.SaveData);
                                 saveDataThread.Start();
                             }
-                        }
-                        else
-                        {
+                        } else {
                             hScrollBar.Visible = false;
-                            if (data0.Count > numberOfPoints * 3)     //shift the buffer every once in a while (more efficient)
+                            if(data0.Count > numberOfPoints * 3)     //shift the buffer every once in a while (more efficient)
                             {
                                 data0.RemoveRange(0, data0.Count - numberOfPoints);
                             }
                         }
                     }
 
-                   
-                    if(data0.Count > numberOfPoints)
-                    {
+
+                    if(data0.Count > numberOfPoints) {
                         timeStampOffset = DrawGraph(data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).ToArray(), drawingSurface, myPen);
-                    } else
-                    {
+                    } else {
                         timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
                     }
-                    
+
                 }
             }
 
@@ -207,46 +182,41 @@ namespace NeuroSky.MindView {
             int d = 0;
 
             /*If there is more points enable the scrollbar*/
-            if (data.Length > numberOfPoints) {
+            if(data.Length > numberOfPoints) {
                 hScrollBar.Visible = true;
                 frameHeight = frameHeight - hScrollBar.Height;
                 hScrollBar.Maximum = data.Length - numberOfPoints + 9;
 
-                if (!hScrollBarInUse) {
+                if(!hScrollBarInUse) {
                     hScrollBar.Value = data.Length - numberOfPoints;
                 }
 
                 graphStartIndex = hScrollBar.Value;
-            }
-            else {
+            } else {
                 graphStartIndex = 0;
             }
 
             int numberOfPointsToGraph = 0;
 
-            if (numberOfPoints > data.Length) {
+            if(numberOfPoints > data.Length) {
                 numberOfPointsToGraph = data.Length;
-            }
-            else {
+            } else {
                 numberOfPointsToGraph = numberOfPoints;
             }
 
             timeStampOffset = data[graphStartIndex].timeStamp;
 
             Point[] graphPoints = new Point[numberOfPointsToGraph];
-            for (int i = 0; i < numberOfPointsToGraph; i++) {
+            for(int i = 0; i < numberOfPointsToGraph; i++) {
                 d = i + graphStartIndex;
 
                 try {
-                    if(DCRemovalEnabled)
-                    {
+                    if(DCRemovalEnabled) {
                         graphPoints[i] = Point2Pixel((data[d].timeStamp - timeStampOffset), data[d].data - DCOffset);
-                    } else
-                    {
+                    } else {
                         graphPoints[i] = Point2Pixel((data[d].timeStamp - timeStampOffset), data[d].data);
                     }
-                }
-                catch (Exception e) {
+                } catch(Exception e) {
                     Console.WriteLine("LineGraph: " + e.Message);
                 }
 
@@ -279,32 +249,19 @@ namespace NeuroSky.MindView {
 
 
             // Set number of labels to create
-            if (xAxisMax >= 100)
-            {
+            if(xAxisMax >= 100) {
                 stepSize = 20;
-            }
-            else if (xAxisMax >= 50)
-            {
+            } else if(xAxisMax >= 50) {
                 stepSize = 10;
-            }
-            else if (xAxisMax >= 10)
-            {
+            } else if(xAxisMax >= 10) {
                 stepSize = 2;
-            }
-            else if (xAxisMax >= 5)
-            {
+            } else if(xAxisMax >= 5) {
                 stepSize = 1;
-            }
-            else if (xAxisMax >= 2)
-            {
+            } else if(xAxisMax >= 2) {
                 stepSize = 0.5;
-            }
-            else if (xAxisMax >= 1)
-            {
+            } else if(xAxisMax >= 1) {
                 stepSize = 0.2;
-            }
-            else
-            {
+            } else {
                 stepSize = 0.1;
             }
 
@@ -312,8 +269,7 @@ namespace NeuroSky.MindView {
 
 
             // Write the labels
-            for (int i = 1; i < numGroups; i++)
-            {
+            for(int i = 1; i < numGroups; i++) {
                 X = (float)(i * stepSize) + Xoffset;
                 pt = Point2Pixel(X, 0);
                 drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);

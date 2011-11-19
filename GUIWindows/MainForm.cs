@@ -35,14 +35,6 @@ namespace NeuroSky.MindView {
         public bool recordFlag;
 
         public DateTime RecordStartTime;
-        private Label YMaxLabel;
-        private Label YMinLabel;
-        private Label XMaxLabel;
-        private Label XMinLabel;
-        private TextBox YMaxTextBox;
-        private TextBox YMinTextBox;
-        private TextBox XMaxTextBox;
-        private TextBox XMinTextBox;
         public DateTime RecordStopTime;
 
         public Label averageHeartRateLabel;
@@ -81,21 +73,16 @@ namespace NeuroSky.MindView {
 
             recordFlag = false;
 
-            rawGraphPanel.LineGraph.samplingRate = 512;
-            rawGraphPanel.LineGraph.xAxisMax = 4;
-            rawGraphPanel.LineGraph.xAxisMin = 0;
-            rawGraphPanel.LineGraph.yAxisMax = 32768;
-            rawGraphPanel.LineGraph.yAxisMin = -32768;
-            rawGraphPanel.Label.Text = "ECG";
-            rawGraphPanel.LineGraph.OptimizeScrollBar();
+            rawGraphPanel.samplingRate = 512;
+            rawGraphPanel.xAxisMax = 4;
+            rawGraphPanel.xAxisMin = 0;
+            rawGraphPanel.yAxisMax = 32768;
+            rawGraphPanel.yAxisMin = -32768;
+            rawGraphPanel.Text = "ECG";
             rawGraphPanel.EnableValueDisplay();
+            rawGraphPanel.OptimizeScrollBar();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
             rawGraphPanel.LineGraph.DCRemovalEnabled = true;
-
-            YMaxTextBox.Text = rawGraphPanel.LineGraph.yAxisMax.ToString();
-            YMinTextBox.Text = rawGraphPanel.LineGraph.yAxisMin.ToString();
-            XMaxTextBox.Text = rawGraphPanel.LineGraph.xAxisMax.ToString();
-            XMinTextBox.Text = rawGraphPanel.LineGraph.xAxisMin.ToString();
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
@@ -119,9 +106,7 @@ namespace NeuroSky.MindView {
             //set the directory to save data as the current directory\Data folder
             directoryToSave = string.Concat(Directory.GetCurrentDirectory(), "\\Data\\");
 
-            this.MinimumSize = new Size(947, 371);
-            this.MaximumSize = new Size(947, 371);
-
+            this.MinimumSize = new System.Drawing.Size(711, 322);
         }
 
         /// <summary>
@@ -153,14 +138,6 @@ namespace NeuroSky.MindView {
             this.statusLabel = new System.Windows.Forms.Label();
             this.realtimeHeartRateLabel = new System.Windows.Forms.Label();
             this.fileLabel = new System.Windows.Forms.Label();
-            this.YMaxLabel = new System.Windows.Forms.Label();
-            this.YMinLabel = new System.Windows.Forms.Label();
-            this.XMaxLabel = new System.Windows.Forms.Label();
-            this.XMinLabel = new System.Windows.Forms.Label();
-            this.YMaxTextBox = new System.Windows.Forms.TextBox();
-            this.YMinTextBox = new System.Windows.Forms.TextBox();
-            this.XMaxTextBox = new System.Windows.Forms.TextBox();
-            this.XMinTextBox = new System.Windows.Forms.TextBox();
             this.averageHeartRateLabel = new System.Windows.Forms.Label();
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
@@ -219,6 +196,7 @@ namespace NeuroSky.MindView {
             this.portText.Size = new System.Drawing.Size(80, 20);
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
+            this.portText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portText_KeyPress);
             // 
             // statusLabel
             // 
@@ -244,78 +222,6 @@ namespace NeuroSky.MindView {
             this.fileLabel.Size = new System.Drawing.Size(800, 24);
             this.fileLabel.TabIndex = 3;
             this.fileLabel.Text = "None";
-            // 
-            // YMaxLabel
-            // 
-            this.YMaxLabel.AutoSize = true;
-            this.YMaxLabel.Location = new System.Drawing.Point(7, 108);
-            this.YMaxLabel.Name = "YMaxLabel";
-            this.YMaxLabel.Size = new System.Drawing.Size(34, 13);
-            this.YMaxLabel.TabIndex = 6;
-            this.YMaxLabel.Text = "YMax";
-            // 
-            // YMinLabel
-            // 
-            this.YMinLabel.AutoSize = true;
-            this.YMinLabel.Location = new System.Drawing.Point(7, 148);
-            this.YMinLabel.Name = "YMinLabel";
-            this.YMinLabel.Size = new System.Drawing.Size(31, 13);
-            this.YMinLabel.TabIndex = 7;
-            this.YMinLabel.Text = "YMin";
-            // 
-            // XMaxLabel
-            // 
-            this.XMaxLabel.AutoSize = true;
-            this.XMaxLabel.Location = new System.Drawing.Point(7, 190);
-            this.XMaxLabel.Name = "XMaxLabel";
-            this.XMaxLabel.Size = new System.Drawing.Size(34, 13);
-            this.XMaxLabel.TabIndex = 8;
-            this.XMaxLabel.Text = "XMax";
-            // 
-            // XMinLabel
-            // 
-            this.XMinLabel.AutoSize = true;
-            this.XMinLabel.Location = new System.Drawing.Point(7, 233);
-            this.XMinLabel.Name = "XMinLabel";
-            this.XMinLabel.Size = new System.Drawing.Size(31, 13);
-            this.XMinLabel.TabIndex = 9;
-            this.XMinLabel.Text = "XMin";
-            // 
-            // YMaxTextBox
-            // 
-            this.YMaxTextBox.Location = new System.Drawing.Point(47, 105);
-            this.YMaxTextBox.Name = "YMaxTextBox";
-            this.YMaxTextBox.Size = new System.Drawing.Size(43, 20);
-            this.YMaxTextBox.TabIndex = 10;
-            this.YMaxTextBox.Text = " ";
-            this.YMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMaxTextBox_KeyPress);
-            // 
-            // YMinTextBox
-            // 
-            this.YMinTextBox.Location = new System.Drawing.Point(47, 145);
-            this.YMinTextBox.Name = "YMinTextBox";
-            this.YMinTextBox.Size = new System.Drawing.Size(43, 20);
-            this.YMinTextBox.TabIndex = 11;
-            this.YMinTextBox.Text = " ";
-            this.YMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMinTextBox_KeyPress);
-            // 
-            // XMaxTextBox
-            // 
-            this.XMaxTextBox.Location = new System.Drawing.Point(47, 187);
-            this.XMaxTextBox.Name = "XMaxTextBox";
-            this.XMaxTextBox.Size = new System.Drawing.Size(43, 20);
-            this.XMaxTextBox.TabIndex = 12;
-            this.XMaxTextBox.Text = " ";
-            this.XMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMaxTextBox_KeyPress);
-            // 
-            // XMinTextBox
-            // 
-            this.XMinTextBox.Location = new System.Drawing.Point(47, 230);
-            this.XMinTextBox.Name = "XMinTextBox";
-            this.XMinTextBox.Size = new System.Drawing.Size(43, 20);
-            this.XMinTextBox.TabIndex = 13;
-            this.XMinTextBox.Text = " ";
-            this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
             // 
             // averageHeartRateLabel
             // 
@@ -346,10 +252,15 @@ namespace NeuroSky.MindView {
             // 
             // rawGraphPanel
             // 
-            this.rawGraphPanel.Location = new System.Drawing.Point(0, 72);
+            this.rawGraphPanel.Location = new System.Drawing.Point(0, 76);
             this.rawGraphPanel.Name = "rawGraphPanel";
+            this.rawGraphPanel.samplingRate = 10;
             this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
             this.rawGraphPanel.TabIndex = 0;
+            this.rawGraphPanel.xAxisMax = 0D;
+            this.rawGraphPanel.xAxisMin = 0D;
+            this.rawGraphPanel.yAxisMax = 0D;
+            this.rawGraphPanel.yAxisMin = 0D;
             // 
             // MainForm
             // 
@@ -357,14 +268,6 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
             this.Controls.Add(this.averageHeartRateLabel);
-            this.Controls.Add(this.XMinTextBox);
-            this.Controls.Add(this.XMaxTextBox);
-            this.Controls.Add(this.YMinTextBox);
-            this.Controls.Add(this.YMaxTextBox);
-            this.Controls.Add(this.XMinLabel);
-            this.Controls.Add(this.XMaxLabel);
-            this.Controls.Add(this.YMinLabel);
-            this.Controls.Add(this.YMaxLabel);
             this.Controls.Add(this.connectButton);
             this.Controls.Add(this.clearButton);
             this.Controls.Add(this.recordButton);
@@ -383,6 +286,15 @@ namespace NeuroSky.MindView {
         }
         #endregion
 
+        private void portText_KeyPress(object sender, KeyPressEventArgs e) {
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+                connectButton_Click(sender, e);
+            }
+        }
+
         /*Connect Button Clicked*/
         private void connectButton_Click(object sender, System.EventArgs e) {
 #if true
@@ -391,7 +303,7 @@ namespace NeuroSky.MindView {
 
             rawGraphPanel.LineGraph.Clear();
 
-            ConnectButtonClicked(this, EventArgs.Empty);  
+            ConnectButtonClicked(this, EventArgs.Empty);
 #else
             double tempData = 0;
 
@@ -445,7 +357,7 @@ namespace NeuroSky.MindView {
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
             dataLogOutFile = string.Concat(directoryToSave, dataLogOutFile);
-            
+
             ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
             ECGLogOutFile = string.Concat(directoryToSave, ECGLogOutFile);
@@ -455,7 +367,7 @@ namespace NeuroSky.MindView {
                 if(!Directory.Exists(directoryToSave)) {
                     Directory.CreateDirectory(directoryToSave);
                 }
-            } catch (Exception ex) {
+            } catch(Exception ex) {
                 Console.WriteLine("caught exception at create directory: " + ex.Message);
             }
 
@@ -672,21 +584,19 @@ namespace NeuroSky.MindView {
             }
         }
 
-        
+
         //update the realtime heart rate label status
         delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
         public void updateRealTimeHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
                 //try catch necessary for handling case when form is disposing
-                try
-                {
+                try {
                     updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
                     this.Invoke(del, new object[] { tempString });
-                } catch (Exception e)
-                {
+                } catch(Exception e) {
                     Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
                 }
-            
+
             } else {
                 this.realtimeHeartRateLabel.Text = tempString;
             }
@@ -697,12 +607,10 @@ namespace NeuroSky.MindView {
         public void updateAverageHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
                 //try catch necessary for handling case when form is disposing
-                try
-                {
+                try {
                     updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
                     this.Invoke(del, new object[] { tempString });
-                } catch (Exception e)
-                {
+                } catch(Exception e) {
                     Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
                 }
 
@@ -710,8 +618,8 @@ namespace NeuroSky.MindView {
                 this.averageHeartRateLabel.Text = tempString;
             }
         }
-       
-         
+
+
         delegate void updateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText) {
             if(this.InvokeRequired) {
@@ -725,73 +633,25 @@ namespace NeuroSky.MindView {
 
         protected override void OnSizeChanged(EventArgs e) {
 
-            /*Update dimension*/
-            rawGraphPanel.Width = this.Width - 10;
-            //rawGraphPanel.Height = this.Height
+            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 190, realtimeHeartRateLabelIndicator.Location.Y);
+            realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y);
 
-            /*Update Locations*/
+            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 182, realtimeHeartRateLabelIndicator.Location.Y + 30);
+            averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y + 30);
+
+            statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
+
+            recordButton.Location = new System.Drawing.Point(this.Width - 247, this.Height - 73);
+            stopButton.Location = new System.Drawing.Point(this.Width - 247, this.Height - 73);
+
+            clearButton.Location = new System.Drawing.Point(this.Width - 117, this.Height - 73);
+
+            rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, connectButton.Location.Y + connectButton.Height + 18);
+            rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
+            rawGraphPanel.Width = this.Width - 10;
 
             base.OnSizeChanged(e);
         }
-
-
-        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                //suppress the beep sounds by setting e.Handled = true
-                e.Handled = true;
-                //verify that the string entered in the box is actually a number
-                try {
-                    rawGraphPanel.LineGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
-                } catch(Exception exp) {
-                    Console.WriteLine("error at YMax textbox: " + exp.Message);
-                }
-            }
-        }
-
-
-        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                e.Handled = true;
-                //verify that the string entered in the box is actually a number
-                try {
-                    rawGraphPanel.LineGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
-                } catch(Exception exp) {
-                    Console.WriteLine("error at YMin textbox: " + exp.Message);
-                }
-            }
-        }
-
-
-        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                e.Handled = true;
-                //verify that the string entered in the box is actually a number
-                try {
-                    rawGraphPanel.LineGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
-                } catch(Exception exp) {
-                    Console.WriteLine("error at XMax textbox: " + exp.Message);
-                }
-            }
-        }
-
-
-        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                e.Handled = true;
-                //verify that the string entered in the box is actually a number
-                try {
-                    rawGraphPanel.LineGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
-                } catch(Exception exp) {
-                    Console.WriteLine("error at XMin textbox: " + exp.Message);
-                }
-            }
-        }
-
     }
     /*End of MainForm*/
 }
