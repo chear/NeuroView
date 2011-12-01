@@ -146,6 +146,7 @@ namespace NeuroSky.MindView {
             // 
             // connectButton
             // 
+            this.connectButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.connectButton.Location = new System.Drawing.Point(136, 24);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(80, 24);
@@ -155,6 +156,7 @@ namespace NeuroSky.MindView {
             // 
             // clearButton
             // 
+            this.clearButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clearButton.Location = new System.Drawing.Point(831, 294);
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(80, 24);
@@ -164,6 +166,7 @@ namespace NeuroSky.MindView {
             // 
             // recordButton
             // 
+            this.recordButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.recordButton.Location = new System.Drawing.Point(701, 294);
             this.recordButton.Name = "recordButton";
             this.recordButton.Size = new System.Drawing.Size(80, 24);
@@ -182,6 +185,7 @@ namespace NeuroSky.MindView {
             // 
             // stopButton
             // 
+            this.stopButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.stopButton.Location = new System.Drawing.Point(701, 294);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(80, 24);
@@ -191,15 +195,17 @@ namespace NeuroSky.MindView {
             // 
             // portText
             // 
+            this.portText.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.portText.Location = new System.Drawing.Point(12, 26);
             this.portText.Name = "portText";
-            this.portText.Size = new System.Drawing.Size(80, 20);
+            this.portText.Size = new System.Drawing.Size(80, 21);
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
             this.portText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portText_KeyPress);
             // 
             // statusLabel
             // 
+            this.statusLabel.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.statusLabel.Location = new System.Drawing.Point(12, 314);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(400, 24);
@@ -208,12 +214,14 @@ namespace NeuroSky.MindView {
             // 
             // realtimeHeartRateLabel
             // 
-            this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(876, 9);
+            this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.realtimeHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(883, 9);
             this.realtimeHeartRateLabel.Name = "realtimeHeartRateLabel";
-            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(50, 24);
+            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(51, 24);
             this.realtimeHeartRateLabel.TabIndex = 5;
-            this.realtimeHeartRateLabel.Text = " ";
+            this.realtimeHeartRateLabel.Text = "0";
+            this.realtimeHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // fileLabel
             // 
@@ -225,33 +233,38 @@ namespace NeuroSky.MindView {
             // 
             // averageHeartRateLabel
             // 
-            this.averageHeartRateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.averageHeartRateLabel.Location = new System.Drawing.Point(876, 39);
+            this.averageHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.averageHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.averageHeartRateLabel.Location = new System.Drawing.Point(883, 39);
             this.averageHeartRateLabel.Name = "averageHeartRateLabel";
-            this.averageHeartRateLabel.Size = new System.Drawing.Size(50, 24);
+            this.averageHeartRateLabel.Size = new System.Drawing.Size(51, 24);
             this.averageHeartRateLabel.TabIndex = 14;
-            this.averageHeartRateLabel.Text = " ";
+            this.averageHeartRateLabel.Text = "0";
+            this.averageHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // realtimeHeartRateLabelIndicator
             // 
-            this.realtimeHeartRateLabelIndicator.AutoSize = true;
-            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(757, 14);
+            this.realtimeHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(741, 11);
             this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
-            this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(113, 13);
+            this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
             this.realtimeHeartRateLabelIndicator.Text = "Real Time Heart Rate:";
+            this.realtimeHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // averageHeartRateLabelIndicator
             // 
-            this.averageHeartRateLabelIndicator.AutoSize = true;
-            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(765, 44);
+            this.averageHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(741, 42);
             this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
-            this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(105, 13);
+            this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.averageHeartRateLabelIndicator.TabIndex = 16;
             this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
+            this.averageHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // rawGraphPanel
             // 
+            this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rawGraphPanel.Location = new System.Drawing.Point(0, 76);
             this.rawGraphPanel.Name = "rawGraphPanel";
             this.rawGraphPanel.samplingRate = 10;
@@ -633,10 +646,10 @@ namespace NeuroSky.MindView {
 
         protected override void OnSizeChanged(EventArgs e) {
 
-            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 190, realtimeHeartRateLabelIndicator.Location.Y);
+            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 206, realtimeHeartRateLabelIndicator.Location.Y);
             realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y);
 
-            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 182, realtimeHeartRateLabelIndicator.Location.Y + 30);
+            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 206, realtimeHeartRateLabelIndicator.Location.Y + 30);
             averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y + 30);
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);

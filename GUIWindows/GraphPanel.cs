@@ -597,7 +597,7 @@ namespace NeuroSky.MindView {
             // 
             this.YMaxTextBox.Location = new System.Drawing.Point(47, 34);
             this.YMaxTextBox.Name = "YMaxTextBox";
-            this.YMaxTextBox.Size = new System.Drawing.Size(43, 20);
+            this.YMaxTextBox.Size = new System.Drawing.Size(46, 20);
             this.YMaxTextBox.TabIndex = 10;
             this.YMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMaxTextBox_KeyPress);
 
@@ -606,7 +606,7 @@ namespace NeuroSky.MindView {
             // 
             this.YMinTextBox.Location = new System.Drawing.Point(47, 77);
             this.YMinTextBox.Name = "YMaxTextBox";
-            this.YMinTextBox.Size = new System.Drawing.Size(43, 20);
+            this.YMinTextBox.Size = new System.Drawing.Size(46, 20);
             this.YMinTextBox.TabIndex = 10;
             this.YMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMinTextBox_KeyPress);
 
@@ -615,7 +615,7 @@ namespace NeuroSky.MindView {
             // 
             this.XMaxTextBox.Location = new System.Drawing.Point(47, 120);
             this.XMaxTextBox.Name = "YMaxTextBox";
-            this.XMaxTextBox.Size = new System.Drawing.Size(43, 20);
+            this.XMaxTextBox.Size = new System.Drawing.Size(46, 20);
             this.XMaxTextBox.TabIndex = 10;
             this.XMaxTextBox.Text = " ";
             this.XMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMaxTextBox_KeyPress);
@@ -625,7 +625,7 @@ namespace NeuroSky.MindView {
             // 
             this.XMinTextBox.Location = new System.Drawing.Point(47, 163);
             this.XMinTextBox.Name = "YMaxTextBox";
-            this.XMinTextBox.Size = new System.Drawing.Size(43, 20);
+            this.XMinTextBox.Size = new System.Drawing.Size(46, 20);
             this.XMinTextBox.TabIndex = 10;
             this.XMinTextBox.Text = " ";
             this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
@@ -635,7 +635,7 @@ namespace NeuroSky.MindView {
             //
             this.YMaxLabel.Location = new System.Drawing.Point(6, 36);
             this.YMaxLabel.Name = "YMaxLabel";
-            this.YMaxLabel.Size = new System.Drawing.Size(43, 20);
+            this.YMaxLabel.Size = new System.Drawing.Size(46, 20);
             this.YMaxLabel.TabIndex = 10;
             this.YMaxLabel.Text = "Y Max";
 
@@ -644,7 +644,7 @@ namespace NeuroSky.MindView {
             //
             this.YMinLabel.Location = new System.Drawing.Point(6, 79);
             this.YMinLabel.Name = "YMinLabel";
-            this.YMinLabel.Size = new System.Drawing.Size(43, 20);
+            this.YMinLabel.Size = new System.Drawing.Size(46, 20);
             this.YMinLabel.TabIndex = 10;
             this.YMinLabel.Text = "Y Min";
 
@@ -653,7 +653,7 @@ namespace NeuroSky.MindView {
             //
             this.XMaxLabel.Location = new System.Drawing.Point(6, 122);
             this.XMaxLabel.Name = "XMaxLabel";
-            this.XMaxLabel.Size = new System.Drawing.Size(43, 20);
+            this.XMaxLabel.Size = new System.Drawing.Size(46, 20);
             this.XMaxLabel.TabIndex = 10;
             this.XMaxLabel.Text = "X Max";
 
@@ -662,7 +662,7 @@ namespace NeuroSky.MindView {
             //
             this.XMinLabel.Location = new System.Drawing.Point(6, 165);
             this.XMinLabel.Name = "XMinLabel";
-            this.XMinLabel.Size = new System.Drawing.Size(43, 20);
+            this.XMinLabel.Size = new System.Drawing.Size(46, 20);
             this.XMinLabel.TabIndex = 10;
             this.XMinLabel.Text = "X Min";
 
