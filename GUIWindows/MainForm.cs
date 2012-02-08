@@ -245,7 +245,7 @@ namespace NeuroSky.MindView {
             // realtimeHeartRateLabelIndicator
             // 
             this.realtimeHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(741, 11);
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(733, 11);
             this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
             this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
@@ -255,7 +255,7 @@ namespace NeuroSky.MindView {
             // averageHeartRateLabelIndicator
             // 
             this.averageHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(741, 42);
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(733, 42);
             this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
             this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.averageHeartRateLabelIndicator.TabIndex = 16;
@@ -646,10 +646,10 @@ namespace NeuroSky.MindView {
 
         protected override void OnSizeChanged(EventArgs e) {
 
-            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 206, realtimeHeartRateLabelIndicator.Location.Y);
+            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, realtimeHeartRateLabelIndicator.Location.Y);
             realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y);
 
-            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 206, realtimeHeartRateLabelIndicator.Location.Y + 30);
+            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, realtimeHeartRateLabelIndicator.Location.Y + 30);
             averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y + 30);
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
