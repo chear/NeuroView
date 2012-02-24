@@ -18,6 +18,8 @@ using System.Xml;
 
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
+        private SaveFileGUI saveFileGUI;
+        
         public GraphPanel rawGraphPanel;
         public TextBox portText;
         private Label statusLabel;
@@ -60,14 +62,19 @@ namespace NeuroSky.MindView {
         private System.IO.StreamWriter dataLogStream;
         private string ECGLogOutFile;
         private System.IO.StreamWriter ECGLogStream;
-        private string directoryToSave; //= Directory.GetCurrentDirectory();
-        //private string folderToSave = "\\Data\\";
 
+        private string currentPath;
+        
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
 
-
         public MainForm() {
+
+            saveFileGUI = new SaveFileGUI();
+            saveFileGUI.SaveButtonClicked += new EventHandler(OnSaveButtonClicked);
+            saveFileGUI.DiscardButtonClicked += new EventHandler(OnDiscardButtonClicked);
+            saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
+            saveFileGUI.StartPosition = FormStartPosition.Manual;
 
             InitializeComponent();
 
@@ -103,10 +110,10 @@ namespace NeuroSky.MindView {
             realTimeHBBufferLength = 4;
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
 
-            //set the directory to save data as the current directory\Data folder
-            directoryToSave = string.Concat(Directory.GetCurrentDirectory(), "\\Data\\");
+            currentPath = Directory.GetCurrentDirectory();
 
             this.MinimumSize = new System.Drawing.Size(711, 322);
+
         }
 
         /// <summary>
@@ -369,21 +376,10 @@ namespace NeuroSky.MindView {
             // Create new file and save to the "Data" folder
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
-            dataLogOutFile = string.Concat(directoryToSave, dataLogOutFile);
-
+            
             ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
-            ECGLogOutFile = string.Concat(directoryToSave, ECGLogOutFile);
-
-            //try making a new directory if it doesn't exist
-            try {
-                if(!Directory.Exists(directoryToSave)) {
-                    Directory.CreateDirectory(directoryToSave);
-                }
-            } catch(Exception ex) {
-                Console.WriteLine("caught exception at create directory: " + ex.Message);
-            }
-
+            
             // Create new filestream, appendable. write the headers
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
             this.ECGLogStream = new System.IO.StreamWriter(ECGLogOutFile, true);
@@ -416,6 +412,54 @@ namespace NeuroSky.MindView {
 
             dataLogStream.Close();
             ECGLogStream.Close();
+
+            saveFileGUI.updateDataLogTextBox(dataLogOutFile);
+            saveFileGUI.updateECGLogTextBox(ECGLogOutFile);
+            saveFileGUI.updatefolderPathTextBox(Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString());
+            saveFileGUI.Location = new Point((this.Width - saveFileGUI.Width) / 2 + this.Location.X, (this.Height - saveFileGUI.Height) / 2 + this.Location.Y);
+
+            saveFileGUI.Show();
+        }
+
+        //when the save button is clicked in the save dialog
+        void OnSaveButtonClicked(object sender, EventArgs e) {
+
+            try {
+                if(!System.IO.Directory.Exists(saveFileGUI.folderPathTextBox.Text)) {
+                    System.IO.Directory.CreateDirectory(saveFileGUI.folderPathTextBox.Text);
+                }
+
+                System.IO.File.Copy(System.IO.Path.Combine(currentPath, dataLogOutFile), System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.dataLogTextBox.Text), true);
+                System.IO.File.Copy(System.IO.Path.Combine(currentPath, ECGLogOutFile), System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.sleepLogTextBox.Text), true);
+
+                System.IO.File.Delete(System.IO.Path.Combine(currentPath, dataLogOutFile));
+                System.IO.File.Delete(System.IO.Path.Combine(currentPath, ECGLogOutFile));
+
+                saveFileGUI.Hide();
+            } catch(Exception ex) {
+                MessageBox.Show("To save data in this directory, please exit the application and run as Administrator.", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+            }
+
+        }
+
+        //when the browse button is clicked in the save dialog
+        void OnBrowseButtonClicked(object sender, EventArgs e) {
+
+            //show the folder browser box
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            if(folderBrowserDialog.ShowDialog() == DialogResult.OK) {
+                saveFileGUI.updatefolderPathTextBox(folderBrowserDialog.SelectedPath);
+            }
+        }
+
+        //when the browse button is clicked in the save dialog
+        void OnDiscardButtonClicked(object sender, EventArgs e) {
+
+            System.IO.File.Delete(System.IO.Path.Combine(currentPath, dataLogOutFile));
+            System.IO.File.Delete(System.IO.Path.Combine(currentPath, ECGLogOutFile));
+
+            saveFileGUI.Hide();
         }
 
         public void updateAverageHeartBeatValue(double heartBeatValue) {

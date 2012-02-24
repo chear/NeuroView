@@ -95,6 +95,12 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SaveFileGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SaveFileGUI.designer.cs">
+      <DependentUpon>SaveFileGUI.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
     </EmbeddedResource>
@@ -120,6 +126,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="SaveFileGUI.resx">
+      <DependentUpon>SaveFileGUI.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
