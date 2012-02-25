@@ -474,4 +474,111 @@ namespace NeuroSky.ThinkGear.Algorithms {
             return 0;
         }
     }
+
+    public class FFT {
+        private double[] x;
+        private double[] y;
+
+        /* dir: the direction. if dir = 1, this is an FFT. if dir = -1, this is an IFFT.
+         * 
+         * fftLength: the desired length of the FFT/IFFT. If fftLength is longer than the length of the input signal, then extra zeroes are added
+         * to the end of the signal. If fftLength is shorter than the length of the input signal, the first fftLength number of points of the input
+         * signal are used for the calculation. This is exactly how the matlab FFT function works
+         * 
+         * when using this as a forward FFT, pass the time domain data in the input1 variable, and pass the input2 variable as zeros (and equal 
+         * in length to input1). The output variable is two single dimension vectors, x and y. x is the real component. y is the imaginary component.
+         *
+         * when using this as a reverse FFT, pass the real component in the input1 variable, and pass the imaginary component in the input2 variable. 
+         * The output variable is two single dimension vectors, x and y. x is the real component. y is the imaginary component (usually on the order of 0)
+         * 
+         * example implementation:
+           FFT fft = new FFT();
+           double[] x = new double[512];
+           Array.Copy(eegdata, x, 512);     //eegdata contains raw EEG data
+           double[] y = new double[512];    //initialized to zeros
+          
+           double[] real = new double[512];
+           double[] imag = new double[512];
+         
+           fft.calculateFFT(x, y, 1, 1024, out real, out imag);
+         * 
+         */
+        public void calculateFFT(double[] input1, double[] input2, int dir, int fftLength, out double[] x, out double[] y) {
+            int n, i, i1, j, k, i2, l, l1, l2, m;
+            double c1, c2, tx, ty, t1, t2, u1, u2, z;
+
+            x = new double[fftLength];
+            y = new double[fftLength];
+
+            //adjust the length of the input data, according to the fftLength
+            Array.Copy(input1, x, Math.Min(input1.Length, fftLength));
+            Array.Copy(input2, y, Math.Min(input2.Length, fftLength));
+
+            //2^m = length of x, y
+            m = (int)(Math.Log(x.Length) / Math.Log(2));
+
+            /* Calculate the number of points */
+            n = 1;
+            for(i = 0; i < m; i++) {
+                n *= 2;
+            }
+
+            /* Do the bit reversal */
+            i2 = n >> 1;
+            j = 0;
+            for(i = 0; i < n - 1; i++) {
+                if(i < j) {
+                    tx = x[i];
+                    ty = y[i];
+                    x[i] = x[j];
+                    y[i] = y[j];
+                    x[j] = tx;
+                    y[j] = ty;
+                }
+                k = i2;
+                while(k <= j) {
+                    j -= k;
+                    k >>= 1;
+                }
+                j += k;
+            }
+
+            /* Compute the FFT */
+            c1 = -1.0;
+            c2 = 0.0;
+            l2 = 1;
+            for(l = 0; l < m; l++) {
+                l1 = l2;
+                l2 <<= 1;
+                u1 = 1.0;
+                u2 = 0.0;
+                for(j = 0; j < l1; j++) {
+                    for(i = j; i < n; i += l2) {
+                        i1 = i + l1;
+                        t1 = u1 * x[i1] - u2 * y[i1];
+                        t2 = u1 * y[i1] + u2 * x[i1];
+                        x[i1] = x[i] - t1;
+                        y[i1] = y[i] - t2;
+                        x[i] += t1;
+                        y[i] += t2;
+                    }
+                    z = u1 * c1 - u2 * c2;
+                    u2 = u1 * c2 + u2 * c1;
+                    u1 = z;
+                }
+                c2 = Math.Sqrt((1.0 - c1) / 2.0);
+                if(dir == 1)
+                    c2 = -c2;
+                c1 = Math.Sqrt((1.0 + c1) / 2.0);
+            }
+
+            /* Scaling for reverse transform */
+            if(dir == -1) {
+                for(i = 0; i < n; i++) {
+                    x[i] /= n;
+                    y[i] /= n;
+                }
+            }
+        }
+    }
 }
