@@ -59,16 +59,6 @@ namespace NeuroSky.MindView {
         private int bufferCounter_lp;
 
         public Launcher() {
-
-
-            debugOutFile = "debug.txt";
-            this.debugStream = new System.IO.StreamWriter(debugOutFile, true);
-
-            
-            
-            
-            
-            
             mainForm = new MainForm();
 
             connector = new Connector();
