@@ -143,6 +143,11 @@ namespace NeuroSky.MindView {
             numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate));
             double timeStampOffset = 0;
 
+            DrawXAxis(drawingSurface);
+            DrawXAxisMinor(drawingSurface);
+            DrawYAxis(drawingSurface);
+            DrawYAxisMinor(drawingSurface);
+
             lock(data0) {
                 /*Makes sures that the graph has at least two points to graph a line*/
                 if((data0 != null) && (data0.Count > 1)) {
@@ -162,7 +167,6 @@ namespace NeuroSky.MindView {
                         }
                     }
 
-
                     if(data0.Count > numberOfPoints) {
                         timeStampOffset = DrawGraph(data0.GetRange(data0.Count - numberOfPoints, numberOfPoints).ToArray(), drawingSurface, myPen);
                     } else {
@@ -172,10 +176,7 @@ namespace NeuroSky.MindView {
                 }
             }
 
-            //TODO: Draw Axis
-            //if (timeStampOffset < 0) timeStampOffset = 0;
-            DrawXAxis(drawingSurface);
-            DrawYAxis(drawingSurface);
+ 
 
             myPen.Dispose();
 
@@ -232,11 +233,9 @@ namespace NeuroSky.MindView {
             return timeStampOffset;
         }
 
-        /**
-        * Labels the x-axis with frequency bins
-        */
+        //Labels the x-axis with minor grid lines
         private void DrawXAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink);
+            Pen myPen = new Pen(Color.DeepPink, 2.5f);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
@@ -251,6 +250,37 @@ namespace NeuroSky.MindView {
 
             int tickDistance = 200;     //distance between each tick, in msec
 
+            int numGroups = (int)((xAxisMax - xAxisMin) * (1000 / tickDistance));
+            double stepSize = (double)(xAxisMax - xAxisMin) / (double)numGroups;
+
+            // Write the labels
+            for(int i = 1; i < numGroups; i++) {
+                X = (float)(i * stepSize) + Xoffset;
+                pt = Point2Pixel(X, 0);
+                drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
+            }
+
+            myPen.Dispose();
+            myBrush.Dispose();
+        }
+
+                //Labels the x-axis with major grid lines
+        private void DrawXAxisMinor(Graphics drawingSurface) {
+            Pen myPen = new Pen(Color.DeepPink);
+            SolidBrush myBrush = new SolidBrush(Color.Black);
+            System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+
+            Point pt;
+            float X;
+            float Xoffset = 0;
+
+            //define the "tick length" to be the entire windows
+            float YtickLength = frameHeight;
+            float Y1 = frameHeight;
+            float Y2 = 0;
+
+            int tickDistance = 40;     //distance between each tick, in msec
+
             int numGroups = (int)((xAxisMax - xAxisMin) * (1000/tickDistance));
             double stepSize = (double)(xAxisMax - xAxisMin) / (double)numGroups;
 
@@ -261,15 +291,13 @@ namespace NeuroSky.MindView {
                 drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
             }
 
-
             myPen.Dispose();
             myBrush.Dispose();
         }
 
-
-        //Labels the y-axis with amplitudes
+        //Labels the y-axis with major grid lines
         private void DrawYAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink);
+            Pen myPen = new Pen(Color.DeepPink, 2.5f);
 
             double mVolts_step = .5 * gain;     //number of mVolts between each line * gain
             int X = frameWidth;
@@ -292,6 +320,40 @@ namespace NeuroSky.MindView {
                 }
             }
             
+
+            myPen.Dispose();
+            SolidBrush myBrush2 = new SolidBrush(Color.Black);
+            System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
+            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
+            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
+            myBrush2.Dispose();
+        }
+
+
+        //Labels the y-axis with minor grid lines
+        private void DrawYAxisMinor(Graphics drawingSurface) {
+            Pen myPen = new Pen(Color.DeepPink, 2);
+
+            double mVolts_step = .1 * gain;     //number of mVolts between each line * gain
+            int X = frameWidth;
+            int Xwide = -frameWidth;
+
+            int start = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMax)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
+            if(yAxisMax < 0) {
+                start *= -1;
+            }
+
+            int numLines = (int)(Math.Floor(toVoltage(yAxisMax - yAxisMin)) / mVolts_step);
+
+            for(int i = numLines; i >= 0; i--) {
+                Point tempPoint = Point2Pixel(0, (double)start - (mVolts_step / conversionFactor) * (double)i);
+                //just shift up by 2 pixels for the last line, because it shows up weird
+                if(i == 0) {
+                    drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
+                } else {
+                    drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+                }
+            }
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);

@@ -791,7 +791,7 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    this.yAxisMax = Int32.Parse(YMaxTextBox.Text);
+                    this.yAxisMax = Double.Parse(YMaxTextBox.Text);
                 } catch(Exception ex) {
                     Console.WriteLine("user entered non integer value");
                 }
@@ -808,7 +808,7 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    this.yAxisMin = Int32.Parse(YMinTextBox.Text);
+                    this.yAxisMin = Double.Parse(YMinTextBox.Text);
                 } catch(Exception ex) {
                     Console.WriteLine("user entered non integer value");
                 }
