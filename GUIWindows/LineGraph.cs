@@ -52,6 +52,7 @@ namespace NeuroSky.MindView {
         private int numberOfPoints;
 
         private double conversionFactor = 0.0183;
+        private int    gain             = 128;
 
         private int DCOffsetCounter;
         public bool DCRemovalEnabled;
@@ -133,7 +134,7 @@ namespace NeuroSky.MindView {
         {
 
             Graphics drawingSurface = pe.Graphics;
-            Pen myPen = new Pen(Color.Blue, 1);
+            Pen myPen = new Pen(Color.Black, 3);
             Rectangle rect = this.ClientRectangle;
 
             frameWidth = rect.Right - rect.Left;
@@ -235,7 +236,7 @@ namespace NeuroSky.MindView {
         * Labels the x-axis with frequency bins
         */
         private void DrawXAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.Black);
+            Pen myPen = new Pen(Color.DeepPink);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
@@ -248,7 +249,9 @@ namespace NeuroSky.MindView {
             float Y1 = frameHeight;
             float Y2 = 0;
 
-            int numGroups = (int)((xAxisMax - xAxisMin) * 5);
+            int tickDistance = 200;     //distance between each tick, in msec
+
+            int numGroups = (int)((xAxisMax - xAxisMin) * (1000/tickDistance));
             double stepSize = (double)(xAxisMax - xAxisMin) / (double)numGroups;
 
             // Write the labels
@@ -266,9 +269,9 @@ namespace NeuroSky.MindView {
 
         //Labels the y-axis with amplitudes
         private void DrawYAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.Black);
+            Pen myPen = new Pen(Color.DeepPink);
 
-            double mVolts_step = 10;     //number of mVolts between each line
+            double mVolts_step = .5 * gain;     //number of mVolts between each line * gain
             int X = frameWidth;
             int Xwide = -frameWidth;
 
@@ -279,10 +282,6 @@ namespace NeuroSky.MindView {
 
             int numLines = (int)(Math.Floor(toVoltage(yAxisMax - yAxisMin)) / mVolts_step);
 
-            
-            
-
-            
             for(int i = numLines; i >= 0; i--) {
                 Point tempPoint = Point2Pixel(0, (double)start - (mVolts_step / conversionFactor) * (double)i);
                 //just shift up by 2 pixels for the last line, because it shows up weird
@@ -297,8 +296,8 @@ namespace NeuroSky.MindView {
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
             System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-            drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
-            drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
+            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
+            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
             myBrush2.Dispose();
         }
 

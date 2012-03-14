@@ -63,6 +63,7 @@ namespace NeuroSky.MindView {
         private int delta;
 
         private double conversionFactor = 0.0183;
+        private int    gain             = 128;
 
         private System.ComponentModel.Container components = null;
         private Timer ValueUpdateTimer;
@@ -120,16 +121,16 @@ namespace NeuroSky.MindView {
                 if(this.PlotType == PlotType.Bar) {
                     //account for slight rounding error
                     if(value > 0) {
-                        BarGraph.yAxisMax = (int)Math.Ceiling(value / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
                     } else {
-                        BarGraph.yAxisMax = (int)Math.Floor(value / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
                     }
 
                 } else {
                     if(value > 0) {
-                        LineGraph.yAxisMax = (int)Math.Ceiling(value / conversionFactor);
+                        LineGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
                     } else {
-                        LineGraph.yAxisMax = (int)Math.Floor(value / conversionFactor);
+                        LineGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
                     }
 
                 }
@@ -150,16 +151,16 @@ namespace NeuroSky.MindView {
             set {
                 if(this.PlotType == PlotType.Bar) {
                     if(value > 0) {
-                        BarGraph.yAxisMin = (int)Math.Ceiling(value / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
                     } else {
-                        BarGraph.yAxisMin = (int)Math.Floor(value / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
                     }
 
                 } else {
                     if(value > 0) {
-                        LineGraph.yAxisMin = (int)Math.Ceiling(value / conversionFactor);
+                        LineGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
                     } else {
-                        LineGraph.yAxisMin = (int)Math.Floor(value / conversionFactor);
+                        LineGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
                     }
                 }
                 YMinTextBox.Text = value.ToString();
