@@ -272,21 +272,27 @@ namespace NeuroSky.MindView {
             int X = frameWidth;
             int Xwide = -frameWidth;
 
-            int yAxisMaxRounded = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMax)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
-            int yAxisMinRounded = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMin)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
+            int start = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMax)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
             if(yAxisMax < 0) {
-                yAxisMaxRounded *= -1;
-            }
-            if(yAxisMin < 0) {
-                yAxisMinRounded *= -1;
+                start *= -1;
             }
 
-            int numLines = (int)(toVoltage(yAxisMaxRounded - yAxisMinRounded) / mVolts_step);
+            int numLines = (int)(Math.Floor(toVoltage(yAxisMax - yAxisMin)) / mVolts_step);
 
-            for(int i = numLines; i > 0; i--) {
-                Point tempPoint = Point2Pixel(0, (double)yAxisMaxRounded - (mVolts_step / conversionFactor) * (double)i);
-                drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+            
+            
+
+            
+            for(int i = numLines; i >= 0; i--) {
+                Point tempPoint = Point2Pixel(0, (double)start - (mVolts_step / conversionFactor) * (double)i);
+                //just shift up by 2 pixels for the last line, because it shows up weird
+                if(i == 0) {
+                    drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
+                } else {
+                    drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+                }
             }
+            
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
@@ -359,7 +365,6 @@ namespace NeuroSky.MindView {
             temp.Y = frameHeight - temp.Y;
 
             return temp;
-
         }
 
         protected override void Dispose(bool disposing) {
