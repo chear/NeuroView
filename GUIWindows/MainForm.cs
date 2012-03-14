@@ -83,8 +83,8 @@ namespace NeuroSky.MindView {
             rawGraphPanel.samplingRate = 512;
             rawGraphPanel.xAxisMax = 4;
             rawGraphPanel.xAxisMin = 0;
-            rawGraphPanel.yAxisMax = 32768;
-            rawGraphPanel.yAxisMin = -32768;
+            rawGraphPanel.yAxisMax = 590;
+            rawGraphPanel.yAxisMin = -590;
             rawGraphPanel.Text = "ECG";
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.OptimizeScrollBar();

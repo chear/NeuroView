@@ -62,6 +62,8 @@ namespace NeuroSky.MindView {
 
         private int delta;
 
+        private double conversionFactor = 0.0183;
+
         private System.ComponentModel.Container components = null;
         private Timer ValueUpdateTimer;
 
@@ -105,7 +107,7 @@ namespace NeuroSky.MindView {
             }
         }
 
-        //get or set the yAxisMax value
+        //get or set the yAxisMax value. the input should be mV, so conver to ADC
         public double yAxisMax {
             get {
                 if(this.PlotType == PlotType.Bar) {
@@ -116,16 +118,27 @@ namespace NeuroSky.MindView {
             }
             set {
                 if(this.PlotType == PlotType.Bar) {
-                    BarGraph.yAxisMax = value;
+                    //account for slight rounding error
+                    if(value > 0) {
+                        BarGraph.yAxisMax = (int)Math.Ceiling(value / conversionFactor);
+                    } else {
+                        BarGraph.yAxisMax = (int)Math.Floor(value / conversionFactor);
+                    }
+
                 } else {
-                    LineGraph.yAxisMax = value;
+                    if(value > 0) {
+                        LineGraph.yAxisMax = (int)Math.Ceiling(value / conversionFactor);
+                    } else {
+                        LineGraph.yAxisMax = (int)Math.Floor(value / conversionFactor);
+                    }
+
                 }
                 YMaxTextBox.Text = value.ToString();
             }
         }
 
 
-        //get or set the xAxisMin value
+        //get or set the yAxisMin value
         public double yAxisMin {
             get {
                 if(this.PlotType == PlotType.Bar) {
@@ -136,9 +149,18 @@ namespace NeuroSky.MindView {
             }
             set {
                 if(this.PlotType == PlotType.Bar) {
-                    BarGraph.yAxisMin = value;
+                    if(value > 0) {
+                        BarGraph.yAxisMin = (int)Math.Ceiling(value / conversionFactor);
+                    } else {
+                        BarGraph.yAxisMin = (int)Math.Floor(value / conversionFactor);
+                    }
+
                 } else {
-                    LineGraph.yAxisMin = value;
+                    if(value > 0) {
+                        LineGraph.yAxisMin = (int)Math.Ceiling(value / conversionFactor);
+                    } else {
+                        LineGraph.yAxisMin = (int)Math.Floor(value / conversionFactor);
+                    }
                 }
                 YMinTextBox.Text = value.ToString();
             }
@@ -768,13 +790,9 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    if(this.PlotType == PlotType.Line) {
-                        LineGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
-                    } else {
-                        BarGraph.yAxisMax = Int32.Parse(YMaxTextBox.Text);
-                    }
+                    this.yAxisMax = Int32.Parse(YMaxTextBox.Text);
                 } catch(Exception ex) {
-
+                    Console.WriteLine("user entered non integer value");
                 }
             }
         }
@@ -789,18 +807,14 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    if(this.PlotType == PlotType.Line) {
-                        LineGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
-                    } else {
-                        BarGraph.yAxisMin = Int32.Parse(YMinTextBox.Text);
-                    }
+                    this.yAxisMin = Int32.Parse(YMinTextBox.Text);
                 } catch(Exception ex) {
-
+                    Console.WriteLine("user entered non integer value");
                 }
             }
         }
 
-
+        //force the x max to be greater than 0
         private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
 
             // If the key pressed was "Enter"
@@ -810,13 +824,12 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    if(this.PlotType == PlotType.Line) {
-                        LineGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
-                    } else {
-                        BarGraph.xAxisMax = Int32.Parse(XMaxTextBox.Text);
+                    int temp = Int32.Parse(XMaxTextBox.Text);
+                    if(temp >= 0) {
+                        this.xAxisMax = temp;
                     }
                 } catch(Exception ex) {
-
+                    Console.WriteLine("user entered non integer value");
                 }
             }
         }
@@ -831,13 +844,12 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    if(this.PlotType == PlotType.Line) {
-                        LineGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
-                    } else {
-                        BarGraph.xAxisMin = Int32.Parse(XMinTextBox.Text);
+                    int temp = Int32.Parse(XMinTextBox.Text);
+                    if(temp >= 0) {
+                        this.xAxisMin = temp;
                     }
                 } catch(Exception ex) {
-
+                    Console.WriteLine("user entered non integer value");
                 }
             }
         }

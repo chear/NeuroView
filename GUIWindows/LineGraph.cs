@@ -1,4 +1,6 @@
-﻿#define ENABLE
+﻿//NEW VERSION
+
+#define ENABLE
 
 using System;
 
@@ -48,6 +50,8 @@ namespace NeuroSky.MindView {
         private int scrollBarTop;
 
         private int numberOfPoints;
+
+        private double conversionFactor = 0.0183;
 
         private int DCOffsetCounter;
         public bool DCRemovalEnabled;
@@ -135,7 +139,7 @@ namespace NeuroSky.MindView {
             frameWidth = rect.Right - rect.Left;
             frameHeight = rect.Bottom - rect.Top;
 
-            numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate)) + 1;
+            numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate));
             double timeStampOffset = 0;
 
             lock(data0) {
@@ -227,10 +231,9 @@ namespace NeuroSky.MindView {
             return timeStampOffset;
         }
 
-
         /**
-         * Labels the x-axis with frequency bins
-         */
+        * Labels the x-axis with frequency bins
+        */
         private void DrawXAxis(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.Black);
             SolidBrush myBrush = new SolidBrush(Color.Black);
@@ -240,67 +243,56 @@ namespace NeuroSky.MindView {
             float X;
             float Xoffset = 0;
 
-            float YtickLength = 15;
+            //define the "tick length" to be the entire windows
+            float YtickLength = frameHeight;
             float Y1 = frameHeight;
-            float Y2 = Y1 - YtickLength;
+            float Y2 = 0;
 
-            double stepSize = 0;
-            int numGroups = 0;
-
-
-            // Set number of labels to create
-            if(xAxisMax >= 100) {
-                stepSize = 20;
-            } else if(xAxisMax >= 50) {
-                stepSize = 10;
-            } else if(xAxisMax >= 10) {
-                stepSize = 2;
-            } else if(xAxisMax >= 5) {
-                stepSize = 1;
-            } else if(xAxisMax >= 2) {
-                stepSize = 0.5;
-            } else if(xAxisMax >= 1) {
-                stepSize = 0.2;
-            } else {
-                stepSize = 0.1;
-            }
-
-            numGroups = (int)(xAxisMax / stepSize);
-
+            int numGroups = (int)((xAxisMax - xAxisMin) * 5);
+            double stepSize = (double)(xAxisMax - xAxisMin) / (double)numGroups;
 
             // Write the labels
             for(int i = 1; i < numGroups; i++) {
                 X = (float)(i * stepSize) + Xoffset;
                 pt = Point2Pixel(X, 0);
                 drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
-                drawingSurface.DrawString(X.ToString(), myFont, myBrush, frameWidth - pt.X, Y2 - 2);
             }
+
 
             myPen.Dispose();
             myBrush.Dispose();
         }
 
-        /**
-         * Labels the y-axis with amplitudes
-         */
+
+        //Labels the y-axis with amplitudes
         private void DrawYAxis(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.Black);
-            
-            int X = frameWidth;
-            int Xwide = -10;
-            int numLines = 10;
-            double Ystep = Math.Ceiling((double)(frameHeight) / (double)(numLines));
 
-            for (int i = numLines - 1; i > 0; i--)
-            {
-                drawingSurface.DrawLine(myPen, X, frameHeight - ((int)Ystep * i), (X + Xwide), frameHeight - ((int)Ystep * i));
+            double mVolts_step = 10;     //number of mVolts between each line
+            int X = frameWidth;
+            int Xwide = -frameWidth;
+
+            int yAxisMaxRounded = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMax)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
+            int yAxisMinRounded = (int)((Math.Floor(toVoltage(Math.Abs(yAxisMin)) / mVolts_step) * mVolts_step) / conversionFactor);     //this is the location of the first tick
+            if(yAxisMax < 0) {
+                yAxisMaxRounded *= -1;
+            }
+            if(yAxisMin < 0) {
+                yAxisMinRounded *= -1;
+            }
+
+            int numLines = (int)(toVoltage(yAxisMaxRounded - yAxisMinRounded) / mVolts_step);
+
+            for(int i = numLines; i > 0; i--) {
+                Point tempPoint = Point2Pixel(0, (double)yAxisMaxRounded - (mVolts_step / conversionFactor) * (double)i);
+                drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
             }
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
             System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-            drawingSurface.DrawString(yAxisMax.ToString(), myFont2, myBrush2, X+(Xwide*5), 2);
-            drawingSurface.DrawString(yAxisMin.ToString(), myFont2, myBrush2, X+(Xwide*5), frameHeight - 20);
+            drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
+            drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
             myBrush2.Dispose();
         }
 
@@ -474,6 +466,12 @@ namespace NeuroSky.MindView {
 
             return max;
         }
+
+        //convert ADC to voltage
+        public double toVoltage(double ADC) {
+            return ADC * conversionFactor;
+        }
+
 
 
     }/*End of LineGraph Class*/
