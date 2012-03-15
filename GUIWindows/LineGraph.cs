@@ -74,7 +74,7 @@ namespace NeuroSky.MindView {
             }
         }
             
-            
+        //remove all the elements from data0            
         public void Clear() {
             lock (data0)
             {
@@ -89,7 +89,6 @@ namespace NeuroSky.MindView {
             hScrollBar.Value = hScrollBar.Maximum - 1;
             hScrollBarInUse = false;
         }
-
 
         public void FitAllData() {
             xAxisMax = (data0.Count) / (double)samplingRate;
@@ -274,7 +273,7 @@ namespace NeuroSky.MindView {
             myBrush.Dispose();
         }
 
-                //Labels the x-axis with major grid lines
+        //Labels the x-axis with major grid lines
         private void DrawXAxisMinor(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.DeepPink,1);
             SolidBrush myBrush = new SolidBrush(Color.Black);
@@ -429,7 +428,7 @@ namespace NeuroSky.MindView {
         private Point Point2Pixel(double xValue, double yValue) {
             Point temp = new Point();
 
-            temp.X = (int)((xValue - xAxisMin) / (xAxisMax - xAxisMin) * frameWidth);
+            temp.X = (int)Math.Abs((xValue - xAxisMin) / (xAxisMax - xAxisMin) * frameWidth);
             temp.Y = (int)((yValue - yAxisMin) / (yAxisMax - yAxisMin) * frameHeight);
             temp.Y = frameHeight - temp.Y;
 

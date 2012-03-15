@@ -102,7 +102,7 @@ namespace NeuroSky.MindView {
                 if(this.PlotType == PlotType.Bar) {
                     BarGraph.xAxisMin = value;
                 } else {
-                    LineGraph.xAxisMin = value;
+                    LineGraph.xAxisMin = 0;
                 }
                 XMinTextBox.Text = value.ToString();
             }

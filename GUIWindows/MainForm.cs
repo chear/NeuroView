@@ -89,7 +89,7 @@ namespace NeuroSky.MindView {
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.OptimizeScrollBar();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
-            rawGraphPanel.LineGraph.DCRemovalEnabled = true;
+            rawGraphPanel.LineGraph.DCRemovalEnabled = false;
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
@@ -164,7 +164,7 @@ namespace NeuroSky.MindView {
             // clearButton
             // 
             this.clearButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.clearButton.Location = new System.Drawing.Point(831, 294);
+            this.clearButton.Location = new System.Drawing.Point(968, 512);
             this.clearButton.Name = "clearButton";
             this.clearButton.Size = new System.Drawing.Size(80, 24);
             this.clearButton.TabIndex = 1;
@@ -174,7 +174,7 @@ namespace NeuroSky.MindView {
             // recordButton
             // 
             this.recordButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.recordButton.Location = new System.Drawing.Point(701, 294);
+            this.recordButton.Location = new System.Drawing.Point(838, 512);
             this.recordButton.Name = "recordButton";
             this.recordButton.Size = new System.Drawing.Size(80, 24);
             this.recordButton.TabIndex = 1;
@@ -193,7 +193,7 @@ namespace NeuroSky.MindView {
             // stopButton
             // 
             this.stopButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.stopButton.Location = new System.Drawing.Point(701, 294);
+            this.stopButton.Location = new System.Drawing.Point(838, 512);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(80, 24);
             this.stopButton.TabIndex = 1;
@@ -209,12 +209,11 @@ namespace NeuroSky.MindView {
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
             this.portText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portText_KeyPress);
-            
             // 
             // statusLabel
             // 
             this.statusLabel.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusLabel.Location = new System.Drawing.Point(12, 314);
+            this.statusLabel.Location = new System.Drawing.Point(12, 532);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(400, 24);
             this.statusLabel.TabIndex = 4;
@@ -224,7 +223,7 @@ namespace NeuroSky.MindView {
             // 
             this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.realtimeHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(883, 9);
+            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(1019, 9);
             this.realtimeHeartRateLabel.Name = "realtimeHeartRateLabel";
             this.realtimeHeartRateLabel.Size = new System.Drawing.Size(51, 24);
             this.realtimeHeartRateLabel.TabIndex = 5;
@@ -243,7 +242,7 @@ namespace NeuroSky.MindView {
             // 
             this.averageHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.averageHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.averageHeartRateLabel.Location = new System.Drawing.Point(883, 39);
+            this.averageHeartRateLabel.Location = new System.Drawing.Point(1019, 39);
             this.averageHeartRateLabel.Name = "averageHeartRateLabel";
             this.averageHeartRateLabel.Size = new System.Drawing.Size(51, 24);
             this.averageHeartRateLabel.TabIndex = 14;
@@ -253,7 +252,7 @@ namespace NeuroSky.MindView {
             // realtimeHeartRateLabelIndicator
             // 
             this.realtimeHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(733, 11);
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(869, 11);
             this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
             this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
@@ -263,7 +262,7 @@ namespace NeuroSky.MindView {
             // averageHeartRateLabelIndicator
             // 
             this.averageHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(733, 42);
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(869, 42);
             this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
             this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.averageHeartRateLabelIndicator.TabIndex = 16;
@@ -276,7 +275,7 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.Location = new System.Drawing.Point(0, 76);
             this.rawGraphPanel.Name = "rawGraphPanel";
             this.rawGraphPanel.samplingRate = 10;
-            this.rawGraphPanel.Size = new System.Drawing.Size(938, 203);
+            this.rawGraphPanel.Size = new System.Drawing.Size(1079, 430);
             this.rawGraphPanel.TabIndex = 0;
             this.rawGraphPanel.xAxisMax = 0D;
             this.rawGraphPanel.xAxisMin = 0D;
@@ -285,7 +284,7 @@ namespace NeuroSky.MindView {
             // 
             // MainForm
             // 
-            this.ClientSize = new System.Drawing.Size(939, 337);
+            this.ClientSize = new System.Drawing.Size(1078, 562);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
             this.Controls.Add(this.averageHeartRateLabel);
