@@ -624,6 +624,7 @@ namespace NeuroSky.MindView {
             this.YMaxTextBox.TabIndex = 10;
             this.YMaxTextBox.Text = "2";
             this.YMaxTextBox.Leave += new System.EventHandler(this.YMaxTextBox_Leave);
+            this.YMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMaxTextBox_KeyPress);
             
             // 
             // YMinTextBox
@@ -634,6 +635,7 @@ namespace NeuroSky.MindView {
             this.YMinTextBox.TabIndex = 10;
             this.YMinTextBox.Text = "-2";
             this.YMinTextBox.Leave += new System.EventHandler(this.YMinTextBox_Leave);
+            this.YMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMinTextBox_KeyPress);
 
             // 
             // XMaxTextBox
@@ -644,6 +646,7 @@ namespace NeuroSky.MindView {
             this.XMaxTextBox.TabIndex = 10;
             this.XMaxTextBox.Text = "4";
             this.XMaxTextBox.Leave += new System.EventHandler(this.XMaxTextBox_Leave);
+            this.XMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMaxTextBox_KeyPress);
 
             // 
             // XMinTextBox
@@ -654,6 +657,7 @@ namespace NeuroSky.MindView {
             this.XMinTextBox.TabIndex = 10;
             this.XMinTextBox.Text = "0";
             this.XMinTextBox.Leave += new System.EventHandler(this.XMinTextBox_Leave);
+            this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
 
             //
             // YMaxLabel
@@ -784,40 +788,80 @@ namespace NeuroSky.MindView {
 
         }
 
+        //cursor leaves the YMaxTextBox
         private void YMaxTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
             try {
                 this.yAxisMax = Double.Parse(YMaxTextBox.Text);
-            } catch(Exception ex) {
-                Console.WriteLine("user entered non integer value");
+            } catch(Exception ex) { }
+        }
+        //user presses enter in the YMaxTextBox
+        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    this.yAxisMax = Double.Parse(YMaxTextBox.Text);
+                } catch(Exception ex) { }
             }
         }
 
 
+        //cursor leaves the YMinTextBox
         private void YMinTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
             try {
                 this.yAxisMin = Double.Parse(YMinTextBox.Text);
-            } catch(Exception ex) {
-                Console.WriteLine("user entered non integer value");
+            } catch(Exception ex) { }
+        }
+        //press the enter button in YMinTextBox
+        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    this.yAxisMin = Double.Parse(YMinTextBox.Text);
+                } catch(Exception ex) { }
             }
         }
 
 
-        //force the x max to be greater than 0
+        //the cursor leaves the XMaxTextBox
         private void XMaxTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
+            //force the x max to be greater than 0
             try {
                 int temp = Int32.Parse(XMaxTextBox.Text);
                 if(temp >= 0) {
                     this.xAxisMax = temp;
                 }
-            } catch(Exception ex) {
-                Console.WriteLine("user entered non integer value");
-            } 
+            } catch(Exception ex) { }
+        }
+        //press enter in the XMaxTextBox
+        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    int temp = Int32.Parse(XMaxTextBox.Text);
+                    if(temp >= 0) {
+                        this.xAxisMax = Int32.Parse(XMaxTextBox.Text);
+                    }
+                } catch(Exception ex) { }
+            }
         }
 
 
+        //cursor leaves the XMinTextBox
         private void XMinTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
             try {
@@ -827,6 +871,22 @@ namespace NeuroSky.MindView {
                 }
             } catch(Exception ex) {
                 Console.WriteLine("user entered non integer value");
+            }
+        }
+        //press the enter key in XMinTextBox
+        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+            // If the key pressed was "Enter"
+            if(e.KeyChar == (char)13) {
+                //suppress the beep sounds by setting e.Handled = true
+                e.Handled = true;
+
+                //verify that the string entered in the box is actually a number (try catch)
+                try {
+                    int temp = Int32.Parse(XMinTextBox.Text);
+                    if(temp >= 0) {
+                        this.xAxisMin = Int32.Parse(XMinTextBox.Text);
+                    }
+                } catch(Exception ex) { }
             }
         }
 
