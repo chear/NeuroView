@@ -622,8 +622,9 @@ namespace NeuroSky.MindView {
             this.YMaxTextBox.Name = "YMaxTextBox";
             this.YMaxTextBox.Size = new System.Drawing.Size(46, 20);
             this.YMaxTextBox.TabIndex = 10;
-            this.YMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMaxTextBox_KeyPress);
-
+            this.YMaxTextBox.Text = "2";
+            this.YMaxTextBox.Leave += new System.EventHandler(this.YMaxTextBox_Leave);
+            
             // 
             // YMinTextBox
             // 
@@ -631,7 +632,8 @@ namespace NeuroSky.MindView {
             this.YMinTextBox.Name = "YMaxTextBox";
             this.YMinTextBox.Size = new System.Drawing.Size(46, 20);
             this.YMinTextBox.TabIndex = 10;
-            this.YMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.YMinTextBox_KeyPress);
+            this.YMinTextBox.Text = "-2";
+            this.YMinTextBox.Leave += new System.EventHandler(this.YMinTextBox_Leave);
 
             // 
             // XMaxTextBox
@@ -640,8 +642,8 @@ namespace NeuroSky.MindView {
             this.XMaxTextBox.Name = "YMaxTextBox";
             this.XMaxTextBox.Size = new System.Drawing.Size(46, 20);
             this.XMaxTextBox.TabIndex = 10;
-            this.XMaxTextBox.Text = " ";
-            this.XMaxTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMaxTextBox_KeyPress);
+            this.XMaxTextBox.Text = "4";
+            this.XMaxTextBox.Leave += new System.EventHandler(this.XMaxTextBox_Leave);
 
             // 
             // XMinTextBox
@@ -650,8 +652,8 @@ namespace NeuroSky.MindView {
             this.XMinTextBox.Name = "YMaxTextBox";
             this.XMinTextBox.Size = new System.Drawing.Size(46, 20);
             this.XMinTextBox.TabIndex = 10;
-            this.XMinTextBox.Text = " ";
-            this.XMinTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.XMinTextBox_KeyPress);
+            this.XMinTextBox.Text = "0";
+            this.XMinTextBox.Leave += new System.EventHandler(this.XMinTextBox_Leave);
 
             //
             // YMaxLabel
@@ -782,76 +784,49 @@ namespace NeuroSky.MindView {
 
         }
 
-        private void YMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                //suppress the beep sounds by setting e.Handled = true
-                e.Handled = true;
-
-                //verify that the string entered in the box is actually a number (try catch)
-                try {
-                    this.yAxisMax = Double.Parse(YMaxTextBox.Text);
-                } catch(Exception ex) {
-                    Console.WriteLine("user entered non integer value");
-                }
+        private void YMaxTextBox_Leave(object sender, EventArgs e) {
+            //verify that the string entered in the box is actually a number (try catch)
+            try {
+                this.yAxisMax = Double.Parse(YMaxTextBox.Text);
+            } catch(Exception ex) {
+                Console.WriteLine("user entered non integer value");
             }
         }
 
 
-        private void YMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                //suppress the beep sounds by setting e.Handled = true
-                e.Handled = true;
-
-                //verify that the string entered in the box is actually a number (try catch)
-                try {
-                    this.yAxisMin = Double.Parse(YMinTextBox.Text);
-                } catch(Exception ex) {
-                    Console.WriteLine("user entered non integer value");
-                }
+        private void YMinTextBox_Leave(object sender, EventArgs e) {
+            //verify that the string entered in the box is actually a number (try catch)
+            try {
+                this.yAxisMin = Double.Parse(YMinTextBox.Text);
+            } catch(Exception ex) {
+                Console.WriteLine("user entered non integer value");
             }
         }
+
 
         //force the x max to be greater than 0
-        private void XMaxTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                //suppress the beep sounds by setting e.Handled = true
-                e.Handled = true;
-
-                //verify that the string entered in the box is actually a number (try catch)
-                try {
-                    int temp = Int32.Parse(XMaxTextBox.Text);
-                    if(temp >= 0) {
-                        this.xAxisMax = temp;
-                    }
-                } catch(Exception ex) {
-                    Console.WriteLine("user entered non integer value");
+        private void XMaxTextBox_Leave(object sender, EventArgs e) {
+            //verify that the string entered in the box is actually a number (try catch)
+            try {
+                int temp = Int32.Parse(XMaxTextBox.Text);
+                if(temp >= 0) {
+                    this.xAxisMax = temp;
                 }
-            }
+            } catch(Exception ex) {
+                Console.WriteLine("user entered non integer value");
+            } 
         }
 
 
-        private void XMinTextBox_KeyPress(object sender, KeyPressEventArgs e) {
-
-            // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
-                //suppress the beep sounds by setting e.Handled = true
-                e.Handled = true;
-
-                //verify that the string entered in the box is actually a number (try catch)
-                try {
-                    int temp = Int32.Parse(XMinTextBox.Text);
-                    if(temp >= 0) {
-                        this.xAxisMin = temp;
-                    }
-                } catch(Exception ex) {
-                    Console.WriteLine("user entered non integer value");
+        private void XMinTextBox_Leave(object sender, EventArgs e) {
+            //verify that the string entered in the box is actually a number (try catch)
+            try {
+                int temp = Int32.Parse(XMinTextBox.Text);
+                if(temp >= 0) {
+                    this.xAxisMin = temp;
                 }
+            } catch(Exception ex) {
+                Console.WriteLine("user entered non integer value");
             }
         }
 

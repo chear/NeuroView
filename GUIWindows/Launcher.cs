@@ -228,6 +228,11 @@ namespace NeuroSky.MindView {
                                 //mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), thinkGearParser.ParsedData[i]["Raw"]));
                                 mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
 
+                                //clear the graph when it's full
+                                if(mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints){
+                                    mainForm.rawGraphPanel.LineGraph.Clear();
+                                }
+
                             } else {
                                 //else, the lp buffer is not yet full. plot zero
                                 mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));

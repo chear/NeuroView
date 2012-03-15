@@ -209,6 +209,7 @@ namespace NeuroSky.MindView {
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
             this.portText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portText_KeyPress);
+            
             // 
             // statusLabel
             // 
@@ -709,6 +710,7 @@ namespace NeuroSky.MindView {
 
             base.OnSizeChanged(e);
         }
+
     }
     /*End of MainForm*/
 }

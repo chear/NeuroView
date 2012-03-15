@@ -49,7 +49,7 @@ namespace NeuroSky.MindView {
         private Size defaultSize;
         private int scrollBarTop;
 
-        private int numberOfPoints;
+        public int numberOfPoints;
 
         private double conversionFactor = 0.0183;
         private int    gain             = 128;
@@ -80,6 +80,7 @@ namespace NeuroSky.MindView {
             {
                 data0.Clear();
             }
+            timeStampIndex = 0;
 
             //Initialize Horizontal Scrollbar
             hScrollBar.Visible = false;
@@ -250,14 +251,23 @@ namespace NeuroSky.MindView {
 
             int tickDistance = 200;     //distance between each tick, in msec
 
-            int numGroups = (int)((xAxisMax - xAxisMin) * (1000 / tickDistance));
-            double stepSize = (double)(xAxisMax - xAxisMin) / (double)numGroups;
+            int numGroups = (int)((xAxisMax - xAxisMin) * (1000 / tickDistance)) + 1;   //number of lines to draw
+            double stepSize = (double)(xAxisMax - xAxisMin) / (double)(numGroups-1);
 
             // Write the labels
-            for(int i = 1; i < numGroups; i++) {
+            for(int i = 0; i <= numGroups; i++) {
                 X = (float)(i * stepSize) + Xoffset;
                 pt = Point2Pixel(X, 0);
-                drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
+                try {
+                    //shift the major gridline slightly so that it's visible on the edge
+                    if(i == numGroups - 1) {
+                        drawingSurface.DrawLine(myPen, pt.X - 2, Y1, pt.X - 2, Y2);
+                    } else {
+                        drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
+                    }
+                } catch(Exception e) {
+                    
+                }
             }
 
             myPen.Dispose();
@@ -266,7 +276,7 @@ namespace NeuroSky.MindView {
 
                 //Labels the x-axis with major grid lines
         private void DrawXAxisMinor(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink);
+            Pen myPen = new Pen(Color.DeepPink,1);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
@@ -312,27 +322,28 @@ namespace NeuroSky.MindView {
 
             for(int i = numLines; i >= 0; i--) {
                 Point tempPoint = Point2Pixel(0, (double)start - (mVolts_step / conversionFactor) * (double)i);
-                //just shift up by 2 pixels for the last line, because it shows up weird
-                if(i == 0) {
-                    drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
-                } else {
-                    drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+                try {
+                    //shift the major gridline slightly so that it's visible on the edge
+                    if(i == numLines) {
+                        drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
+                    } else {
+                        drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+                    }
+                } catch(Exception e) {
+
                 }
             }
-            
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
             System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
-            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
             myBrush2.Dispose();
         }
 
 
         //Labels the y-axis with minor grid lines
         private void DrawYAxisMinor(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink, 2);
+            Pen myPen = new Pen(Color.DeepPink, 1);
 
             double mVolts_step = .1 * gain;     //number of mVolts between each line * gain
             int X = frameWidth;
@@ -347,19 +358,16 @@ namespace NeuroSky.MindView {
 
             for(int i = numLines; i >= 0; i--) {
                 Point tempPoint = Point2Pixel(0, (double)start - (mVolts_step / conversionFactor) * (double)i);
-                //just shift up by 2 pixels for the last line, because it shows up weird
-                if(i == 0) {
-                    drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
-                } else {
+                try {
                     drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
+                } catch(Exception e) {
+
                 }
             }
 
             myPen.Dispose();
             SolidBrush myBrush2 = new SolidBrush(Color.Black);
             System.Drawing.Font myFont2 = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
-            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, 2);                     //convert the label to mV
-            //drawingSurface.DrawString(((int)toVoltage(yAxisMax)).ToString(), myFont2, myBrush2, X - 35, frameHeight - 20);      //convert the label to mV
             myBrush2.Dispose();
         }
 
