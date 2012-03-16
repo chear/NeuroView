@@ -26,7 +26,8 @@ namespace NeuroSky.MindView {
         //TODO: Implement list of a list for multiple data graphing
         public List<List<DataPair>> dataPoints;
 
-        public List<DataPair> data0;          //store the data
+        public List<DataPair> data0;            //store the data
+        public List<DataPair> runningBuffer;    //continuously updated buffer
 
         public int frameHeight = 240;
         public int frameWidth = 760;
@@ -57,7 +58,7 @@ namespace NeuroSky.MindView {
         private int DCOffsetCounter;
         public bool DCRemovalEnabled;
         private double DCOffset = 0;
-        private int roundPrecision = 5;    //number of digits precision. ie 500 means round to +/- 500
+        private int roundPrecision = 300;    //number of digits precision. ie 500 means round to +/- 500
 
         private Thread saveDataThread;
 
@@ -69,7 +70,16 @@ namespace NeuroSky.MindView {
                 data0.Add(p);
             }
 
+            //if DC removal is enabled, keep a continuous log of raw data and
+            //use it to calculate the DC offset
             if(DCRemovalEnabled) {
+                runningBuffer.Add(p);
+
+                //shift the buffer every once in a while (more efficient)
+                if(runningBuffer.Count > numberOfPoints * 3) {    
+                    runningBuffer.RemoveRange(0, runningBuffer.Count - numberOfPoints);
+                }
+
                 calculateDCOffset();
             }
         }
@@ -101,15 +111,15 @@ namespace NeuroSky.MindView {
             //run this function every .5 seconds
             if(DCOffsetCounter >= samplingRate / 16) {
                 DCOffset = 0;
-                lock(data0) {
-                    if(data0.Count > numberOfPoints) {
-                        for(int i = data0.Count - numberOfPoints; i < data0.Count; i++) {
-                            DCOffset = DCOffset + data0[i].data;
+                lock(runningBuffer) {
+                    if(runningBuffer.Count > numberOfPoints) {
+                        for(int i = runningBuffer.Count - numberOfPoints; i < runningBuffer.Count; i++) {
+                            DCOffset = DCOffset + runningBuffer[i].data;
                         }
 
                     } else {
-                        for(int i = 0; i < data0.Count; i++) {
-                            DCOffset = DCOffset + data0[i].data;
+                        for(int i = 0; i < runningBuffer.Count; i++) {
+                            DCOffset = DCOffset + runningBuffer[i].data;
                         }
                     }
                 }
@@ -134,7 +144,7 @@ namespace NeuroSky.MindView {
         {
 
             Graphics drawingSurface = pe.Graphics;
-            Pen myPen = new Pen(Color.Black, 3);
+            Pen myPen = new Pen(Color.Black, 2);
             Rectangle rect = this.ClientRectangle;
 
             frameWidth = rect.Right - rect.Left;
@@ -411,6 +421,7 @@ namespace NeuroSky.MindView {
             this.DoubleBuffered = true;
 
             data0 = new List<DataPair>();
+            runningBuffer = new List<DataPair>();
 
             /*Setting up the timer for the max frame rate*/
             maxFrameRateTimer = new System.Windows.Forms.Timer();
