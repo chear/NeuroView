@@ -89,7 +89,7 @@ namespace NeuroSky.MindView {
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.OptimizeScrollBar();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
-            rawGraphPanel.LineGraph.DCRemovalEnabled = false;
+            rawGraphPanel.LineGraph.DCRemovalEnabled = true;
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
