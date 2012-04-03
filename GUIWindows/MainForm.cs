@@ -420,14 +420,13 @@ namespace NeuroSky.MindView {
         }
 
         //check if there has been an R peak. if so, play a "beep"
-        public void detectRpeak(short eegvalue) {
+        public void detectRpeak(short eegvalue, bool readyToPlay) {
             tgHRVresult = tgHRV.AddData(eegvalue);
 
             if(tgHRVresult > 0) {
-                if(soundCheckBox.Checked) {
+                if((soundCheckBox.Checked) && (readyToPlay)) {
                     player.Play();
                 }
-
             }
         }
 
