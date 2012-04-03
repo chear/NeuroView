@@ -5,16 +5,14 @@ using System.ComponentModel;
 using System.Windows.Forms;
 
 using System.Collections.Generic;
-
 using System.IO;
-
 using System.Text.RegularExpressions;
-
 using System.Threading;
+using System.Xml;
+using System.Media;
 
 using NeuroSky.ThinkGear;
-
-using System.Xml;
+using NeuroSky.ThinkGear.Algorithms;
 
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
@@ -68,6 +66,12 @@ namespace NeuroSky.MindView {
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
 
+        private int tgHRVresult;
+        private CheckBox soundCheckBox;
+        private TGHrv tgHRV;
+
+        SoundPlayer player;
+
         public MainForm() {
 
             saveFileGUI = new SaveFileGUI();
@@ -112,8 +116,15 @@ namespace NeuroSky.MindView {
 
             currentPath = Directory.GetCurrentDirectory();
 
+            tgHRV = new TGHrv();
+
             this.MinimumSize = new System.Drawing.Size(711, 322);
 
+            //grab the embedded audio file to play. note that player.Play() is a nonblocking function, so you can plot
+            //and play audio and record data at the same time
+            System.Reflection.Assembly a = System.Reflection.Assembly.GetExecutingAssembly();
+            System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.ThinkGear.heartbeep.wav");
+            player = new SoundPlayer(s);
         }
 
         /// <summary>
@@ -149,12 +160,13 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
+            this.soundCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // connectButton
             // 
             this.connectButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.connectButton.Location = new System.Drawing.Point(136, 24);
+            this.connectButton.Location = new System.Drawing.Point(134, 12);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(80, 24);
             this.connectButton.TabIndex = 1;
@@ -183,7 +195,7 @@ namespace NeuroSky.MindView {
             // 
             // disconnectButton
             // 
-            this.disconnectButton.Location = new System.Drawing.Point(136, 24);
+            this.disconnectButton.Location = new System.Drawing.Point(134, 12);
             this.disconnectButton.Name = "disconnectButton";
             this.disconnectButton.Size = new System.Drawing.Size(80, 24);
             this.disconnectButton.TabIndex = 1;
@@ -203,7 +215,7 @@ namespace NeuroSky.MindView {
             // portText
             // 
             this.portText.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.portText.Location = new System.Drawing.Point(12, 26);
+            this.portText.Location = new System.Drawing.Point(10, 14);
             this.portText.Name = "portText";
             this.portText.Size = new System.Drawing.Size(80, 21);
             this.portText.TabIndex = 2;
@@ -282,9 +294,21 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.yAxisMax = 0D;
             this.rawGraphPanel.yAxisMin = 0D;
             // 
+            // soundCheckBox
+            // 
+            this.soundCheckBox.AutoSize = true;
+            this.soundCheckBox.Font = new System.Drawing.Font("Arial", 9F);
+            this.soundCheckBox.Location = new System.Drawing.Point(134, 46);
+            this.soundCheckBox.Name = "soundCheckBox";
+            this.soundCheckBox.Size = new System.Drawing.Size(104, 19);
+            this.soundCheckBox.TabIndex = 17;
+            this.soundCheckBox.Text = "Enable Sound";
+            this.soundCheckBox.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.soundCheckBox);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
             this.Controls.Add(this.averageHeartRateLabel);
@@ -394,6 +418,20 @@ namespace NeuroSky.MindView {
 
             recordFlag = true;
         }
+
+        //check if there has been an R peak. if so, play a "beep"
+        public void detectRpeak(short eegvalue) {
+            tgHRVresult = tgHRV.AddData(eegvalue);
+
+            if(tgHRVresult > 0) {
+                if(soundCheckBox.Checked) {
+                    player.Play();
+                }
+
+            }
+        }
+
+
 
         //stop button clicked
         private void stopButton_Click(object sender, System.EventArgs e) {
@@ -703,13 +741,12 @@ namespace NeuroSky.MindView {
 
             clearButton.Location = new System.Drawing.Point(this.Width - 117, this.Height - 73);
 
-            rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, connectButton.Location.Y + connectButton.Height + 18);
+            rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, soundCheckBox.Location.Y + soundCheckBox.Height + 9);
             rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
             rawGraphPanel.Width = this.Width - 10;
 
             base.OnSizeChanged(e);
         }
-
     }
     /*End of MainForm*/
 }

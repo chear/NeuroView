@@ -199,6 +199,9 @@ namespace NeuroSky.MindView {
                             mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
                             mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
 
+                            //pass the data off for peak detection
+                            mainForm.detectRpeak((short)thinkGearParser.ParsedData[i]["Raw"]);
+
                             //clear the graph when it's full
                             if(mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints) {
                                 mainForm.rawGraphPanel.LineGraph.Clear();

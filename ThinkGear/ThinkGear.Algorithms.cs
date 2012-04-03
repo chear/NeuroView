@@ -16,12 +16,10 @@ using System.Threading;
 
 namespace NeuroSky.ThinkGear.Algorithms {
 
-    public class BlinkDetector
-    {
+    public class BlinkDetector {
 
         /* Defines the Blink States*/
-        private enum BlinkState
-        {
+        private enum BlinkState {
             NO_BLINK,
             NORMAL_BLINK_UPPER,
             NORMAL_BLINK_LOWER,
@@ -35,11 +33,11 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
         private const int BUFFER_SIZE = 512;
 
-        private short i             = 0;
+        private short i = 0;
         private short bufferCounter = 0;
-        private short[] buffer      = new short[BUFFER_SIZE];  /* initialize an array of size BUFFER_SIZE*/
+        private short[] buffer = new short[BUFFER_SIZE];  /* initialize an array of size BUFFER_SIZE*/
 
-        private const int DATA_MEAN          = 33;
+        private const int DATA_MEAN = 33;
         private const int POS_VOLT_THRESHOLD = 230;  /* DATA_MEAN+265*/
         private const int NEG_VOLT_THRESHOLD = -200; /* DATA_MEAN-265*/
         private const int DISTANCE_THRESHOLD = 120;
@@ -49,20 +47,20 @@ namespace NeuroSky.ThinkGear.Algorithms {
         private const int MAX_LEFT_RIGHT = 25;
 
         private const int MEAN_VARIABILITY = 200;
-        private const int BLINK_LENGTH     = 50;
-        private const int MIN_MAX_DIFF     = 500;
+        private const int BLINK_LENGTH = 50;
+        private const int MIN_MAX_DIFF = 500;
 
-        private const int POORSIGNAL_THRESHOLD = 51;   
+        private const int POORSIGNAL_THRESHOLD = 51;
 
         private BlinkState state = BlinkState.NO_BLINK;    /* initialize the variable "state" to NO_BLINK*/
 
         /* initialize various variables*/
         private short blinkStart = -1;
-        private short outerLow   = -1;
-        private short innerLow   = -1;
-        private short innerHigh  = -1;
-        private short outerHigh  = -1;
-        private short blinkEnd   = -1;
+        private short outerLow = -1;
+        private short innerLow = -1;
+        private short innerHigh = -1;
+        private short outerHigh = -1;
+        private short blinkEnd = -1;
 
         private short maxValue = 0;
         private short minValue = 0;
@@ -70,7 +68,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
         private short blinkStrength = 0;
 
         private double meanVariablityThreshold = 0;
-        private double average                 = 0;
+        private double average = 0;
 
 
 
@@ -79,92 +77,80 @@ namespace NeuroSky.ThinkGear.Algorithms {
          * indicating the blink strength otherwise.
          */
 
-        public byte Detect(byte poorSignalQualityValue, short eegValue)
-        {
-            if (poorSignalQualityValue < POORSIGNAL_THRESHOLD)    /*if poorSignal is less than 51, continue with algorithm*/
-            {
+        public byte Detect(byte poorSignalQualityValue, short eegValue) {
+            if(poorSignalQualityValue < POORSIGNAL_THRESHOLD)    /*if poorSignal is less than 51, continue with algorithm*/ {
                 /* update the buffer with the latest eegValue*/
-                for (i = 0; i < BUFFER_SIZE - 1; i++)
-                {
+                for(i = 0; i < BUFFER_SIZE - 1; i++) {
                     buffer[i] = buffer[i + 1];
                 }
                 buffer[BUFFER_SIZE - 1] = (short)eegValue;
 
                 /* Counting the number of points in the buffer to make sure you have 512*/
-                if (bufferCounter < 512)
-                {
+                if(bufferCounter < 512) {
                     bufferCounter++;
                 }
 
-                if ( bufferCounter > (BUFFER_SIZE - 1) )    /* if the buffer is full (it has BUFFER_SIZE number of points)*/
-                {
-                    switch (state)
-                    {
+                if(bufferCounter > (BUFFER_SIZE - 1))    /* if the buffer is full (it has BUFFER_SIZE number of points)*/ {
+                    switch(state) {
                         case BlinkState.NO_BLINK:
 
-                            if (eegValue > POS_VOLT_THRESHOLD)
-                            {
+                            if(eegValue > POS_VOLT_THRESHOLD) {
                                 blinkStart = -1;
-                                innerLow   = -1;
-                                innerHigh  = -1;
-                                outerHigh  = -1;
-                                blinkEnd   = -1;
+                                innerLow = -1;
+                                innerHigh = -1;
+                                outerHigh = -1;
+                                blinkEnd = -1;
 
                                 outerLow = BUFFER_SIZE - 1;
                                 maxValue = eegValue;
-                                state    = BlinkState.NORMAL_BLINK_UPPER;
+                                state = BlinkState.NORMAL_BLINK_UPPER;
                             }
 
-                            
-                            if (eegValue < NEG_VOLT_THRESHOLD)
-                            {
+
+                            if(eegValue < NEG_VOLT_THRESHOLD) {
                                 blinkStart = -1;
-                                innerLow   = -1;
-                                innerHigh  = -1;
-                                outerHigh  = -1;
-                                blinkEnd   = -1;
+                                innerLow = -1;
+                                innerHigh = -1;
+                                outerHigh = -1;
+                                blinkEnd = -1;
 
                                 outerLow = BUFFER_SIZE - 1;
                                 minValue = eegValue;
-                                state    = BlinkState.INVERTED_BLINK_LOWER;
+                                state = BlinkState.INVERTED_BLINK_LOWER;
                             }
 
                             break;
 
                         case BlinkState.NORMAL_BLINK_UPPER:
                             /* Monitors the DISTANCE_THRESHOLD*/
-                            if (((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD || outerLow < 1)
-                            {
+                            if(((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD || outerLow < 1) {
                                 state = BlinkState.NO_BLINK;
                             }
 
                             outerLow--;		//decrement the index of outerlow to account for shifting of the buffer
 
                             //Monitors the innerLow value.
-                            if (eegValue <= POS_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD)	//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
+                            if(eegValue <= POS_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD)	//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
                             {
                                 innerLow = BUFFER_SIZE - 2;		//then innerLow is defined to be the previous value
-                            }
-                            else
-                            {
+                            } else {
                                 innerLow--;
                             }
 
                             //Monitors the maximum value
-                            if (eegValue > maxValue) maxValue = eegValue;
+                            if(eegValue > maxValue) maxValue = eegValue;
 
                             //When it hits the negative threshold, set that to be the innerHigh and set the state to NORMAL_BLINK_LOWER.
-                            if (eegValue < NEG_VOLT_THRESHOLD)	//if we are below the NEG_VOLT_THRESH
+                            if(eegValue < NEG_VOLT_THRESHOLD)	//if we are below the NEG_VOLT_THRESH
                             {
                                 innerHigh = BUFFER_SIZE - 1;	//innerHigh is the current value
                                 minValue = eegValue;
 
                                 //Verify the INNER_DISTANCE_THRESHOLD
-                                if ((innerHigh - innerLow) < INNER_DISTANCE_THRESHOLD)	//if the distance btwn innerHigh and innerLow isn't too long
+                                if((innerHigh - innerLow) < INNER_DISTANCE_THRESHOLD)	//if the distance btwn innerHigh and innerLow isn't too long
                                 {
                                     state = BlinkState.NORMAL_BLINK_LOWER;
-                                }
-                                else		//otherwise the distance btwn innerHigh and innerLow is too much and it wasn't actually a blink
+                                } else		//otherwise the distance btwn innerHigh and innerLow is too much and it wasn't actually a blink
                                 {
                                     state = BlinkState.NO_BLINK;
                                 }
@@ -174,8 +160,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
                         case BlinkState.INVERTED_BLINK_LOWER:
                             /* Monitors the DISTANCE_THRESHOLD*/
-                            if (((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD || outerLow < 1)
-                            {
+                            if(((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD || outerLow < 1) {
                                 state = BlinkState.NO_BLINK;
                                 return 0;
                             }
@@ -183,31 +168,24 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             outerLow--;
 
                             //Monitors the innerLow value.
-                            if (eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)
-                            {
+                            if(eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD) {
                                 innerLow = BUFFER_SIZE - 2;
-                            }
-                            else
-                            {
+                            } else {
                                 innerLow--;
                             }
 
                             //Monitors the minimum value
-                            if (eegValue < minValue) minValue = eegValue;
+                            if(eegValue < minValue) minValue = eegValue;
 
                             //When it hits the positive threshold, set that to be innerHigh and set the state to INVERTED_BLINK_UPPER.
-                            if (eegValue > POS_VOLT_THRESHOLD)
-                            {
+                            if(eegValue > POS_VOLT_THRESHOLD) {
                                 innerHigh = BUFFER_SIZE - 1;
                                 maxValue = eegValue;
 
                                 //Verify the INNER_DISTANCE_THRESHOLD
-                                if (innerHigh - innerLow < INNER_DISTANCE_THRESHOLD)
-                                {
+                                if(innerHigh - innerLow < INNER_DISTANCE_THRESHOLD) {
                                     state = BlinkState.INVERTED_BLINK_UPPER;
-                                }
-                                else
-                                {
+                                } else {
                                     state = BlinkState.NO_BLINK;
                                 }
                             }
@@ -220,22 +198,18 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             innerHigh--;
 
                             /* Monitors the outerHigh value*/
-                            if (eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)	/* if the current value is greater than NEG_VOLT_THRESH and the previous value is less than NEG_VOLT_THRESH*/
-                            {
+                            if(eegValue >= NEG_VOLT_THRESHOLD && buffer[BUFFER_SIZE - 2] < NEG_VOLT_THRESHOLD)	/* if the current value is greater than NEG_VOLT_THRESH and the previous value is less than NEG_VOLT_THRESH*/ {
                                 outerHigh = BUFFER_SIZE - 2;		/* then the previous value is defined to be outerHigh*/
                                 state = BlinkState.NORMAL_BLINK_VERIFY;
-                            }
-                            else
-                            {
+                            } else {
                                 outerHigh--;
                             }
 
                             /* Monitors the minimum value*/
-                            if (eegValue < minValue) minValue = eegValue;
+                            if(eegValue < minValue) minValue = eegValue;
 
                             /* Monitors the DISTANCE_THRESHOLD*/
-                            if (((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD)    /* if the distance from the current point to outerLow is greater than DIST_THRESH*/
-                            {
+                            if(((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD)    /* if the distance from the current point to outerLow is greater than DIST_THRESH*/ {
                                 outerHigh = BUFFER_SIZE - 1;
                                 state = BlinkState.NORMAL_BLINK_VERIFY;
                             }
@@ -248,22 +222,19 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             innerHigh--;
 
                             //Monitors the outerHigh value.
-                            if ((eegValue <= POS_VOLT_THRESHOLD) && (buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD))		//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
+                            if((eegValue <= POS_VOLT_THRESHOLD) && (buffer[BUFFER_SIZE - 2] > POS_VOLT_THRESHOLD))		//if the current value is less than POS_VOLT_THRESH and the previous value is greater than POS_VOLT_THRESH
                             {
                                 outerHigh = BUFFER_SIZE - 2;			//then the previous value is defined as outerHigh
                                 state = BlinkState.INVERTED_BLINK_VERIFY;
-                            }
-                            else
-                            {
+                            } else {
                                 outerHigh--;
                             }
 
                             //Monitors the maximum value
-                            if (eegValue > maxValue) maxValue = eegValue;
+                            if(eegValue > maxValue) maxValue = eegValue;
 
                             //Monitors the DISTANCE_THRESHOLD
-                            if (((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD)
-                            {
+                            if(((BUFFER_SIZE - 1) - outerLow) > DISTANCE_THRESHOLD) {
                                 outerHigh = BUFFER_SIZE - 1;
                                 state = BlinkState.INVERTED_BLINK_VERIFY;
                             }
@@ -274,41 +245,34 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             innerLow--;
                             innerHigh--;
 
-                            if (eegValue < NEG_VOLT_THRESHOLD) //if the current value is less than NEG_VOLT_THRES
+                            if(eegValue < NEG_VOLT_THRESHOLD) //if the current value is less than NEG_VOLT_THRES
                             {
                                 state = BlinkState.NORMAL_BLINK_LOWER;
-                            }
-                            else
-                            {
+                            } else {
                                 outerHigh--;
                             }
 
                             //Set the endBlink to when it hits the mean or it hits MAX_LEFT_RIGHT.
-                            if (((BUFFER_SIZE - 1) - outerHigh > MAX_LEFT_RIGHT) || (eegValue > DATA_MEAN))
-                            {
+                            if(((BUFFER_SIZE - 1) - outerHigh > MAX_LEFT_RIGHT) || (eegValue > DATA_MEAN)) {
                                 blinkEnd = BUFFER_SIZE - 1;
                             }
 
                             //Checks if the value is back at the DATA_MEAN
-                            if (blinkEnd > 0)
-                            {
+                            if(blinkEnd > 0) {
                                 //Verifies the Blink
                                 //Sets the blinkStart to when it hits the mean or it hits MAX_LEFT_RIGHT.
-                                for (i = 0; i < MAX_LEFT_RIGHT; i++)
-                                {
+                                for(i = 0; i < MAX_LEFT_RIGHT; i++) {
 
                                     blinkStart = (short)(outerLow - i);
 
-                                    if (buffer[outerLow - i] < DATA_MEAN)
-                                    {
+                                    if(buffer[outerLow - i] < DATA_MEAN) {
                                         break;
                                     }
                                 }
 
                                 //Verify the MIN_MAX_DIFF
                                 blinkStrength = (short)(maxValue - minValue);
-                                if (blinkStrength < MIN_MAX_DIFF)
-                                {
+                                if(blinkStrength < MIN_MAX_DIFF) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
@@ -317,40 +281,34 @@ namespace NeuroSky.ThinkGear.Algorithms {
                                 //Verify the MEAN_VARIABILITY
                                 meanVariablityThreshold = blinkStrength / 993 * MEAN_VARIABILITY;
                                 average = 0;
-                                for (i = blinkStart; i < blinkEnd + 1; i++)
-                                {
+                                for(i = blinkStart; i < blinkEnd + 1; i++) {
                                     average += buffer[i];
                                 }
                                 average /= (blinkEnd - blinkStart + 1);
                                 /*take abs value of average*/
-                                if (average < 0)
-                                {
+                                if(average < 0) {
                                     average = average * -1;
                                 }
-                                                                
-                                if (average > MEAN_VARIABILITY)
-                                {
+
+                                if(average > MEAN_VARIABILITY) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //Verify the BLINK_LENGTH
-                                if (blinkEnd - blinkStart < BLINK_LENGTH)
-                                {
+                                if(blinkEnd - blinkStart < BLINK_LENGTH) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //verify that blinkStart is between POS_VOLT_THRESHOLD and NEG_VOLT_THRESHOLD
-                                if ((buffer[blinkStart] > POS_VOLT_THRESHOLD) || (buffer[blinkStart] < NEG_VOLT_THRESHOLD))
-                                {
+                                if((buffer[blinkStart] > POS_VOLT_THRESHOLD) || (buffer[blinkStart] < NEG_VOLT_THRESHOLD)) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //verify that blinkEnd is between POS_VOLT_THRESHOLD and NEG_VOLT_THRESHOLD
-                                if ((buffer[blinkEnd] > POS_VOLT_THRESHOLD) || (buffer[blinkEnd] < NEG_VOLT_THRESHOLD))
-                                {
+                                if((buffer[blinkEnd] > POS_VOLT_THRESHOLD) || (buffer[blinkEnd] < NEG_VOLT_THRESHOLD)) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
@@ -366,40 +324,32 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             innerLow--;
                             innerHigh--;
 
-                            if (eegValue > POS_VOLT_THRESHOLD)
-                            {
+                            if(eegValue > POS_VOLT_THRESHOLD) {
                                 state = BlinkState.INVERTED_BLINK_UPPER;
-                            }
-                            else
-                            {
+                            } else {
                                 outerHigh--;
                             }
 
                             //Set the endBlink to when it hits the mean or it hits MAX_LEFT_RIGHT.
-                            if (((BUFFER_SIZE - 1) - outerHigh > MAX_LEFT_RIGHT) || (eegValue < DATA_MEAN))
-                            {
+                            if(((BUFFER_SIZE - 1) - outerHigh > MAX_LEFT_RIGHT) || (eegValue < DATA_MEAN)) {
                                 blinkEnd = BUFFER_SIZE - 1;
                             }
 
                             //Checks if the value is back at the DATA_MEAN
-                            if (blinkEnd > 0)
-                            {
+                            if(blinkEnd > 0) {
                                 //Verifies the Blink
                                 //Sets the blinkStart to when it hits the mean or it hits MAX_LEFT_RIGHT.
-                                for (i = 0; i < MAX_LEFT_RIGHT; i++)
-                                {
+                                for(i = 0; i < MAX_LEFT_RIGHT; i++) {
                                     blinkStart = (short)(outerLow - i);
 
-                                    if (buffer[outerLow - i] > DATA_MEAN)
-                                    {
+                                    if(buffer[outerLow - i] > DATA_MEAN) {
                                         break;
                                     }
                                 }
 
                                 //Verify the MIN_MAX_DIFF
                                 blinkStrength = (short)(maxValue - minValue);
-                                if (blinkStrength < MIN_MAX_DIFF)
-                                {
+                                if(blinkStrength < MIN_MAX_DIFF) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
@@ -409,40 +359,34 @@ namespace NeuroSky.ThinkGear.Algorithms {
                                 //Verify the MEAN_VARIABILITY
                                 meanVariablityThreshold = blinkStrength / 993 * MEAN_VARIABILITY;
                                 average = 0;
-                                for (i = blinkStart; i < blinkEnd + 1; i++)
-                                {
+                                for(i = blinkStart; i < blinkEnd + 1; i++) {
                                     average += buffer[i];
                                 }
                                 average /= (blinkEnd - blinkStart + 1);
                                 /*take abs value of average*/
-                                if (average < 0)
-                                {
+                                if(average < 0) {
                                     average = average * -1;
                                 }
 
-                                if (average > MEAN_VARIABILITY)
-                                {
+                                if(average > MEAN_VARIABILITY) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //Verify the BLINK_LENGTH
-                                if (blinkEnd - blinkStart < BLINK_LENGTH)
-                                {
+                                if(blinkEnd - blinkStart < BLINK_LENGTH) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //verify that blinkStart is between POS_VOLT_THRESHOLD and NEG_VOLT_THRESHOLD
-                                if ((buffer[blinkStart] > POS_VOLT_THRESHOLD) || (buffer[blinkStart] < NEG_VOLT_THRESHOLD))
-                                {
+                                if((buffer[blinkStart] > POS_VOLT_THRESHOLD) || (buffer[blinkStart] < NEG_VOLT_THRESHOLD)) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
 
                                 //verify that blinkEnd is between POS_VOLT_THRESHOLD and NEG_VOLT_THRESHOLD
-                                if ((buffer[blinkEnd] > POS_VOLT_THRESHOLD) || (buffer[blinkEnd] < NEG_VOLT_THRESHOLD))
-                                {
+                                if((buffer[blinkEnd] > POS_VOLT_THRESHOLD) || (buffer[blinkEnd] < NEG_VOLT_THRESHOLD)) {
                                     state = BlinkState.NO_BLINK;
                                     return 0;
                                 }
@@ -459,9 +403,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
                             break;
                     }
                 }
-            }
-            else	/* poorsignal is greater than 51 and do not evaluate the algorithm */
-            {
+            } else	/* poorsignal is greater than 51 and do not evaluate the algorithm */ {
                 bufferCounter = 0;
                 outerLow = -1;
                 innerLow = -1;
@@ -579,6 +521,180 @@ namespace NeuroSky.ThinkGear.Algorithms {
                     y[i] /= n;
                 }
             }
+        }
+    }
+
+    public class TGHrv {
+
+        private short x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15;
+
+        private int dataCount;		//count how many data points been processed within a second
+        private int secondCount;	//count how many seconds of data been processed
+        private bool rWaveUp;		//=1 indicates ECG wave is at around R wave peak
+        private bool oldPeakFound;	//=1 indicates just found the previous peak
+        private bool newPeakFound;	//=1 indicatess
+        private int sampleRate; 	// sample rate
+        private int rrInt;			// the calculated RR interval value 
+        private int diffX;
+        private int diffXNew;
+        private int diffXOld;
+        private int peakThresholdUp;
+        private int peakThresholdDown;
+
+        private int ThPcntU;		// threshold for comparing the Rpeak to previous Rpeak
+        private int ThPcntD;
+        private int pointsCount;
+        private int minDistance; 		// closest time an R wave can be detected
+        private int ibi;
+        private int nbeats;
+        private int realibi;
+        private int HB0;
+
+        private double HBUpL;
+        private double HBDnL;
+
+        public TGHrv() {
+            // initialization
+            Reset();
+        }
+
+        public void Reset() {
+            x0 = x1 = x2 = x3 = x4 = x5 = x6 = x7 = x8 = x9 = x10 = x11 = x12 = x13 = x14 = x15 = 0;
+            dataCount = 0;
+            secondCount = 0;
+            rWaveUp = false;
+            oldPeakFound = false;
+            newPeakFound = false;
+            sampleRate = 512;
+            rrInt = 0;
+            diffX = 0;
+            diffXNew = 3000;
+            diffXOld = 3000;
+            peakThresholdUp = 0;
+            peakThresholdDown = 0;
+
+            pointsCount = 0;
+            ThPcntU = 55;
+            ThPcntD = 20;
+            minDistance = 153;
+            HBUpL = 1.4;
+            HBDnL = 0.6;
+            HB0 = 0;
+            ibi = 0;
+            nbeats = 0;
+            realibi = 153;
+        }
+
+        public int AddData(short data) {
+            int returnval = -1;
+
+            // when a new raw data is available
+            x0 = x1;
+            x1 = x2;
+            x2 = x3;
+            x3 = x4;
+            x4 = x5;
+            x5 = x6;
+            x6 = x7;
+            x7 = x8;
+            x8 = x9;
+            x9 = x10;
+            x10 = x11;
+            x11 = x12;
+            x12 = x13;
+            x13 = x14;
+            x14 = x15;
+            x15 = data;
+            diffX = x0 - x15;
+
+            if(dataCount == sampleRate * 2) {
+
+                secondCount += 2;
+                dataCount = 0;
+                if(diffXOld > (3 * diffXNew) / 2) {
+                    diffXNew = (3 * diffXNew) / 2;
+                } else {
+                    diffXNew = diffXOld;
+                }
+
+                diffXNew = Math.Min(diffXNew, 6000);
+                diffXNew = Math.Max(diffXNew, 600);
+                diffXOld = 0;
+            }
+            dataCount++;
+
+            if(diffX >= diffXOld)
+                diffXOld = diffX; // find out the Diff Max within 2 seconds;
+
+            if(secondCount < 2) {
+                diffXNew = diffXOld;
+            }
+
+            if(secondCount >= 0) {
+
+                peakThresholdUp = diffXNew * ThPcntU / 100;
+                peakThresholdDown = diffXNew * ThPcntD / 100;
+
+                if(!rWaveUp && diffX >= peakThresholdUp) { // going up the slope
+                    rWaveUp = true;
+                }
+
+                if(rWaveUp && diffX <= peakThresholdDown && !newPeakFound) { // going down
+                    oldPeakFound = true;
+                }
+
+                if(oldPeakFound && (diffX >= peakThresholdUp || -diffX >= (3 * peakThresholdUp) / 2 + 1)) { // looking for new peak
+                    newPeakFound = true;
+
+                    if(pointsCount < realibi) {
+                        oldPeakFound = false;
+                        if(nbeats < 2) pointsCount = 0;
+                        rrInt = 0;
+                    }
+
+                    if(pointsCount >= realibi) { // checking if there is enough distance
+
+                        oldPeakFound = false;
+                        rrInt = pointsCount;
+                        pointsCount = 0;
+
+                    }
+                }
+
+                if((pointsCount == 0) && (rrInt != 0)) {
+                    if(HB0 == 0) HB0 = rrInt;
+                    else returnval = rrInt;
+
+                    nbeats = nbeats + 1;
+                    if(rrInt > 1500) {
+                        nbeats = 0;
+                        ibi = 0;
+                        realibi = 153;
+                    }
+                    if(nbeats >= 3) {
+                        if(ibi == 0) {
+                            if(rrInt > 153 && rrInt < 1000)
+                                ibi = rrInt;
+                        } else {
+                            if(rrInt > 153 && rrInt < (5 * ibi) / 2)
+                                ibi = (rrInt + (4 * ibi)) / 5;
+                        }
+                    }
+                    if(nbeats > 6 || ((ibi > 300) && (ibi < 400))) {
+                        realibi = (3 * ibi) / 4;
+                    }
+                }
+
+                if(newPeakFound) {
+                    pointsCount++;
+                    if(diffX <= peakThresholdDown) {
+                        oldPeakFound = true;
+                    }
+                }
+            }
+
+            // return value
+            return returnval;
         }
     }
 }
