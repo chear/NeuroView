@@ -637,6 +637,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
                 if(!rWaveUp && diffX >= peakThresholdUp) { // going up the slope
                     rWaveUp = true;
+                    
                 }
 
                 if(rWaveUp && diffX <= peakThresholdDown && !newPeakFound) { // going down

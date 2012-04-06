@@ -66,11 +66,8 @@ namespace NeuroSky.MindView {
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
 
-        private int tgHRVresult;
-        private CheckBox soundCheckBox;
-        private TGHrv tgHRV;
-
-        SoundPlayer player;
+        public CheckBox soundCheckBox;
+        public SoundPlayer player;
 
         public MainForm() {
 
@@ -115,8 +112,6 @@ namespace NeuroSky.MindView {
             realTimeHBValueBuffer = new double[realTimeHBBufferLength];
 
             currentPath = Directory.GetCurrentDirectory();
-
-            tgHRV = new TGHrv();
 
             this.MinimumSize = new System.Drawing.Size(711, 322);
 
@@ -418,18 +413,6 @@ namespace NeuroSky.MindView {
 
             recordFlag = true;
         }
-
-        //check if there has been an R peak. if so, play a "beep"
-        public void detectRpeak(short eegvalue, bool readyToPlay) {
-            tgHRVresult = tgHRV.AddData(eegvalue);
-
-            if(tgHRVresult > 0) {
-                if((soundCheckBox.Checked) && (readyToPlay)) {
-                    player.Play();
-                }
-            }
-        }
-
 
 
         //stop button clicked

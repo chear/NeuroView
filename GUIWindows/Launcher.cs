@@ -22,6 +22,9 @@ namespace NeuroSky.MindView {
         MainForm mainForm;
         Device device;
 
+        private TGHrv tgHRV;        //the RR interval detection algorithm
+        private int tgHRVresult;    //output of the method
+
         private byte[] bytesToSend;     //bytes to send for EGO
         private int rawCounter;     //counter for delay of EGO output
         private int delay;          //delay for lead on/lead off
@@ -46,6 +49,7 @@ namespace NeuroSky.MindView {
         
         public Launcher() {
             mainForm = new MainForm();
+            tgHRV = new TGHrv();
 
             connector = new Connector();
             connector.DeviceConnected += new EventHandler(OnDeviceConnected);
@@ -74,7 +78,7 @@ namespace NeuroSky.MindView {
 
             //counter to track when we should plot
             bufferCounter_raw = 0;
-            
+ 
         }
 
         /// <summary>
@@ -180,19 +184,19 @@ namespace NeuroSky.MindView {
 
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
-
+                    
                     //if signal is good
                     if(mainForm.poorQuality == 200) {
                         rawCounter++;
 
+                        //pass the data off for peak detection. also pass whether we are ready to play the beep sound
+                        detectRpeak((short)thinkGearParser.ParsedData[i]["Raw"], (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
+                    
                         //update the buffer with the latest eeg value
                         Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
                         tempeegBuffer[bufferSize_hp - 1] = (double)thinkGearParser.ParsedData[i]["Raw"];
                         Array.Copy(tempeegBuffer, eegBuffer, bufferSize_hp);
                         bufferCounter_raw++;
-
-                        //pass the data off for peak detection. also pass whether we are ready to play the beep sound
-                        mainForm.detectRpeak((short)thinkGearParser.ParsedData[i]["Raw"], (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
 
                         //if the eeg buffer is full, and "delay" seconds have already passed
                         if((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp)) {
@@ -214,7 +218,7 @@ namespace NeuroSky.MindView {
                         }
 
                     } else {
-                        //otherwise signal is bad, plot zero. reset counter
+                        //otherwise signal is bad, plot zero. reset counter. reset HRV
                         rawCounter = 0;
                         bufferCounter_raw = 0;
 
@@ -222,6 +226,8 @@ namespace NeuroSky.MindView {
 
                         mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                         mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                        tgHRV.Reset();
                     }
                 }
 
@@ -246,6 +252,20 @@ namespace NeuroSky.MindView {
                 /* End "Check for the data flag for each panel..." */
             }
         }
+
+
+        //check if there has been an R peak. if so, play a "beep"
+        public void detectRpeak(short eegvalue, bool readyToPlay) {
+            tgHRVresult = tgHRV.AddData(eegvalue);
+
+            if(tgHRVresult > 0) {
+                if((mainForm.soundCheckBox.Checked) && (readyToPlay)) {
+                    //Console.WriteLine("RR interval = " + tgHRVresult);
+                    mainForm.player.Play();
+                }
+            }
+        }
+
 
         void OnConnectButtonClicked(object sender, EventArgs e) {
             string portName = mainForm.portText.Text.ToUpper();
@@ -294,6 +314,7 @@ namespace NeuroSky.MindView {
             //make the byteToSend null so it will be resent when pressing connect
             bytesToSend = null;
         }
+
 
 
         delegate void UpdateVisibilityDelegate(bool enable);
