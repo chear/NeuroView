@@ -421,31 +421,33 @@ namespace NeuroSky.ThinkGear.Algorithms {
         private double[] x;
         private double[] y;
 
-        /* dir: the direction. if dir = 1, this is an FFT. if dir = -1, this is an IFFT.
-         * 
-         * fftLength: the desired length of the FFT/IFFT. If fftLength is longer than the length of the input signal, then extra zeroes are added
-         * to the end of the signal. If fftLength is shorter than the length of the input signal, the first fftLength number of points of the input
-         * signal are used for the calculation. This is exactly how the matlab FFT function works
-         * 
-         * when using this as a forward FFT, pass the time domain data in the input1 variable, and pass the input2 variable as zeros (and equal 
-         * in length to input1). The output variable is two single dimension vectors, x and y. x is the real component. y is the imaginary component.
-         *
-         * when using this as a reverse FFT, pass the real component in the input1 variable, and pass the imaginary component in the input2 variable. 
-         * The output variable is two single dimension vectors, x and y. x is the real component. y is the imaginary component (usually on the order of 0)
-         * 
-         * example implementation:
-           FFT fft = new FFT();
-           double[] x = new double[512];
-           Array.Copy(eegdata, x, 512);     //eegdata contains raw EEG data
-           double[] y = new double[512];    //initialized to zeros
-          
-           double[] real = new double[512];
-           double[] imag = new double[512];
-         
-           fft.calculateFFT(x, y, 1, 1024, out real, out imag);
-         * 
-         */
-        public void calculateFFT(double[] input1, double[] input2, int dir, int fftLength, out double[] x, out double[] y) {
+        public FFTResult calculateFFT(double[] input1, double[] input2, int dir, int fftLength) {
+            /* dir: the direction. if dir = 1, this is an FFT. if dir = -1, this is an IFFT.
+            * 
+            * fftLength: the desired length of the FFT/IFFT. If fftLength is longer than the length of the input signal, then extra zeroes are added
+            * to the end of the signal. If fftLength is shorter than the length of the input signal, the first fftLength number of points of the input
+            * signal are used for the calculation. This is exactly how the matlab FFT function works
+            * 
+            * when using this as a forward FFT, pass the time domain data in the input1 variable, and pass the input2 variable as zeros (and equal 
+            * in length to input1).
+            *
+            * when using this as a reverse FFT, pass the real component in the input1 variable, and pass the imaginary component in the input2 variable. 
+            * 
+            * example implementation:
+            FFT fft = new FFT();
+            FFTResult fftResult = new FFTResult();
+            double[] x = new double[512];
+            Array.Copy(eegdata, x, 512);     //eegdata contains raw EEG data
+            double[] y = new double[512];    //initialized to zeros
+            
+            fftResult = fft.calculateFFT(x, y, 1, 1024);
+            double[] real = fftResult.getReal();
+            double[] imag = fftResult.getImag();
+            double[] power = fftResult.getPower();
+            
+            * 
+            */
+
             int n, i, i1, j, k, i2, l, l1, l2, m;
             double c1, c2, tx, ty, t1, t2, u1, u2, z;
 
@@ -453,8 +455,8 @@ namespace NeuroSky.ThinkGear.Algorithms {
             y = new double[fftLength];
 
             //adjust the length of the input data, according to the fftLength
-            Array.Copy(input1, x, Math.Min(input1.Length, fftLength));
-            Array.Copy(input2, y, Math.Min(input2.Length, fftLength));
+            Array.Copy(input1, 0, x, 0, Math.Min(input1.Length, fftLength));
+            Array.Copy(input2, 0, y, 0, Math.Min(input2.Length, fftLength));
 
             //2^m = length of x, y
             m = (int)(Math.Log(x.Length) / Math.Log(2));
@@ -521,8 +523,62 @@ namespace NeuroSky.ThinkGear.Algorithms {
                     y[i] /= n;
                 }
             }
+
+            return new FFTResult(x, y);
+
         }
     }
+
+    //this handles the return object of the 
+    public class FFTResult {
+        protected double[] real, imaginary, power;
+
+        public FFTResult(double[] re, double[] im) {
+            real = re;
+            imaginary = im;
+            power = calculatePower();
+        }
+
+        //return the real component
+        public double[] getReal() {
+            return real;
+        }
+
+        //return the imaginary component
+        public double[] getImaginary() {
+            return imaginary;
+        }
+
+        //return the power
+        public double[] getPower() {
+            return power;
+        }
+
+        //calculate the power (absolute value of real and imaginary)
+        private double[] calculatePower() {
+            power = new double[real.Length];
+
+            for(int i = 0; i < power.Length; i++) {
+                power[i] = (double)Math.Pow(Math.Pow(Math.Abs(real[i]), 2) + Math.Pow(Math.Abs(imaginary[i]), 2), 0.5);
+            }
+
+            return power;
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  
 
     public class TGHrv {
 
@@ -698,4 +754,100 @@ namespace NeuroSky.ThinkGear.Algorithms {
             return returnval;
         }
     }
+
+    public class EnergyLevel {
+
+        int[] t;    //this hold the timestamps for each RR interval
+        int numSamples = 128;  //Specifies the number of FFT.
+        int[] t_interp;                //this holds the timestamps of the interpolated data (at 500 msec intervals, effectively 2Hz sampling rate)
+        int[] reSampledData;    //this holds the data resampled at 2Hz
+        float[] fftInput;   //this holds the data to be FFT'd
+
+        int sum = 0;
+        int average = 0;
+        int n = 1;
+
+        FFT fft = new FFT();
+            
+        public EnergyLevel() {
+            t_interp = new int[numSamples];
+            reSampledData = new int[numSamples];
+            fftInput = new float[numSamples];
+        }
+
+        //pass in an array of RR intervals, in milliseconds. and also pass in the length of the array
+        private double calculateEnergyLevel(int[] rrIntervalInMS, int length) {
+            t = new int[length];
+
+            //Recreates the timestamps from the rrInterval Data.  Assumes that rrInterval are consecutive.
+            t[0] = 0;
+            for(int i = 1; i < length; i++) {
+                t[i] = t[i - 1] + rrIntervalInMS[i];
+            }
+
+            //Checks to see if there is enough points to do a 128 point FFT.
+            if(t[length - 1] < 63500) {
+                Console.WriteLine("Need 64 seconds of data. Total ms = %d", t[length - 1]);
+                return -1;
+            }
+
+            //need to clear p first?
+            //Time index used for resampling
+            for(int i = 0; i < numSamples; i++) {
+                t_interp[i] = (1000 * i) / 2;
+            }
+
+            //need to clear reSampledData first?
+            //Resamples the data at 2Hz, which is 500ms
+            reSampledData[0] = rrIntervalInMS[0];
+            sum = 0;
+            average = 0;
+            n = 1;
+            
+            for(int k = 1; k < numSamples; k++) {
+
+                while(t[n] <= t_interp[k]) {
+                    n++;
+                }
+
+                reSampledData[k] = (int)(rrIntervalInMS[n - 1] + (float)((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) / rrIntervalInMS[n]) * (float)(t_interp[k] - t[n - 1]));
+
+                //TODO: is it actually the below equation that is correct?
+                //reSampledData[k] = rrIntervalInMS[n - 1] + ((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) * (t_interp[k] - t[n - 1])) / (t[n] - t[n - 1]);
+
+                //Calculate the sum of all the points.
+                sum += reSampledData[k];
+        
+                //NSLog(@"%d: %d : %d", t[n-1], p[k] ,t[n]);
+                //NSLog(@"%d: %d", p[k], reSampledData[k]);
+            }
+
+            //Calculate the average of the interpolated data.
+            average = (int)(sum / numSamples);
+
+            //Subtract the average from the data before doing the FFT
+            for(int i = 0; i < numSamples; i++){
+                fftInput[i] = reSampledData[i] - average;
+            }
+
+
+
+
+
+            return 0;
+        }
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
 }
