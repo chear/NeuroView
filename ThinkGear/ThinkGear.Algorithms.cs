@@ -573,26 +573,9 @@ namespace NeuroSky.ThinkGear.Algorithms {
         double[] coeffs;        //this holds the coefficients
         double[] postHanning;   //this holds the hanning windowed data
 
-
-
-        private string realOutFile;
-        private System.IO.StreamWriter realStream;
-
-
-
         //constructor
         public HanningWindow(int length) {
-            realOutFile = "hanningCoeffs_CS.txt";
-            this.realStream = new System.IO.StreamWriter(realOutFile, true);
-
             coeffs = generateCoeffs(length);
-
-            /*
-            for(int i = 0; i < coeffs.Length; i++) {
-                realStream.WriteLine(coeffs[i]);
-            }
-            realStream.Close();
-            */
         }
 
         //initialize the coefficients
@@ -807,12 +790,10 @@ namespace NeuroSky.ThinkGear.Algorithms {
         double[] real;      //this holds the real FFT result
         double[] imag;      //this holds the imaginary fft result
         double[] psd;           //this holds the power of the FFT result
-        double[] frequency;     //this holds the frequency indices
         double[] zeros;         //this is always zeros, used as the fft Input2
 
         int sum = 0;
         int average = 0;
-        int n = 1;
 
         int samplingFrequency = 2;  //the sampling fate 
 
@@ -826,23 +807,6 @@ namespace NeuroSky.ThinkGear.Algorithms {
         FFTResult fftResult;
         HanningWindow hanningWindow;
 
-        private string reSampledDataOutFile;
-        private System.IO.StreamWriter reSampledDataStream;
-
-        private string reSampledTimeOutFile;
-        private System.IO.StreamWriter reSampledTimeStream;
-
-        private string timeOutFile;
-        private System.IO.StreamWriter timeStream;
-
-        private string hanningOutFile;
-        private System.IO.StreamWriter hanningStream;
-
-        private string fftOutFile;
-        private System.IO.StreamWriter fftStream;
-
-
-
         //initialize stuff in the constructor
         public EnergyLevel() {
             reSampledTime = new int[numSamples];
@@ -853,24 +817,6 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
             fft = new FFT();
             hanningWindow = new HanningWindow(numSamples);
-
-
-            reSampledDataOutFile = "reSampledData_CS.txt";
-            this.reSampledDataStream = new System.IO.StreamWriter(reSampledDataOutFile, true);
-
-            reSampledTimeOutFile = "reSampledTime_CS.txt";
-            this.reSampledTimeStream = new System.IO.StreamWriter(reSampledTimeOutFile, true);
-
-            timeOutFile = "time_CS.txt";
-            this.timeStream = new System.IO.StreamWriter(timeOutFile, true);
-
-            hanningOutFile = "hanning_CS.txt";
-            this.hanningStream = new System.IO.StreamWriter(hanningOutFile, true);
-
-            fftOutFile = "fftResult_CS.txt";
-            this.fftStream = new System.IO.StreamWriter(fftOutFile, true);
-
-
 
         }
 
@@ -914,31 +860,10 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 reSampledData[k] = (int)(rrIntervalInMS[n - 1] + (float)((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) * (reSampledTime[k] - t[n - 1])) / (float)rrIntervalInMS[n]);
                 
             
-            //Calculate the sum of all the points.
-            sum += reSampledData[k];
+                //Calculate the sum of all the points.
+                sum += reSampledData[k];
         
-            //NSLog(@"%d: %d : %d", t[n-1], p[k] ,t[n]);
-            //NSLog(@"%d: %d", p[k], reSampledData[k]);
             }
-
-            /*
-            for(int i = 0; i < numSamples; i++) {
-                reSampledDataStream.WriteLine(reSampledData[i]);
-            }
-            reSampledDataStream.Close();
-             
-
-            for(int i = 0; i < numSamples; i++) {
-                reSampledTimeStream.WriteLine(reSampledTime[i]);
-            }
-            reSampledTimeStream.Close();
-
-            for(int i = 0; i < length; i++) {
-                timeStream.WriteLine(t[i]);
-            }
-            timeStream.Close();
-            */
-
 
             //Calculate the average of the interpolated data.
             average = (int)(sum / numSamples);
@@ -951,13 +876,6 @@ namespace NeuroSky.ThinkGear.Algorithms {
             //apply the hanning window
             fftInput = hanningWindow.applyCoeffs(fftInput);
 
-            /*
-            for(int i = 0; i < numSamples; i++) {
-                hanningStream.WriteLine(fftInput[i]);
-            }
-            hanningStream.Close();
-            */
-
             //finally calcuate the power spectrum of the FFT. this is a 128 point FFT
             fftResult = fft.calculateFFT(fftInput, zeros, 1, numSamples);
             real = fftResult.getReal();
@@ -968,16 +886,9 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 psd[i] = 2 * (Math.Pow(real[i], 2) + Math.Pow(imag[i], 2));
             }
             
-            /*
-            for(int i = 0; i < numSamples; i++) {
-                fftStream.WriteLine(psd[i]);
-            }
-            fftStream.Close();
-            */
-
             //now gather the frequency bands (high and low)
-            double highBand = 0;
-            double lowBand = 0;
+            highBand = 0;
+            lowBand = 0;
             for(int i = 0; i < numSamples; i++) {
                 fIndex = (double)(((double)samplingFrequency / (double)numSamples) * i);
 
@@ -994,22 +905,13 @@ namespace NeuroSky.ThinkGear.Algorithms {
             //energyIndex = (3.0 - MIN(8.0, lowBand/highBand)) / 2.24;  //Original Equation
             energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10.
 
-       
-            
             energyIndex = Math.Max(-1.5, energyIndex);
             energyIndex = Math.Min(1.5, energyIndex);
 
             energyLevel = (int)(Math.Round(50.0 + 33.0 * energyIndex));
 
-
             return energyLevel;
         }
 
     }
-
-
-
-
-
-
 }
