@@ -921,11 +921,12 @@ namespace NeuroSky.ThinkGear.Algorithms {
             //NSLog(@"%d: %d", p[k], reSampledData[k]);
             }
 
-            
+            /*
             for(int i = 0; i < numSamples; i++) {
                 reSampledDataStream.WriteLine(reSampledData[i]);
             }
             reSampledDataStream.Close();
+             
 
             for(int i = 0; i < numSamples; i++) {
                 reSampledTimeStream.WriteLine(reSampledTime[i]);
@@ -936,7 +937,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 timeStream.WriteLine(t[i]);
             }
             timeStream.Close();
-            
+            */
 
 
             //Calculate the average of the interpolated data.
@@ -950,12 +951,12 @@ namespace NeuroSky.ThinkGear.Algorithms {
             //apply the hanning window
             fftInput = hanningWindow.applyCoeffs(fftInput);
 
-            
+            /*
             for(int i = 0; i < numSamples; i++) {
                 hanningStream.WriteLine(fftInput[i]);
             }
             hanningStream.Close();
-            
+            */
 
             //finally calcuate the power spectrum of the FFT. this is a 128 point FFT
             fftResult = fft.calculateFFT(fftInput, zeros, 1, numSamples);
@@ -967,12 +968,12 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 psd[i] = 2 * (Math.Pow(real[i], 2) + Math.Pow(imag[i], 2));
             }
             
-
+            /*
             for(int i = 0; i < numSamples; i++) {
                 fftStream.WriteLine(psd[i]);
             }
             fftStream.Close();
-             
+            */
 
             //now gather the frequency bands (high and low)
             double highBand = 0;
