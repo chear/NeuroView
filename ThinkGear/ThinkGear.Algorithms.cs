@@ -15,7 +15,7 @@ using System.IO;
 using System.Threading;
 
 namespace NeuroSky.ThinkGear.Algorithms {
-
+    //blink detection algorithm
     public class BlinkDetector {
 
         /* Defines the Blink States*/
@@ -417,6 +417,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
         }
     }
 
+    //generalized FFT (equivalent to matlab)
     public class FFT {
         private double[] x;
         private double[] y;
@@ -529,7 +530,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
         }
     }
 
-    //this handles the return object of the 
+    //this handles the return object of the FFT class
     public class FFTResult {
         protected double[] real, imaginary, power;
 
@@ -565,21 +566,61 @@ namespace NeuroSky.ThinkGear.Algorithms {
             return power;
         }
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-  
 
+    //hanning window
+    public class HanningWindow {
+
+        double[] coeffs;        //this holds the coefficients
+        double[] postHanning;   //this holds the hanning windowed data
+
+
+
+        private string realOutFile;
+        private System.IO.StreamWriter realStream;
+
+
+
+        //constructor
+        public HanningWindow(int length) {
+            realOutFile = "hanningCoeffs_CS.txt";
+            this.realStream = new System.IO.StreamWriter(realOutFile, true);
+
+            coeffs = generateCoeffs(length);
+
+            /*
+            for(int i = 0; i < coeffs.Length; i++) {
+                realStream.WriteLine(coeffs[i]);
+            }
+            realStream.Close();
+            */
+        }
+
+        //initialize the coefficients
+        public double[] generateCoeffs(int length) {
+            double[] hanncoeffs = new double[length];
+
+            for(int i = 0; i < length; i++) {
+                hanncoeffs[i] = 0.5 - 0.5 * Math.Cos(2 * Math.PI * i / (length - 1));
+            }
+
+            return hanncoeffs;
+        }
+
+        //apply coefficients to the data
+        public double[] applyCoeffs(double[] data) {
+
+            //re-initialize the array to clear it
+            postHanning = new double[data.Length];
+
+            for(int i = 0; i < data.Length; i++) {
+                postHanning[i] = data[i] * coeffs[i];   
+            }
+
+            return postHanning;
+        }
+    }
+
+    //algorithm to detect RR interval
     public class TGHrv {
 
         private short x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15;
@@ -755,28 +796,86 @@ namespace NeuroSky.ThinkGear.Algorithms {
         }
     }
 
+    //energy level from Masa's MindWaveMac
     public class EnergyLevel {
 
         int[] t;    //this hold the timestamps for each RR interval
         int numSamples = 128;  //Specifies the number of FFT.
-        int[] t_interp;                //this holds the timestamps of the interpolated data (at 500 msec intervals, effectively 2Hz sampling rate)
+        int[] reSampledTime;                //this holds the timestamps of the interpolated data (at 500 msec intervals, effectively 2Hz sampling rate)
         int[] reSampledData;    //this holds the data resampled at 2Hz
-        float[] fftInput;   //this holds the data to be FFT'd
+        double[] fftInput;   //this holds the data to be FFT'd
+        double[] real;      //this holds the real FFT result
+        double[] imag;      //this holds the imaginary fft result
+        double[] psd;           //this holds the power of the FFT result
+        double[] frequency;     //this holds the frequency indices
+        double[] zeros;         //this is always zeros, used as the fft Input2
 
         int sum = 0;
         int average = 0;
         int n = 1;
 
-        FFT fft = new FFT();
-            
+        int samplingFrequency = 2;  //the sampling fate 
+
+        double fIndex;          //this is used to hold the current frequency bin
+        double highBand;    //this holds the sum of the power from 0.15 to 0.4 hz  
+        double lowBand;     //this holds the sum of the power from 0.04 to 0.15
+        double energyIndex; //this holds the energy index, intermediate step
+        int energyLevel;    //this holds the final output
+
+        FFT fft;
+        FFTResult fftResult;
+        HanningWindow hanningWindow;
+
+        private string reSampledDataOutFile;
+        private System.IO.StreamWriter reSampledDataStream;
+
+        private string reSampledTimeOutFile;
+        private System.IO.StreamWriter reSampledTimeStream;
+
+        private string timeOutFile;
+        private System.IO.StreamWriter timeStream;
+
+        private string hanningOutFile;
+        private System.IO.StreamWriter hanningStream;
+
+        private string fftOutFile;
+        private System.IO.StreamWriter fftStream;
+
+
+
+        //initialize stuff in the constructor
         public EnergyLevel() {
-            t_interp = new int[numSamples];
+            reSampledTime = new int[numSamples];
             reSampledData = new int[numSamples];
-            fftInput = new float[numSamples];
+            fftInput = new double[numSamples];
+            psd = new double[numSamples];
+            zeros = new double[numSamples];
+
+            fft = new FFT();
+            hanningWindow = new HanningWindow(numSamples);
+
+
+            reSampledDataOutFile = "reSampledData_CS.txt";
+            this.reSampledDataStream = new System.IO.StreamWriter(reSampledDataOutFile, true);
+
+            reSampledTimeOutFile = "reSampledTime_CS.txt";
+            this.reSampledTimeStream = new System.IO.StreamWriter(reSampledTimeOutFile, true);
+
+            timeOutFile = "time_CS.txt";
+            this.timeStream = new System.IO.StreamWriter(timeOutFile, true);
+
+            hanningOutFile = "hanning_CS.txt";
+            this.hanningStream = new System.IO.StreamWriter(hanningOutFile, true);
+
+            fftOutFile = "fftResult_CS.txt";
+            this.fftStream = new System.IO.StreamWriter(fftOutFile, true);
+
+
+
         }
 
         //pass in an array of RR intervals, in milliseconds. and also pass in the length of the array
-        private double calculateEnergyLevel(int[] rrIntervalInMS, int length) {
+        public int calculateEnergyLevel(int[] rrIntervalInMS, int length) {
             t = new int[length];
 
             //Recreates the timestamps from the rrInterval Data.  Assumes that rrInterval are consecutive.
@@ -785,63 +884,125 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 t[i] = t[i - 1] + rrIntervalInMS[i];
             }
 
+            
             //Checks to see if there is enough points to do a 128 point FFT.
             if(t[length - 1] < 63500) {
                 Console.WriteLine("Need 64 seconds of data. Total ms = %d", t[length - 1]);
                 return -1;
             }
+            
 
-            //need to clear p first?
             //Time index used for resampling
             for(int i = 0; i < numSamples; i++) {
-                t_interp[i] = (1000 * i) / 2;
+                reSampledTime[i] = 1000 * i / 2;
             }
 
-            //need to clear reSampledData first?
             //Resamples the data at 2Hz, which is 500ms
             reSampledData[0] = rrIntervalInMS[0];
-            sum = 0;
-            average = 0;
-            n = 1;
+            Console.WriteLine(reSampledData[0]);
+
             
+            int n = 1;
+            sum = reSampledData[0];     //TODO: this is missing in the mac version
+
             for(int k = 1; k < numSamples; k++) {
 
-                while(t[n] <= t_interp[k]) {
+                while(t[n] <= reSampledTime[k]) {
                     n++;
                 }
 
-                reSampledData[k] = (int)(rrIntervalInMS[n - 1] + (float)((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) / rrIntervalInMS[n]) * (float)(t_interp[k] - t[n - 1]));
-
-                //TODO: is it actually the below equation that is correct?
-                //reSampledData[k] = rrIntervalInMS[n - 1] + ((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) * (t_interp[k] - t[n - 1])) / (t[n] - t[n - 1]);
-
-                //Calculate the sum of all the points.
-                sum += reSampledData[k];
+                reSampledData[k] = (int)(rrIntervalInMS[n - 1] + (float)((rrIntervalInMS[n] - rrIntervalInMS[n - 1]) * (reSampledTime[k] - t[n - 1])) / (float)rrIntervalInMS[n]);
+                
+            
+            //Calculate the sum of all the points.
+            sum += reSampledData[k];
         
-                //NSLog(@"%d: %d : %d", t[n-1], p[k] ,t[n]);
-                //NSLog(@"%d: %d", p[k], reSampledData[k]);
+            //NSLog(@"%d: %d : %d", t[n-1], p[k] ,t[n]);
+            //NSLog(@"%d: %d", p[k], reSampledData[k]);
             }
+
+            
+            for(int i = 0; i < numSamples; i++) {
+                reSampledDataStream.WriteLine(reSampledData[i]);
+            }
+            reSampledDataStream.Close();
+
+            for(int i = 0; i < numSamples; i++) {
+                reSampledTimeStream.WriteLine(reSampledTime[i]);
+            }
+            reSampledTimeStream.Close();
+
+            for(int i = 0; i < length; i++) {
+                timeStream.WriteLine(t[i]);
+            }
+            timeStream.Close();
+            
+
 
             //Calculate the average of the interpolated data.
             average = (int)(sum / numSamples);
 
             //Subtract the average from the data before doing the FFT
-            for(int i = 0; i < numSamples; i++){
+            for(int i = 0; i < numSamples; i++) {
                 fftInput[i] = reSampledData[i] - average;
             }
 
+            //apply the hanning window
+            fftInput = hanningWindow.applyCoeffs(fftInput);
+
+            
+            for(int i = 0; i < numSamples; i++) {
+                hanningStream.WriteLine(fftInput[i]);
+            }
+            hanningStream.Close();
+            
+
+            //finally calcuate the power spectrum of the FFT. this is a 128 point FFT
+            fftResult = fft.calculateFFT(fftInput, zeros, 1, numSamples);
+            real = fftResult.getReal();
+            imag = fftResult.getImaginary();
+
+            //get the power
+            for(int i = 0; i < numSamples; i++) {
+                psd[i] = 2 * (Math.Pow(real[i], 2) + Math.Pow(imag[i], 2));
+            }
+            
+
+            for(int i = 0; i < numSamples; i++) {
+                fftStream.WriteLine(psd[i]);
+            }
+            fftStream.Close();
+             
+
+            //now gather the frequency bands (high and low)
+            double highBand = 0;
+            double lowBand = 0;
+            for(int i = 0; i < numSamples; i++) {
+                fIndex = (double)(((double)samplingFrequency / (double)numSamples) * i);
+
+                if((fIndex >= 0.15) && (fIndex <= 0.4)) {
+                    highBand += psd[i];     //high band
+                }
+
+                if((fIndex >= 0.04) && (fIndex <= 0.15)) {
+                    lowBand += psd[i];   //Low band
+                }
+
+            }
+
+            //energyIndex = (3.0 - MIN(8.0, lowBand/highBand)) / 2.24;  //Original Equation
+            energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10.
+
+       
+            
+            energyIndex = Math.Max(-1.5, energyIndex);
+            energyIndex = Math.Min(1.5, energyIndex);
+
+            energyLevel = (int)(Math.Round(50.0 + 33.0 * energyIndex));
 
 
-
-
-            return 0;
+            return energyLevel;
         }
-
-
-
-
-
-
 
     }
 
