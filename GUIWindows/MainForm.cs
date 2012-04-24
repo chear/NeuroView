@@ -65,8 +65,10 @@ namespace NeuroSky.MindView {
         
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
+        public event EventHandler FatigueButtonClicked = delegate { };
 
         public CheckBox soundCheckBox;
+        private Button fatigueButton;
         public SoundPlayer player;
 
         public MainForm() {
@@ -154,8 +156,9 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabel = new System.Windows.Forms.Label();
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
-            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.soundCheckBox = new System.Windows.Forms.CheckBox();
+            this.fatigueButton = new System.Windows.Forms.Button();
+            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
             // connectButton
@@ -181,7 +184,7 @@ namespace NeuroSky.MindView {
             // recordButton
             // 
             this.recordButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.recordButton.Location = new System.Drawing.Point(838, 512);
+            this.recordButton.Location = new System.Drawing.Point(862, 513);
             this.recordButton.Name = "recordButton";
             this.recordButton.Size = new System.Drawing.Size(80, 24);
             this.recordButton.TabIndex = 1;
@@ -200,7 +203,7 @@ namespace NeuroSky.MindView {
             // stopButton
             // 
             this.stopButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.stopButton.Location = new System.Drawing.Point(838, 512);
+            this.stopButton.Location = new System.Drawing.Point(862, 513);
             this.stopButton.Name = "stopButton";
             this.stopButton.Size = new System.Drawing.Size(80, 24);
             this.stopButton.TabIndex = 1;
@@ -276,6 +279,27 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
             this.averageHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // soundCheckBox
+            // 
+            this.soundCheckBox.AutoSize = true;
+            this.soundCheckBox.Font = new System.Drawing.Font("Arial", 9F);
+            this.soundCheckBox.Location = new System.Drawing.Point(134, 46);
+            this.soundCheckBox.Name = "soundCheckBox";
+            this.soundCheckBox.Size = new System.Drawing.Size(104, 19);
+            this.soundCheckBox.TabIndex = 17;
+            this.soundCheckBox.Text = "Enable Sound";
+            this.soundCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // fatigueButton
+            // 
+            this.fatigueButton.Location = new System.Drawing.Point(734, 514);
+            this.fatigueButton.Name = "fatigueButton";
+            this.fatigueButton.Size = new System.Drawing.Size(102, 23);
+            this.fatigueButton.TabIndex = 18;
+            this.fatigueButton.Text = "Fatigue Meter";
+            this.fatigueButton.UseVisualStyleBackColor = true;
+            this.fatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -289,20 +313,10 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.yAxisMax = 0D;
             this.rawGraphPanel.yAxisMin = 0D;
             // 
-            // soundCheckBox
-            // 
-            this.soundCheckBox.AutoSize = true;
-            this.soundCheckBox.Font = new System.Drawing.Font("Arial", 9F);
-            this.soundCheckBox.Location = new System.Drawing.Point(134, 46);
-            this.soundCheckBox.Name = "soundCheckBox";
-            this.soundCheckBox.Size = new System.Drawing.Size(104, 19);
-            this.soundCheckBox.TabIndex = 17;
-            this.soundCheckBox.Text = "Enable Sound";
-            this.soundCheckBox.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.fatigueButton);
             this.Controls.Add(this.soundCheckBox);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
@@ -363,6 +377,12 @@ namespace NeuroSky.MindView {
         //disconnect button clicked
         private void disconnect_Click(object sender, System.EventArgs e) {
             DisconnectButtonClicked(this, EventArgs.Empty);
+        }
+
+
+        //fatigue button clicked
+        private void fatigueButton_Click(object sender, EventArgs e) {
+            FatigueButtonClicked(this, EventArgs.Empty);
         }
 
 
@@ -662,6 +682,22 @@ namespace NeuroSky.MindView {
         }
 
 
+        //update the fatigue button status
+        delegate void UpdateFatigueButtonDelegate(bool enabled);
+        public void updateFatigueButton(bool enabled) {
+            if(this.InvokeRequired) {
+                UpdateFatigueButtonDelegate del = new UpdateFatigueButtonDelegate(updateFatigueButton);
+                this.Invoke(del, new object[] { enabled });
+            } else {
+                if(enabled) {
+                    this.fatigueButton.Enabled = false;
+                } else {
+                    this.fatigueButton.Enabled = true;
+                }
+            }
+        }
+
+
         //update the realtime heart rate label status
         delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
         public void updateRealTimeHeartRateLabel(string tempString) {
@@ -729,6 +765,14 @@ namespace NeuroSky.MindView {
 
             base.OnSizeChanged(e);
         }
+
+        
+
+      
+
+
+
+
     }
     /*End of MainForm*/
 }
