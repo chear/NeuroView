@@ -22,7 +22,7 @@ namespace NeuroSky.MindView {
 
         private EnergyLevel energyLevel;
         private int fatigueCounter = 0;         //counter to keep track of how many RR values we have so far in the Fatigue Meter
-        public int[] RRbuffer = new int[110];  //holds the 110 RR interval values before they are dumped into the algorithm
+        public int[] RRbufferInMS = new int[110];  //holds the 110 RR interval values before they are dumped into the algorithm
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
         
@@ -78,6 +78,8 @@ namespace NeuroSky.MindView {
 
         public CheckBox soundCheckBox;
         private Button fatigueButton;
+        private Label fatigueLabelIndicator;
+        public Label fatigueLabel;
         public SoundPlayer player;
 
         public MainForm() {
@@ -88,6 +90,7 @@ namespace NeuroSky.MindView {
             saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
             saveFileGUI.StartPosition = FormStartPosition.Manual;
 
+            energyLevel = new EnergyLevel();
             saveHRMdialog = new SaveFileDialog();
             saveHRMdialog.Filter = "HRM file|*.hrm";
             saveHRMdialog.FileOk += new CancelEventHandler(saveHRMdialog_FileOk);
@@ -138,10 +141,6 @@ namespace NeuroSky.MindView {
         }
 
 
-        
-
-
-
 
         /// <summary>
         /// Clean up any resources being used.
@@ -177,6 +176,8 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.soundCheckBox = new System.Windows.Forms.CheckBox();
             this.fatigueButton = new System.Windows.Forms.Button();
+            this.fatigueLabelIndicator = new System.Windows.Forms.Label();
+            this.fatigueLabel = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
@@ -319,6 +320,29 @@ namespace NeuroSky.MindView {
             this.fatigueButton.UseVisualStyleBackColor = true;
             this.fatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
             // 
+            // fatigueLabelIndicator
+            // 
+            this.fatigueLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fatigueLabelIndicator.Location = new System.Drawing.Point(705, 11);
+            this.fatigueLabelIndicator.Name = "fatigueLabelIndicator";
+            this.fatigueLabelIndicator.Size = new System.Drawing.Size(84, 19);
+            this.fatigueLabelIndicator.TabIndex = 20;
+            this.fatigueLabelIndicator.Text = "Energy Level:";
+            this.fatigueLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.fatigueLabelIndicator.Visible = false;
+            // 
+            // fatigueLabel
+            // 
+            this.fatigueLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fatigueLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.fatigueLabel.Location = new System.Drawing.Point(807, 9);
+            this.fatigueLabel.Name = "fatigueLabel";
+            this.fatigueLabel.Size = new System.Drawing.Size(51, 24);
+            this.fatigueLabel.TabIndex = 19;
+            this.fatigueLabel.Text = "0";
+            this.fatigueLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.fatigueLabel.Visible = false;
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -335,6 +359,8 @@ namespace NeuroSky.MindView {
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.fatigueLabelIndicator);
+            this.Controls.Add(this.fatigueLabel);
             this.Controls.Add(this.fatigueButton);
             this.Controls.Add(this.soundCheckBox);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
@@ -418,14 +444,17 @@ namespace NeuroSky.MindView {
             rawGraphPanel.LineGraph.Invalidate();
         }
 
-        //fatigue button clicked
+        //fatigue button clicked. set up stuff
         private void fatigueButton_Click(object sender, EventArgs e) {
             if(poorQuality == 200) {
+                updateFatigueLevelLabel("");
+                toggleRecordButton(false);
+
                 fatigueCounter = 0;
-                Array.Clear(RRbuffer, 0, RRbuffer.Length);
+                Array.Clear(RRbufferInMS, 0, RRbufferInMS.Length);
 
                 //disable the button
-                updateFatigueButton(true);
+                toggleFatigueButton(false);
 
                 //set up the HRM file
                 HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
@@ -442,7 +471,7 @@ namespace NeuroSky.MindView {
             } else {
                 //else, the fatigue meter was initialized while the fingers are not on the device. cancel this recording session
                 runFatigueMeter = false;
-                updateStatusLabel("Please place fingers on device and then start recording");
+                updateStatusLabel("Please place fingers on device and then start recording.");
             }
         }
 
@@ -455,12 +484,12 @@ namespace NeuroSky.MindView {
 
                     //if there are less than 110 RR values so far, add it to the buffer
                     if(fatigueCounter < 110) {
-                        RRbuffer[fatigueCounter] = RRvalue;
+                        RRbufferInMS[fatigueCounter] = (int)((RRvalue * 1000.0) / 500.0);
 
                     } else {
                         //else there are now 110 values. or, the user has removed his hands from the device. write it out to a text file
                         runFatigueMeter = false;
-                        outputFatigueResults(RRbuffer);
+                        outputFatigueResults(RRbufferInMS);
                     }
 
                     fatigueCounter++;
@@ -470,13 +499,23 @@ namespace NeuroSky.MindView {
 
         //save the output of the fatigue meter
         public void outputFatigueResults(int[] RRbuffer) {
+            //write out the MILLISECOND values to the HRM file
             try {
-                //write out the MILLISECOND values to the HRM file
                 for(int k = 0; k < fatigueCounter; k++) {
-                    HRMstream.WriteLine((int)((RRbuffer[k] * 1000.0) / 500.0));
+                    HRMstream.WriteLine(RRbufferInMS);
                 }
             } catch(Exception e) {
                 Console.WriteLine("Unable to write HRM file: " + e.Message);
+            }
+
+            //calculate the fatigue level based on the Energy Meter
+            fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, 110);
+            
+            //if the value is more than 0, display it
+            if(fatigueResult > 0) {
+                updateFatigueLevelLabel(fatigueResult.ToString());
+                toggleFatigueLevelLabelIndicator(true);
+                toggleFatigueLevelLabel(true);
             }
 
             //stop the fatigue meter. close the file
@@ -484,7 +523,8 @@ namespace NeuroSky.MindView {
             HRMstream.Close();
 
             //re-enable the button
-            updateFatigueButton(false);
+            toggleFatigueButton(true);
+            toggleRecordButton(true);
 
             //update the status bar
             updateStatusLabel("Fatigue recording complete.");
@@ -519,8 +559,8 @@ namespace NeuroSky.MindView {
                     System.IO.Directory.CreateDirectory(path);
                 }
 
-                System.IO.File.Copy(System.IO.Path.Combine(currentPath, HRMoutFile), fileName, true);
-                System.IO.File.Delete(System.IO.Path.Combine(currentPath, HRMoutFile));
+                System.IO.File.Copy(HRMoutFile, fileName, true);
+                System.IO.File.Delete(HRMoutFile);
 
             } catch(Exception ex) {
                 MessageBox.Show("To save data in this directory, please exit the application and run as Administrator.", "Warning",
@@ -533,6 +573,9 @@ namespace NeuroSky.MindView {
         private void recordButton_Click(object sender, System.EventArgs e) {
             recordButton.Enabled = false;
             recordButton.Visible = false;
+            toggleFatigueButton(false);
+
+            updateStatusLabel("Recording...");
 
             //save linegraph data in a seperate file
             //rawGraphPanel.LineGraph.SaveDataFlag = false;
@@ -548,10 +591,12 @@ namespace NeuroSky.MindView {
             // Create new file and save to the "Data" folder
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
+            dataLogOutFile = Path.Combine(currentPath, dataLogOutFile);
             
             ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
-            
+            ECGLogOutFile = Path.Combine(currentPath, ECGLogOutFile);
+
             // Create new filestream, appendable. write the headers
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
             this.ECGLogStream = new System.IO.StreamWriter(ECGLogOutFile, true);
@@ -572,6 +617,7 @@ namespace NeuroSky.MindView {
         private void stopButton_Click(object sender, System.EventArgs e) {
             rawGraphPanel.LineGraph.SaveDataFlag = true;
             rawGraphPanel.LineGraph.RecordDataFlag = false;
+            updateStatusLabel("Recording complete.");
 
             recordFlag = false;
 
@@ -581,13 +627,15 @@ namespace NeuroSky.MindView {
             recordButton.Enabled = true;
             recordButton.Visible = true;
 
+            toggleFatigueButton(true);
+
             RecordStopTime = DateTime.Now;
 
             dataLogStream.Close();
             ECGLogStream.Close();
 
-            saveFileGUI.updateDataLogTextBox(dataLogOutFile);
-            saveFileGUI.updateECGLogTextBox(ECGLogOutFile);
+            saveFileGUI.updateDataLogTextBox(Path.GetFileName(dataLogOutFile));
+            saveFileGUI.updateECGLogTextBox(Path.GetFileName(ECGLogOutFile));
             saveFileGUI.updatefolderPathTextBox(Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString());
             saveFileGUI.Location = new Point((this.Width - saveFileGUI.Width) / 2 + this.Location.X, (this.Height - saveFileGUI.Height) / 2 + this.Location.Y);
 
@@ -602,11 +650,11 @@ namespace NeuroSky.MindView {
                     System.IO.Directory.CreateDirectory(saveFileGUI.folderPathTextBox.Text);
                 }
 
-                System.IO.File.Copy(System.IO.Path.Combine(currentPath, dataLogOutFile), System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.dataLogTextBox.Text), true);
-                System.IO.File.Copy(System.IO.Path.Combine(currentPath, ECGLogOutFile), System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.sleepLogTextBox.Text), true);
+                System.IO.File.Copy(dataLogOutFile, System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.dataLogTextBox.Text), true);
+                System.IO.File.Copy(ECGLogOutFile, System.IO.Path.Combine(saveFileGUI.folderPathTextBox.Text, saveFileGUI.sleepLogTextBox.Text), true);
 
-                System.IO.File.Delete(System.IO.Path.Combine(currentPath, dataLogOutFile));
-                System.IO.File.Delete(System.IO.Path.Combine(currentPath, ECGLogOutFile));
+                System.IO.File.Delete(dataLogOutFile);
+                System.IO.File.Delete(ECGLogOutFile);
 
                 saveFileGUI.Hide();
             } catch(Exception ex) {
@@ -816,28 +864,96 @@ namespace NeuroSky.MindView {
 
 
         //update the fatigue button status
-        delegate void UpdateFatigueButtonDelegate(bool enabled);
-        public void updateFatigueButton(bool enabled) {
+        delegate void ToggleFatigueButtonDelegate(bool enabled);
+        public void toggleFatigueButton(bool enabled) {
             if(this.InvokeRequired) {
-                UpdateFatigueButtonDelegate del = new UpdateFatigueButtonDelegate(updateFatigueButton);
+                ToggleFatigueButtonDelegate del = new ToggleFatigueButtonDelegate(toggleFatigueButton);
                 this.Invoke(del, new object[] { enabled });
             } else {
-                if(enabled) {
-                    this.fatigueButton.Enabled = false;
-                } else {
-                    this.fatigueButton.Enabled = true;
+                this.fatigueButton.Enabled = enabled;
+            }
+        }
+
+
+        //update the fatigue level
+        delegate void UpdateFatigueLabelDelegate(string tempString);
+        public void updateFatigueLevelLabel(string tempString) {
+            if(this.InvokeRequired) {
+                //try catch necessary for handling case when form is disposing
+                try {
+                    UpdateFatigueLabelDelegate del = new UpdateFatigueLabelDelegate(updateFatigueLevelLabel);
+                    this.Invoke(del, new object[] { tempString });
+                } catch(Exception e) {
+                    Console.WriteLine("Caught exception at updateFatigueLevelLabel: " + e.Message);
                 }
+
+            } else {
+                this.fatigueLabel.Text = tempString;
+            }
+        }
+
+
+        //make the fatigue label visible/invisible
+        delegate void ToggleFatigueLabelDelegate(bool visible);
+        public void toggleFatigueLevelLabel(bool visible) {
+            if(this.InvokeRequired) {
+                //try catch necessary for handling case when form is disposing
+                try {
+                    ToggleFatigueLabelDelegate del = new ToggleFatigueLabelDelegate(toggleFatigueLevelLabel);
+                    this.Invoke(del, new object[] { visible });
+                } catch(Exception e) {
+                    Console.WriteLine("Caught exception at toggleFatigueLevelLabel: " + e.Message);
+                }
+
+            } else {
+                this.fatigueLabel.Visible = visible;
+            }
+        }
+
+
+        //make the fatigue label indicator visible/invisible
+        delegate void ToggleFatigueLabelIndicatorDelegate(bool visible);
+        public void toggleFatigueLevelLabelIndicator(bool visible) {
+            if(this.InvokeRequired) {
+                //try catch necessary for handling case when form is disposing
+                try {
+                    ToggleFatigueLabelIndicatorDelegate del = new ToggleFatigueLabelIndicatorDelegate(toggleFatigueLevelLabelIndicator);
+                    this.Invoke(del, new object[] { visible });
+                } catch(Exception e) {
+                    Console.WriteLine("Caught exception at toggleFatigueLevelLabelIndicator: " + e.Message);
+                }
+
+            } else {
+                this.fatigueLabelIndicator.Visible = visible;
+            }
+        }
+
+        
+        //make the record button enabled/disabled
+        delegate void ToggleRecordButtonDelegate(bool enabled);
+        public void toggleRecordButton(bool enabled) {
+            if(this.InvokeRequired) {
+                //try catch necessary for handling case when form is disposing
+                try {
+                    ToggleRecordButtonDelegate del = new ToggleRecordButtonDelegate(toggleRecordButton);
+                    this.Invoke(del, new object[] { enabled });
+                } catch(Exception e) {
+                    Console.WriteLine("Caught exception at toggleRecordButton: " + e.Message);
+                }
+
+            } else {
+                this.recordButton.Enabled = enabled;
             }
         }
 
 
         //update the realtime heart rate label status
-        delegate void updateRealTimeHeartRateLabelDelegate(string tempString);
+        delegate void UpdateRealTimeHeartRateLabelDelegate(string tempString);
         public void updateRealTimeHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
                 //try catch necessary for handling case when form is disposing
                 try {
-                    updateRealTimeHeartRateLabelDelegate del = new updateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
+                    UpdateRealTimeHeartRateLabelDelegate del = new UpdateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
                     this.Invoke(del, new object[] { tempString });
                 } catch(Exception e) {
                     Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
@@ -849,12 +965,12 @@ namespace NeuroSky.MindView {
         }
 
         //update the average heart rate label status
-        delegate void updateAverageHeartRateLabelDelegate(string tempString);
+        delegate void UpdateAverageHeartRateLabelDelegate(string tempString);
         public void updateAverageHeartRateLabel(string tempString) {
             if(this.InvokeRequired) {
                 //try catch necessary for handling case when form is disposing
                 try {
-                    updateAverageHeartRateLabelDelegate del = new updateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
+                    UpdateAverageHeartRateLabelDelegate del = new UpdateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
                     this.Invoke(del, new object[] { tempString });
                 } catch(Exception e) {
                     Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
@@ -866,10 +982,10 @@ namespace NeuroSky.MindView {
         }
 
 
-        delegate void updateStatusLabelDelegate(string tempText);
+        delegate void UpdateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText) {
             if(this.InvokeRequired) {
-                updateStatusLabelDelegate del = new updateStatusLabelDelegate(updateStatusLabel);
+                UpdateStatusLabelDelegate del = new UpdateStatusLabelDelegate(updateStatusLabel);
                 this.Invoke(del, new object[] { tempText });
             } else {
                 this.statusLabel.Text = tempText;
@@ -884,6 +1000,9 @@ namespace NeuroSky.MindView {
 
             averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, realtimeHeartRateLabelIndicator.Location.Y + 30);
             averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y + 30);
+
+            fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 380, fatigueLabelIndicator.Location.Y);
+            fatigueLabel.Location = new System.Drawing.Point(this.Width - 280, fatigueLabel.Location.Y);
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
 

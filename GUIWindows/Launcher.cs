@@ -237,7 +237,7 @@ namespace NeuroSky.MindView {
 
                         //if the fatigue meter is running, save the HRM file and display the results with whatever data we had so far
                         if(mainForm.runFatigueMeter) {
-                            mainForm.outputFatigueResults(mainForm.RRbuffer);
+                            mainForm.outputFatigueResults(mainForm.RRbufferInMS);
                         }
                     }
                 }

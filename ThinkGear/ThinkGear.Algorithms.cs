@@ -830,14 +830,12 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 t[i] = t[i - 1] + rrIntervalInMS[i];
             }
 
-            
             //Checks to see if there is enough points to do a 128 point FFT.
             if(t[length - 1] < 63500) {
-                Console.WriteLine("Need 64 seconds of data. Total ms = %d", t[length - 1]);
+                Console.WriteLine("Need 64 seconds of data. Total ms = " + t[length - 1]);
                 return -1;
             }
             
-
             //Time index used for resampling
             for(int i = 0; i < numSamples; i++) {
                 reSampledTime[i] = 1000 * i / 2;
@@ -849,7 +847,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
             
             int n = 1;
-            sum = reSampledData[0];     //TODO: this is missing in the mac version
+            sum = reSampledData[0];    
 
             for(int k = 1; k < numSamples; k++) {
 
