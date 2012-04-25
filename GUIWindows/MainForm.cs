@@ -77,9 +77,10 @@ namespace NeuroSky.MindView {
         public event EventHandler DisconnectButtonClicked = delegate { };
 
         public CheckBox soundCheckBox;
-        private Button fatigueButton;
+        private Button startFatigueButton;
         private Label fatigueLabelIndicator;
         public Label fatigueLabel;
+        private Button stopFatigueButton;
         public SoundPlayer player;
 
         public MainForm() {
@@ -93,6 +94,7 @@ namespace NeuroSky.MindView {
             energyLevel = new EnergyLevel();
             saveHRMdialog = new SaveFileDialog();
             saveHRMdialog.Filter = "HRM file|*.hrm";
+            saveHRMdialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString();
             saveHRMdialog.FileOk += new CancelEventHandler(saveHRMdialog_FileOk);
 
             InitializeComponent();
@@ -175,9 +177,10 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.averageHeartRateLabelIndicator = new System.Windows.Forms.Label();
             this.soundCheckBox = new System.Windows.Forms.CheckBox();
-            this.fatigueButton = new System.Windows.Forms.Button();
+            this.startFatigueButton = new System.Windows.Forms.Button();
             this.fatigueLabelIndicator = new System.Windows.Forms.Label();
             this.fatigueLabel = new System.Windows.Forms.Label();
+            this.stopFatigueButton = new System.Windows.Forms.Button();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.SuspendLayout();
             // 
@@ -310,15 +313,15 @@ namespace NeuroSky.MindView {
             this.soundCheckBox.Text = "Enable Sound";
             this.soundCheckBox.UseVisualStyleBackColor = true;
             // 
-            // fatigueButton
+            // startFatigueButton
             // 
-            this.fatigueButton.Location = new System.Drawing.Point(734, 514);
-            this.fatigueButton.Name = "fatigueButton";
-            this.fatigueButton.Size = new System.Drawing.Size(100, 24);
-            this.fatigueButton.TabIndex = 18;
-            this.fatigueButton.Text = "Fatigue Meter";
-            this.fatigueButton.UseVisualStyleBackColor = true;
-            this.fatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
+            this.startFatigueButton.Location = new System.Drawing.Point(733, 513);
+            this.startFatigueButton.Name = "startFatigueButton";
+            this.startFatigueButton.Size = new System.Drawing.Size(100, 24);
+            this.startFatigueButton.TabIndex = 18;
+            this.startFatigueButton.Text = "Fatigue Meter";
+            this.startFatigueButton.UseVisualStyleBackColor = true;
+            this.startFatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
             // 
             // fatigueLabelIndicator
             // 
@@ -343,6 +346,17 @@ namespace NeuroSky.MindView {
             this.fatigueLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.fatigueLabel.Visible = false;
             // 
+            // stopFatigueButton
+            // 
+            this.stopFatigueButton.Location = new System.Drawing.Point(733, 513);
+            this.stopFatigueButton.Name = "stopFatigueButton";
+            this.stopFatigueButton.Size = new System.Drawing.Size(100, 24);
+            this.stopFatigueButton.TabIndex = 21;
+            this.stopFatigueButton.Text = "Stop";
+            this.stopFatigueButton.UseVisualStyleBackColor = true;
+            this.stopFatigueButton.Visible = false;
+            this.stopFatigueButton.Click += new System.EventHandler(this.stopFatigueMeter_Click);
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -359,9 +373,10 @@ namespace NeuroSky.MindView {
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.stopFatigueButton);
             this.Controls.Add(this.fatigueLabelIndicator);
             this.Controls.Add(this.fatigueLabel);
-            this.Controls.Add(this.fatigueButton);
+            this.Controls.Add(this.startFatigueButton);
             this.Controls.Add(this.soundCheckBox);
             this.Controls.Add(this.averageHeartRateLabelIndicator);
             this.Controls.Add(this.realtimeHeartRateLabelIndicator);
@@ -446,34 +461,37 @@ namespace NeuroSky.MindView {
 
         //fatigue button clicked. set up stuff
         private void fatigueButton_Click(object sender, EventArgs e) {
-            if(poorQuality == 200) {
-                updateFatigueLevelLabel("");
-                toggleRecordButton(false);
+            updateFatigueLevelLabel("");
+            toggleRecordButton(false);
 
-                fatigueCounter = 0;
-                Array.Clear(RRbufferInMS, 0, RRbufferInMS.Length);
+            fatigueCounter = 0;
+            Array.Clear(RRbufferInMS, 0, RRbufferInMS.Length);
 
-                //disable the button
-                toggleFatigueButton(false);
+            //disable the button
+            toggleFatigueStartButton(false);
+            toggleFatigueStopButton(true);
 
-                //set up the HRM file
-                HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
-                + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
-                HRMoutFile = Path.Combine(currentPath, HRMoutFile);
+            //set up the HRM file
+            HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
+            + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
+            HRMoutFile = Path.Combine(currentPath, HRMoutFile);
                 
-                this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
+            this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
 
-                //update the status bar
-                updateStatusLabel("Recording...please hold position for approximately 2 minutes...");
+            //update the status bar
+            updateStatusLabel("Recording...please hold position for approximately 2 minutes...");
 
-                //start the fatigue meter
-                runFatigueMeter = true;
-            } else {
-                //else, the fatigue meter was initialized while the fingers are not on the device. cancel this recording session
-                runFatigueMeter = false;
-                updateStatusLabel("Please place fingers on device and then start recording.");
-            }
+            //start the fatigue meter
+            runFatigueMeter = true;
         }
+
+
+        //stop fatigue button clicked
+        private void stopFatigueMeter_Click(object sender, EventArgs e) {
+            runFatigueMeter = false;
+            outputFatigueResults(RRbufferInMS);
+        }
+
 
         //calculate the fatigue value based on RR interval
         public void calculateFatigue(int RRvalue) {
@@ -502,7 +520,7 @@ namespace NeuroSky.MindView {
             //write out the MILLISECOND values to the HRM file
             try {
                 for(int k = 0; k < fatigueCounter; k++) {
-                    HRMstream.WriteLine(RRbufferInMS);
+                    HRMstream.WriteLine(RRbufferInMS[k]);
                 }
             } catch(Exception e) {
                 Console.WriteLine("Unable to write HRM file: " + e.Message);
@@ -523,7 +541,8 @@ namespace NeuroSky.MindView {
             HRMstream.Close();
 
             //re-enable the button
-            toggleFatigueButton(true);
+            toggleFatigueStartButton(true);
+            toggleFatigueStopButton(false);
             toggleRecordButton(true);
 
             //update the status bar
@@ -573,7 +592,7 @@ namespace NeuroSky.MindView {
         private void recordButton_Click(object sender, System.EventArgs e) {
             recordButton.Enabled = false;
             recordButton.Visible = false;
-            toggleFatigueButton(false);
+            fatigueStartButton(false);
 
             updateStatusLabel("Recording...");
 
@@ -624,10 +643,10 @@ namespace NeuroSky.MindView {
             stopButton.Enabled = false;
             stopButton.Visible = false;
 
+            fatigueStartButton(true);
+
             recordButton.Enabled = true;
             recordButton.Visible = true;
-
-            toggleFatigueButton(true);
 
             RecordStopTime = DateTime.Now;
 
@@ -863,14 +882,36 @@ namespace NeuroSky.MindView {
         }
 
 
-        //update the fatigue button status
-        delegate void ToggleFatigueButtonDelegate(bool enabled);
-        public void toggleFatigueButton(bool enabled) {
+        //update the fatigue start button
+        delegate void ToggleFatigueStartButtonDelegate(bool visible);
+        public void toggleFatigueStartButton(bool visible) {
             if(this.InvokeRequired) {
-                ToggleFatigueButtonDelegate del = new ToggleFatigueButtonDelegate(toggleFatigueButton);
+                ToggleFatigueStartButtonDelegate del = new ToggleFatigueStartButtonDelegate(toggleFatigueStartButton);
+                this.Invoke(del, new object[] { visible });
+            } else {
+                this.startFatigueButton.Visible = visible;
+            }
+        }
+
+        //disable/enable the fatigue start button
+        delegate void FatigueStartButtonDelegate(bool enabled);
+        public void fatigueStartButton(bool enabled) {
+            if(this.InvokeRequired) {
+                FatigueStartButtonDelegate del = new FatigueStartButtonDelegate(fatigueStartButton);
                 this.Invoke(del, new object[] { enabled });
             } else {
-                this.fatigueButton.Enabled = enabled;
+                this.startFatigueButton.Enabled = enabled;
+            }
+        }
+
+        //update the fatigue stop button
+        delegate void ToggleFatigueStopButtonDelegate(bool visible);
+        public void toggleFatigueStopButton(bool visible) {
+            if(this.InvokeRequired) {
+                ToggleFatigueStopButtonDelegate del = new ToggleFatigueStopButtonDelegate(toggleFatigueStopButton);
+                this.Invoke(del, new object[] { visible });
+            } else {
+                this.stopFatigueButton.Visible = visible;
             }
         }
 
@@ -1011,7 +1052,8 @@ namespace NeuroSky.MindView {
 
             clearButton.Location = new System.Drawing.Point(this.Width - 140, this.Height - 73);
 
-            fatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
+            startFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
+            stopFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
 
             rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, soundCheckBox.Location.Y + soundCheckBox.Height + 9);
             rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
@@ -1019,6 +1061,8 @@ namespace NeuroSky.MindView {
 
             base.OnSizeChanged(e);
         }
+
+     
 
        
 
