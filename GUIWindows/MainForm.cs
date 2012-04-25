@@ -430,6 +430,8 @@ namespace NeuroSky.MindView {
                 //set up the HRM file
                 HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
                 + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
+                HRMoutFile = Path.Combine(currentPath, HRMoutFile);
+                
                 this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
 
                 //update the status bar
@@ -494,10 +496,10 @@ namespace NeuroSky.MindView {
 
         //show the dialog box
         private void showDialog() {
-            DialogResult res = saveHRMdialog.ShowDialog();
+            DialogResult closeResult = saveHRMdialog.ShowDialog();
 
             //if the user pressed cancel, delete the file
-            if(res == DialogResult.Cancel) {
+            if(closeResult == DialogResult.Cancel) {
                 try {
                     System.IO.File.Delete(System.IO.Path.Combine(currentPath, HRMoutFile));
                 } catch(Exception e) {
