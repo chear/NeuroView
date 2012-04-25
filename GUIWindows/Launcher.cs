@@ -24,14 +24,8 @@ namespace NeuroSky.MindView {
         Device device;
 
         private TGHrv tgHRV;                //the RR interval detection algorithm
-        private EnergyLevel energyLevel;    //the fatigue meter
-
+        
         private int tgHRVresult;            //output of the TGHrv algorithm
-
-        private int fatigueCounter = 0;         //counter to keep track of how many RR values we have so far in the Fatigue Meter
-        private int[] RRbuffer = new int[110];  //holds the 110 RR interval values before they are dumped into the algorithm
-        private bool runFatigueMeter = false;   //fatigue meter is off by default
-        private int fatigueResult;              //output of the EnergyLevel algorithm
 
         private byte[] bytesToSend;     //bytes to send for EGO
         private int rawCounter;         //counter for delay of EGO output
@@ -54,10 +48,13 @@ namespace NeuroSky.MindView {
         //counter to track when we should plot
         private int bufferCounter_raw;
 
-        //save the HRM file
-        private string HRMoutFile;
-        private System.IO.StreamWriter HRMstream;
-        private string currentPath = Directory.GetCurrentDirectory();
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main() {
+            Application.Run(new Launcher());
+        }
         
         public Launcher() {
             mainForm = new MainForm();
@@ -73,7 +70,6 @@ namespace NeuroSky.MindView {
 
             mainForm.ConnectButtonClicked += new EventHandler(OnConnectButtonClicked);
             mainForm.DisconnectButtonClicked += new EventHandler(OnDisconnectButtonClicked);
-            mainForm.FatigueButtonClicked += new EventHandler(OnFatigueButtonClicked);
             mainForm.Disposed += new EventHandler(OnMainFormDisposed);
 
             InitializeComponent();
@@ -92,40 +88,6 @@ namespace NeuroSky.MindView {
             //counter to track when we should plot
             bufferCounter_raw = 0;
  
-        }
-
-        //when the "fatigue meter" button is clicked, set up everything
-        void OnFatigueButtonClicked(object sender, EventArgs e) {
-            if(mainForm.poorQuality == 200) {
-                fatigueCounter = 0;
-                Array.Clear(RRbuffer, 0, RRbuffer.Length);
-
-                //disable the button
-                mainForm.updateFatigueButton(true);
-
-                //set up the HRM file
-                HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
-                + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
-                this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
-
-                //update the status bar
-                mainForm.updateStatusLabel("Recording...please hold position for approximately 2 minutes...");
-
-                //start the fatigue meter
-                runFatigueMeter = true;
-            } else {
-                //else, the fatigue meter was initialized while the fingers are not on the device. cancel this recording session
-                mainForm.updateStatusLabel("Please place fingers on device and then start recording");
-            }
-        }
-
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main() {
-            Application.Run(new Launcher());
-
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -231,10 +193,10 @@ namespace NeuroSky.MindView {
                         tgHRVresult = tgHRV.AddData((short)thinkGearParser.ParsedData[i]["Raw"]);
                         
                         //play the the beep if necessary
-                        playBeep(tgHRVresult, (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
+                        mainForm.playBeep(tgHRVresult, (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
 
                         //calulate the fatigue level
-                        calculateFatigue(tgHRVresult);
+                        mainForm.calculateFatigue(tgHRVresult);
                     
                         //update the buffer with the latest eeg value
                         Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
@@ -274,8 +236,8 @@ namespace NeuroSky.MindView {
                         tgHRV.Reset();
 
                         //if the fatigue meter is running, save the HRM file and display the results with whatever data we had so far
-                        if(runFatigueMeter) {
-                            outputFatigueResults();
+                        if(mainForm.runFatigueMeter) {
+                            mainForm.outputFatigueResults(mainForm.RRbuffer);
                         }
                     }
                 }
@@ -303,62 +265,7 @@ namespace NeuroSky.MindView {
         }
 
 
-        //check if there has been an R peak. if so, play a "beep"
-        public void playBeep(int RRvalue, bool readyToPlay) {
-            
-            if(RRvalue > 0) {
-                if((mainForm.soundCheckBox.Checked) && (readyToPlay)) {
-                    mainForm.player.Play();
-                }
-            }
-        }
 
-        
-        //calculate the fatigue value based on RR interval
-        public void calculateFatigue(int RRvalue) {
-            //if the Fatigue Meter button has been pressed
-            if(runFatigueMeter) {
-                //if the return RR interval was between 150 and 800 points (292 msec to 1562 msec)
-                if((RRvalue > 150) && (RRvalue < 800)) {
-                    
-                    //if there are less than 110 RR values so far, add it to the buffer
-                    if(fatigueCounter < 110) {
-                        RRbuffer[fatigueCounter] = RRvalue;
-
-                    } else {
-                        //else there are now 110 values. or, the user has removed his hands from the device. write it out to a text file
-
-                        outputFatigueResults();
-                    }
-
-                    fatigueCounter++;
-                }
-            }
-        }
-
-
-        //save the output of the fatigue meter
-        public void outputFatigueResults() {
-            try {
-                //write out the MILLISECOND values to the HRM file
-                for(int k = 0; k < fatigueCounter; k++) {
-                    HRMstream.WriteLine((int)((RRbuffer[k] * 1000.0) / 500.0));
-                }
-            } catch(Exception e) {
-                Console.WriteLine("Unable to write HRM file: " + e.Message);
-            }
-
-            //stop the fatigue meter. close the file
-            runFatigueMeter = false;
-            HRMstream.Close();
-
-            //re-enable the button
-            mainForm.updateFatigueButton(false);
-
-            //update the status bar
-            mainForm.updateStatusLabel("Fatigue recording complete.");
-        }
-        
 
 
         void OnConnectButtonClicked(object sender, EventArgs e) {

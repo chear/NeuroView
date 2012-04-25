@@ -10,13 +10,21 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Media;
+using System.Threading;
 
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Algorithms;
 
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
-        private SaveFileGUI saveFileGUI;
+        private SaveFileGUI saveFileGUI;        //for saving the EEG data
+        private SaveFileDialog saveHRMdialog;   //for saving the HRM file    
+
+        private EnergyLevel energyLevel;
+        private int fatigueCounter = 0;         //counter to keep track of how many RR values we have so far in the Fatigue Meter
+        public int[] RRbuffer = new int[110];  //holds the 110 RR interval values before they are dumped into the algorithm
+        public bool runFatigueMeter = false;   //fatigue meter is off by default
+        private int fatigueResult;              //output of the EnergyLevel algorithm
         
         public GraphPanel rawGraphPanel;
         public TextBox portText;
@@ -60,12 +68,13 @@ namespace NeuroSky.MindView {
         private System.IO.StreamWriter dataLogStream;
         private string ECGLogOutFile;
         private System.IO.StreamWriter ECGLogStream;
+        private string HRMoutFile;
+        private System.IO.StreamWriter HRMstream;
 
         private string currentPath;
         
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
-        public event EventHandler FatigueButtonClicked = delegate { };
 
         public CheckBox soundCheckBox;
         private Button fatigueButton;
@@ -78,6 +87,10 @@ namespace NeuroSky.MindView {
             saveFileGUI.DiscardButtonClicked += new EventHandler(OnDiscardButtonClicked);
             saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
             saveFileGUI.StartPosition = FormStartPosition.Manual;
+
+            saveHRMdialog = new SaveFileDialog();
+            saveHRMdialog.Filter = "HRM file|*.hrm";
+            saveHRMdialog.FileOk += new CancelEventHandler(saveHRMdialog_FileOk);
 
             InitializeComponent();
 
@@ -123,6 +136,12 @@ namespace NeuroSky.MindView {
             System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.ThinkGear.heartbeep.wav");
             player = new SoundPlayer(s);
         }
+
+
+        
+
+
+
 
         /// <summary>
         /// Clean up any resources being used.
@@ -294,7 +313,7 @@ namespace NeuroSky.MindView {
             // 
             this.fatigueButton.Location = new System.Drawing.Point(734, 514);
             this.fatigueButton.Name = "fatigueButton";
-            this.fatigueButton.Size = new System.Drawing.Size(102, 23);
+            this.fatigueButton.Size = new System.Drawing.Size(100, 24);
             this.fatigueButton.TabIndex = 18;
             this.fatigueButton.Text = "Fatigue Meter";
             this.fatigueButton.UseVisualStyleBackColor = true;
@@ -380,11 +399,15 @@ namespace NeuroSky.MindView {
         }
 
 
-        //fatigue button clicked
-        private void fatigueButton_Click(object sender, EventArgs e) {
-            FatigueButtonClicked(this, EventArgs.Empty);
-        }
+        //check if there has been an R peak. if so, play a "beep"
+        public void playBeep(int RRvalue, bool readyToPlay) {
 
+            if(RRvalue > 0) {
+                if((soundCheckBox.Checked) && (readyToPlay)) {
+                    player.Play();
+                }
+            }
+        }
 
         /*Clear Button Clicked*/
         private void clearButton_Click(object sender, System.EventArgs e) {
@@ -393,6 +416,114 @@ namespace NeuroSky.MindView {
             timeStampIndex = 0;
 
             rawGraphPanel.LineGraph.Invalidate();
+        }
+
+        //fatigue button clicked
+        private void fatigueButton_Click(object sender, EventArgs e) {
+            if(poorQuality == 200) {
+                fatigueCounter = 0;
+                Array.Clear(RRbuffer, 0, RRbuffer.Length);
+
+                //disable the button
+                updateFatigueButton(true);
+
+                //set up the HRM file
+                HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
+                + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
+                this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
+
+                //update the status bar
+                updateStatusLabel("Recording...please hold position for approximately 2 minutes...");
+
+                //start the fatigue meter
+                runFatigueMeter = true;
+            } else {
+                //else, the fatigue meter was initialized while the fingers are not on the device. cancel this recording session
+                runFatigueMeter = false;
+                updateStatusLabel("Please place fingers on device and then start recording");
+            }
+        }
+
+        //calculate the fatigue value based on RR interval
+        public void calculateFatigue(int RRvalue) {
+            //if the Fatigue Meter button has been pressed
+            if(runFatigueMeter) {
+                //if the return RR interval was between 150 and 800 points (292 msec to 1562 msec)
+                if((RRvalue > 150) && (RRvalue < 800)) {
+
+                    //if there are less than 110 RR values so far, add it to the buffer
+                    if(fatigueCounter < 110) {
+                        RRbuffer[fatigueCounter] = RRvalue;
+
+                    } else {
+                        //else there are now 110 values. or, the user has removed his hands from the device. write it out to a text file
+                        runFatigueMeter = false;
+                        outputFatigueResults(RRbuffer);
+                    }
+
+                    fatigueCounter++;
+                }
+            }
+        }
+
+        //save the output of the fatigue meter
+        public void outputFatigueResults(int[] RRbuffer) {
+            try {
+                //write out the MILLISECOND values to the HRM file
+                for(int k = 0; k < fatigueCounter; k++) {
+                    HRMstream.WriteLine((int)((RRbuffer[k] * 1000.0) / 500.0));
+                }
+            } catch(Exception e) {
+                Console.WriteLine("Unable to write HRM file: " + e.Message);
+            }
+
+            //stop the fatigue meter. close the file
+            runFatigueMeter = false;
+            HRMstream.Close();
+
+            //re-enable the button
+            updateFatigueButton(false);
+
+            //update the status bar
+            updateStatusLabel("Fatigue recording complete.");
+
+            Thread showDialogThread = new Thread(new ThreadStart(showDialog));
+            showDialogThread.SetApartmentState(ApartmentState.STA);
+            showDialogThread.Start();     
+        }
+
+        //show the dialog box
+        private void showDialog() {
+            DialogResult res = saveHRMdialog.ShowDialog();
+
+            //if the user pressed cancel, delete the file
+            if(res == DialogResult.Cancel) {
+                try {
+                    System.IO.File.Delete(System.IO.Path.Combine(currentPath, HRMoutFile));
+                } catch(Exception e) {
+                    Console.WriteLine("canceled saving HRM file. couldn't delete the file: " + e.Message);
+                }
+            }
+        }
+
+
+        //save HRM file dialog box
+        void saveHRMdialog_FileOk(object sender, CancelEventArgs e) {
+            string fileName = saveHRMdialog.FileName;
+            string path = Path.GetDirectoryName(fileName);
+            
+            try {
+                if(!System.IO.Directory.Exists(path)) {
+                    System.IO.Directory.CreateDirectory(path);
+                }
+
+                System.IO.File.Copy(System.IO.Path.Combine(currentPath, HRMoutFile), fileName, true);
+                System.IO.File.Delete(System.IO.Path.Combine(currentPath, HRMoutFile));
+
+            } catch(Exception ex) {
+                MessageBox.Show("To save data in this directory, please exit the application and run as Administrator.", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+            }
         }
 
 
@@ -754,10 +885,12 @@ namespace NeuroSky.MindView {
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
 
-            recordButton.Location = new System.Drawing.Point(this.Width - 247, this.Height - 73);
-            stopButton.Location = new System.Drawing.Point(this.Width - 247, this.Height - 73);
+            recordButton.Location = new System.Drawing.Point(this.Width - 240, this.Height - 73);
+            stopButton.Location = new System.Drawing.Point(this.Width - 240, this.Height - 73);
 
-            clearButton.Location = new System.Drawing.Point(this.Width - 117, this.Height - 73);
+            clearButton.Location = new System.Drawing.Point(this.Width - 140, this.Height - 73);
+
+            fatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
 
             rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, soundCheckBox.Location.Y + soundCheckBox.Height + 9);
             rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
@@ -766,12 +899,7 @@ namespace NeuroSky.MindView {
             base.OnSizeChanged(e);
         }
 
-        
-
-      
-
-
-
+       
 
     }
     /*End of MainForm*/
