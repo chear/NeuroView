@@ -472,12 +472,15 @@ namespace NeuroSky.MindView {
             toggleFatigueStartButton(false);
             toggleFatigueStopButton(true);
 
+            //disabling the HRM file saving
+            /*
             //set up the HRM file
             HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
             HRMoutFile = Path.Combine(currentPath, HRMoutFile);
                 
             this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
+            */
 
             //update the status bar
             updateStatusLabel("Recording...please hold position for approximately 1 minute...");
@@ -519,6 +522,9 @@ namespace NeuroSky.MindView {
 
         //save the output of the fatigue meter
         public void outputFatigueResults(int[] RRbuffer) {
+            
+            //disable the HRM file saving
+            /*
             //write out the MILLISECOND values to the HRM file
             try {
                 for(int k = 0; k < RRbuffer.Length; k++) {
@@ -527,7 +533,7 @@ namespace NeuroSky.MindView {
             } catch(Exception e) {
                 Console.WriteLine("Unable to write HRM file: " + e.Message);
             }
-
+            */
             
             //calculate the fatigue level based on the Energy Meter
             if(fatigueTime > 64000) {
@@ -545,17 +551,19 @@ namespace NeuroSky.MindView {
             
             //stop the fatigue meter. close the file
             runFatigueMeter = false;
-            HRMstream.Close();
+            //HRMstream.Close();        //disabling the HRM file saving
 
             //re-enable the button
             toggleFatigueStartButton(true);
             toggleFatigueStopButton(false);
             toggleRecordButton(true);
 
-
+            //disabling the HRM file saving
+            /*
             Thread showDialogThread = new Thread(new ThreadStart(showDialog));
             showDialogThread.SetApartmentState(ApartmentState.STA);
             showDialogThread.Start();     
+            */
         }
 
         //show the dialog box
