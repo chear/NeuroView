@@ -503,7 +503,7 @@ namespace NeuroSky.MindView {
 
                     //if at least 64 seconds of data has been collected
                     if(fatigueTime < 64000) {
-                        RRBufferInMS.Add((int)((RRvalue * 1000.0) / 500.0));
+                        RRBufferInMS.Add((int)((RRvalue * 1000.0) / 512.0));
                         if(RRBufferInMS.Count > 1) {
                             fatigueTime = fatigueTime + RRBufferInMS[RRBufferInMS.Count - 1];
                         }

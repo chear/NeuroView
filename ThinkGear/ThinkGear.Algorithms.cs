@@ -801,7 +801,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
         double highBand;    //this holds the sum of the power from 0.15 to 0.4 hz  
         double lowBand;     //this holds the sum of the power from 0.04 to 0.15
         double energyIndex; //this holds the energy index, intermediate step
-        int energyLevel;    //this holds the final output
+        double energyLevel;    //this holds the final output
 
         FFT fft;
         FFTResult fftResult;
@@ -902,15 +902,16 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
             }
 
-            //energyIndex = (3.0 - MIN(8.0, lowBand/highBand)) / 2.24;  //Original Equation
-            energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10.
+            energyIndex = (3.0 - Math.Min(8.0, lowBand/highBand)) / 2.24;  //Original Equation
+            //energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10.
 
             energyIndex = Math.Max(-1.5, energyIndex);
             energyIndex = Math.Min(1.5, energyIndex);
 
-            energyLevel = (int)(Math.Round(50.0 + 33.0 * energyIndex));
+            energyLevel = (Math.Round(50.0 + 33.0 * energyIndex));
+            energyLevel = Math.Floor(energyLevel + 0.5);
 
-            return energyLevel;
+            return (int)energyLevel;
         }
 
     }
