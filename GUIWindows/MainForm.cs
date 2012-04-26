@@ -21,10 +21,10 @@ namespace NeuroSky.MindView {
         private SaveFileDialog saveHRMdialog;   //for saving the HRM file    
 
         private EnergyLevel energyLevel;
-        private int fatigueCounter = 0;         //counter to keep track of how many RR values we have so far in the Fatigue Meter
-        public int[] RRbufferInMS = new int[110];  //holds the 110 RR interval values before they are dumped into the algorithm
+        public List<int> RRBufferInMS = new List<int>();          //holds the 64 seconds of RR values before they are dumped into the algorithm
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
+        private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
         
         public GraphPanel rawGraphPanel;
         public TextBox portText;
@@ -342,7 +342,7 @@ namespace NeuroSky.MindView {
             this.fatigueLabel.Name = "fatigueLabel";
             this.fatigueLabel.Size = new System.Drawing.Size(51, 24);
             this.fatigueLabel.TabIndex = 19;
-            this.fatigueLabel.Text = "0";
+            this.fatigueLabel.Text = " ";
             this.fatigueLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.fatigueLabel.Visible = false;
             // 
@@ -464,8 +464,9 @@ namespace NeuroSky.MindView {
             updateFatigueLevelLabel("");
             toggleRecordButton(false);
 
-            fatigueCounter = 0;
-            Array.Clear(RRbufferInMS, 0, RRbufferInMS.Length);
+            fatigueTime = 0;
+
+            RRBufferInMS.Clear();
 
             //disable the button
             toggleFatigueStartButton(false);
@@ -479,7 +480,7 @@ namespace NeuroSky.MindView {
             this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
 
             //update the status bar
-            updateStatusLabel("Recording...please hold position for approximately 2 minutes...");
+            updateStatusLabel("Recording...please hold position for approximately 1 minute...");
 
             //start the fatigue meter
             runFatigueMeter = true;
@@ -489,7 +490,7 @@ namespace NeuroSky.MindView {
         //stop fatigue button clicked
         private void stopFatigueMeter_Click(object sender, EventArgs e) {
             runFatigueMeter = false;
-            outputFatigueResults(RRbufferInMS);
+            outputFatigueResults(RRBufferInMS.ToArray());
         }
 
 
@@ -500,17 +501,18 @@ namespace NeuroSky.MindView {
                 //if the return RR interval was between 150 and 800 points (292 msec to 1562 msec)
                 if((RRvalue > 150) && (RRvalue < 800)) {
 
-                    //if there are less than 110 RR values so far, add it to the buffer
-                    if(fatigueCounter < 110) {
-                        RRbufferInMS[fatigueCounter] = (int)((RRvalue * 1000.0) / 500.0);
+                    //if at least 64 seconds of data has been collected
+                    if(fatigueTime < 64000) {
+                        RRBufferInMS.Add((int)((RRvalue * 1000.0) / 500.0));
+                        if(RRBufferInMS.Count > 1) {
+                            fatigueTime = fatigueTime + RRBufferInMS[RRBufferInMS.Count - 1];
+                        }
 
                     } else {
-                        //else there are now 110 values. or, the user has removed his hands from the device. write it out to a text file
+                        //else there are now 64 seconds of data. or, the user has pressed the stop button. write it out to a text file
                         runFatigueMeter = false;
-                        outputFatigueResults(RRbufferInMS);
+                        outputFatigueResults(RRBufferInMS.ToArray());
                     }
-
-                    fatigueCounter++;
                 }
             }
         }
@@ -519,23 +521,28 @@ namespace NeuroSky.MindView {
         public void outputFatigueResults(int[] RRbuffer) {
             //write out the MILLISECOND values to the HRM file
             try {
-                for(int k = 0; k < fatigueCounter; k++) {
-                    HRMstream.WriteLine(RRbufferInMS[k]);
+                for(int k = 0; k < RRbuffer.Length; k++) {
+                    HRMstream.WriteLine(RRbuffer[k]);
                 }
             } catch(Exception e) {
                 Console.WriteLine("Unable to write HRM file: " + e.Message);
             }
 
-            //calculate the fatigue level based on the Energy Meter
-            fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, 110);
             
-            //if the value is more than 0, display it
-            if(fatigueResult > 0) {
+            //calculate the fatigue level based on the Energy Meter
+            if(fatigueTime > 64000) {
+                fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, RRbuffer.Length);
                 updateFatigueLevelLabel(fatigueResult.ToString());
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
+                updateStatusLabel("Fatigue recording complete.");
+            } else {
+                updateFatigueLevelLabel("");
+                toggleFatigueLevelLabelIndicator(true);
+                toggleFatigueLevelLabel(true);
+                updateStatusLabel("Data recording ended early. Please try recording again");
             }
-
+            
             //stop the fatigue meter. close the file
             runFatigueMeter = false;
             HRMstream.Close();
@@ -545,8 +552,6 @@ namespace NeuroSky.MindView {
             toggleFatigueStopButton(false);
             toggleRecordButton(true);
 
-            //update the status bar
-            updateStatusLabel("Fatigue recording complete.");
 
             Thread showDialogThread = new Thread(new ThreadStart(showDialog));
             showDialogThread.SetApartmentState(ApartmentState.STA);

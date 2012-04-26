@@ -830,6 +830,8 @@ namespace NeuroSky.ThinkGear.Algorithms {
                 t[i] = t[i - 1] + rrIntervalInMS[i];
             }
 
+            
+
             //Checks to see if there is enough points to do a 128 point FFT.
             if(t[length - 1] < 63500) {
                 Console.WriteLine("Need 64 seconds of data. Total ms = " + t[length - 1]);
