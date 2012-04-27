@@ -191,7 +191,12 @@ namespace NeuroSky.MindView {
 
                         //pass the data off for peak detection
                         tgHRVresult = tgHRV.AddData((short)thinkGearParser.ParsedData[i]["Raw"]);
-                        
+
+                        //update the label
+                        if((tgHRVresult > 0) &&((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp))) {
+                            mainForm.updateHRVLabel(tgHRVresult.ToString());
+                        }
+
                         //play the the beep if necessary
                         mainForm.playBeep(tgHRVresult, (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
 
@@ -232,6 +237,8 @@ namespace NeuroSky.MindView {
 
                         mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                         mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                        mainForm.updateHRVLabel("0");
 
                         tgHRV.Reset();
                     }

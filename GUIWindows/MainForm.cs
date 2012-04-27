@@ -81,7 +81,15 @@ namespace NeuroSky.MindView {
         private Label fatigueLabelIndicator;
         public Label fatigueLabel;
         private Button stopFatigueButton;
+        private PictureBox energyPictureBox;
         public SoundPlayer player;
+
+        private Bitmap emptyImage;
+        private Bitmap lowImage;
+        private Bitmap mediumImage;
+        private Label HRVLabelIndicator;
+        public Label HRVLabel;
+        private Bitmap fullImage;
 
         public MainForm() {
 
@@ -138,8 +146,20 @@ namespace NeuroSky.MindView {
             //grab the embedded audio file to play. note that player.Play() is a nonblocking function, so you can plot
             //and play audio and record data at the same time
             System.Reflection.Assembly a = System.Reflection.Assembly.GetExecutingAssembly();
-            System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.ThinkGear.heartbeep.wav");
+            System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.heartbeep.wav");
             player = new SoundPlayer(s);
+
+            System.IO.Stream emptyStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.empty.gif");
+            emptyImage = new Bitmap(emptyStream);
+
+            System.IO.Stream lowStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.low.gif");
+            lowImage = new Bitmap(lowStream);
+
+            System.IO.Stream mediumStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.medium.gif");
+            mediumImage = new Bitmap(mediumStream);
+
+            System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.full.gif");
+            fullImage = new Bitmap(fullStream);
         }
 
 
@@ -181,7 +201,11 @@ namespace NeuroSky.MindView {
             this.fatigueLabelIndicator = new System.Windows.Forms.Label();
             this.fatigueLabel = new System.Windows.Forms.Label();
             this.stopFatigueButton = new System.Windows.Forms.Button();
+            this.energyPictureBox = new System.Windows.Forms.PictureBox();
+            this.HRVLabelIndicator = new System.Windows.Forms.Label();
+            this.HRVLabel = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
+            ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // connectButton
@@ -319,14 +343,14 @@ namespace NeuroSky.MindView {
             this.startFatigueButton.Name = "startFatigueButton";
             this.startFatigueButton.Size = new System.Drawing.Size(100, 24);
             this.startFatigueButton.TabIndex = 18;
-            this.startFatigueButton.Text = "Fatigue Meter";
+            this.startFatigueButton.Text = "Energy Level";
             this.startFatigueButton.UseVisualStyleBackColor = true;
             this.startFatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
             // 
             // fatigueLabelIndicator
             // 
             this.fatigueLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fatigueLabelIndicator.Location = new System.Drawing.Point(705, 11);
+            this.fatigueLabelIndicator.Location = new System.Drawing.Point(695, 61);
             this.fatigueLabelIndicator.Name = "fatigueLabelIndicator";
             this.fatigueLabelIndicator.Size = new System.Drawing.Size(84, 19);
             this.fatigueLabelIndicator.TabIndex = 20;
@@ -338,7 +362,7 @@ namespace NeuroSky.MindView {
             // 
             this.fatigueLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fatigueLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.fatigueLabel.Location = new System.Drawing.Point(807, 9);
+            this.fatigueLabel.Location = new System.Drawing.Point(797, 59);
             this.fatigueLabel.Name = "fatigueLabel";
             this.fatigueLabel.Size = new System.Drawing.Size(51, 24);
             this.fatigueLabel.TabIndex = 19;
@@ -357,13 +381,47 @@ namespace NeuroSky.MindView {
             this.stopFatigueButton.Visible = false;
             this.stopFatigueButton.Click += new System.EventHandler(this.stopFatigueMeter_Click);
             // 
+            // energyPictureBox
+            // 
+            this.energyPictureBox.BackColor = System.Drawing.SystemColors.Control;
+            this.energyPictureBox.ErrorImage = null;
+            this.energyPictureBox.InitialImage = global::NeuroSky.ThinkGear.Properties.Resources.full;
+            this.energyPictureBox.Location = new System.Drawing.Point(704, 7);
+            this.energyPictureBox.Name = "energyPictureBox";
+            this.energyPictureBox.Size = new System.Drawing.Size(115, 49);
+            this.energyPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.energyPictureBox.TabIndex = 22;
+            this.energyPictureBox.TabStop = false;
+            this.energyPictureBox.Visible = false;
+            // 
+            // HRVLabelIndicator
+            // 
+            this.HRVLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.HRVLabelIndicator.Location = new System.Drawing.Point(869, 72);
+            this.HRVLabelIndicator.Name = "HRVLabelIndicator";
+            this.HRVLabelIndicator.Size = new System.Drawing.Size(132, 19);
+            this.HRVLabelIndicator.TabIndex = 24;
+            this.HRVLabelIndicator.Text = "HRV:";
+            this.HRVLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // HRVLabel
+            // 
+            this.HRVLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.HRVLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.HRVLabel.Location = new System.Drawing.Point(1019, 69);
+            this.HRVLabel.Name = "HRVLabel";
+            this.HRVLabel.Size = new System.Drawing.Size(51, 24);
+            this.HRVLabel.TabIndex = 23;
+            this.HRVLabel.Text = "0";
+            this.HRVLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rawGraphPanel.Location = new System.Drawing.Point(0, 76);
+            this.rawGraphPanel.Location = new System.Drawing.Point(0, 96);
             this.rawGraphPanel.Name = "rawGraphPanel";
             this.rawGraphPanel.samplingRate = 10;
-            this.rawGraphPanel.Size = new System.Drawing.Size(1079, 430);
+            this.rawGraphPanel.Size = new System.Drawing.Size(1079, 410);
             this.rawGraphPanel.TabIndex = 0;
             this.rawGraphPanel.xAxisMax = 0D;
             this.rawGraphPanel.xAxisMin = 0D;
@@ -373,6 +431,9 @@ namespace NeuroSky.MindView {
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.HRVLabelIndicator);
+            this.Controls.Add(this.HRVLabel);
+            this.Controls.Add(this.energyPictureBox);
             this.Controls.Add(this.stopFatigueButton);
             this.Controls.Add(this.fatigueLabelIndicator);
             this.Controls.Add(this.fatigueLabel);
@@ -393,6 +454,7 @@ namespace NeuroSky.MindView {
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "BMD100 PC Starter Software";
+            ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -463,6 +525,7 @@ namespace NeuroSky.MindView {
         private void fatigueButton_Click(object sender, EventArgs e) {
             updateFatigueLevelLabel("");
             toggleRecordButton(false);
+            toggleEnergyPictureBox(false);
 
             fatigueTime = 0;
 
@@ -542,6 +605,18 @@ namespace NeuroSky.MindView {
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
                 updateStatusLabel("Fatigue recording complete.");
+
+                if(fatigueResult < 25) {
+                    setEnergyPictureBox(emptyImage);
+                } else if(fatigueResult < 50) {
+                    setEnergyPictureBox(lowImage);
+                } else if(fatigueResult < 75) {
+                    setEnergyPictureBox(mediumImage);
+                } else if(fatigueResult <= 100) {
+                    setEnergyPictureBox(fullImage);
+                }
+                toggleEnergyPictureBox(true);
+
             } else {
                 updateFatigueLevelLabel("");
                 toggleFatigueLevelLabelIndicator(true);
@@ -894,6 +969,28 @@ namespace NeuroSky.MindView {
             }
         }
 
+        //show/hide the engergy picture box
+        delegate void ToggleEnergyPictureBoxDelegate(bool visible);
+        public void toggleEnergyPictureBox(bool visible) {
+            if(this.InvokeRequired) {
+                ToggleEnergyPictureBoxDelegate del = new ToggleEnergyPictureBoxDelegate(toggleEnergyPictureBox);
+                this.Invoke(del, new object[] { visible });
+            } else {
+                this.energyPictureBox.Visible = visible;
+            }
+        }
+
+        //show a certain image on the picture box
+        delegate void SetEnergyPictureBoxDelegate(Bitmap image);
+        public void setEnergyPictureBox(Bitmap image) {
+            if(this.InvokeRequired) {
+                SetEnergyPictureBoxDelegate del = new SetEnergyPictureBoxDelegate(setEnergyPictureBox);
+                this.Invoke(del, new object[] { image });
+            } else {
+                this.energyPictureBox.Image = image;
+            }
+        }
+
 
         //update the fatigue start button
         delegate void ToggleFatigueStartButtonDelegate(bool visible);
@@ -1035,6 +1132,23 @@ namespace NeuroSky.MindView {
             }
         }
 
+        //update the HRV label
+        delegate void UpdateHRVLabelDelegate(string tempString);
+        public void updateHRVLabel(string tempString) {
+            if(this.InvokeRequired) {
+                //try catch necessary for handling case when form is disposing
+                try {
+                    UpdateHRVLabelDelegate del = new UpdateHRVLabelDelegate(updateHRVLabel);
+                    this.Invoke(del, new object[] { tempString });
+                } catch(Exception e) {
+                    Console.WriteLine("Caught exception at updateHRVLabel: " + e.Message);
+                }
+
+            } else {
+                this.HRVLabel.Text = tempString;
+            }
+        }
+
 
         delegate void UpdateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText) {
@@ -1046,7 +1160,7 @@ namespace NeuroSky.MindView {
             }
         }
 
-
+        
         protected override void OnSizeChanged(EventArgs e) {
 
             realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, realtimeHeartRateLabelIndicator.Location.Y);
@@ -1055,8 +1169,13 @@ namespace NeuroSky.MindView {
             averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, realtimeHeartRateLabelIndicator.Location.Y + 30);
             averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 71, realtimeHeartRateLabel.Location.Y + 30);
 
-            fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 380, fatigueLabelIndicator.Location.Y);
-            fatigueLabel.Location = new System.Drawing.Point(this.Width - 280, fatigueLabel.Location.Y);
+            HRVLabelIndicator.Location = new System.Drawing.Point(this.Width - 215, averageHeartRateLabelIndicator.Location.Y + 30);
+            HRVLabel.Location = new System.Drawing.Point(this.Width - 71, averageHeartRateLabel.Location.Y + 30);
+
+            energyPictureBox.Location = new System.Drawing.Point(this.Width - 382, energyPictureBox.Location.Y);
+
+            fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 391, energyPictureBox.Location.Y + energyPictureBox.Height + 8);
+            fatigueLabel.Location = new System.Drawing.Point(this.Width - 289, energyPictureBox.Location.Y + energyPictureBox.Height + 6);
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
 
@@ -1068,13 +1187,13 @@ namespace NeuroSky.MindView {
             startFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
             stopFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
 
-            rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, soundCheckBox.Location.Y + soundCheckBox.Height + 9);
+            rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, HRVLabel.Location.Y + HRVLabel.Height + 9);
             rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
             rawGraphPanel.Width = this.Width - 10;
 
             base.OnSizeChanged(e);
         }
-
+        
      
 
        

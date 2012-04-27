@@ -60,9 +60,37 @@ namespace NeuroSky.ThinkGear.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap empty {
+            get {
+                object obj = ResourceManager.GetObject("empty", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap full {
+            get {
+                object obj = ResourceManager.GetObject("full", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.IO.UnmanagedMemoryStream heartbeep {
             get {
                 return ResourceManager.GetStream("heartbeep", resourceCulture);
+            }
+        }
+        
+        internal static System.Drawing.Bitmap low {
+            get {
+                object obj = ResourceManager.GetObject("low", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap medium {
+            get {
+                object obj = ResourceManager.GetObject("medium", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }
