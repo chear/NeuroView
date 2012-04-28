@@ -26,6 +26,7 @@ namespace NeuroSky.MindView {
         private TGHrv tgHRV;                //the RR interval detection algorithm
         
         private int tgHRVresult;            //output of the TGHrv algorithm
+        private int tgHRVresultInMS;     //output of the TGHrv algorithm in MSec
 
         private byte[] bytesToSend;     //bytes to send for EGO
         private int rawCounter;         //counter for delay of EGO output
@@ -193,8 +194,9 @@ namespace NeuroSky.MindView {
                         tgHRVresult = tgHRV.AddData((short)thinkGearParser.ParsedData[i]["Raw"]);
 
                         //update the label
-                        if((tgHRVresult > 0) &&((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp))) {
-                            mainForm.updateHRVLabel(tgHRVresult.ToString());
+                        if((tgHRVresult > 150) && (tgHRVresult < 800) &&((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp))) {
+                            tgHRVresultInMS = (int)(tgHRVresult*1000.0/512.0);
+                            mainForm.updateHRVLabel(tgHRVresultInMS.ToString());
                         }
 
                         //play the the beep if necessary
