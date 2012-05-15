@@ -502,13 +502,10 @@ namespace NeuroSky.MindView {
         }
 
 
-        //check if there has been an R peak. if so, play a "beep"
-        public void playBeep(int RRvalue, bool readyToPlay) {
-
-            if(RRvalue > 0) {
-                if((soundCheckBox.Checked) && (readyToPlay)) {
-                    player.Play();
-                }
+        //if there has been an R peak, play a "beep"
+        public void playBeep() {
+            if(soundCheckBox.Checked) {
+                player.Play();
             }
         }
 
@@ -604,7 +601,7 @@ namespace NeuroSky.MindView {
                 updateFatigueLevelLabel(fatigueResult.ToString());
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
-                updateStatusLabel("Fatigue recording complete.");
+                updateStatusLabel("Energy recording complete.");
 
                 if(fatigueResult < 25) {
                     setEnergyPictureBox(emptyImage);
@@ -621,7 +618,7 @@ namespace NeuroSky.MindView {
                 updateFatigueLevelLabel("");
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
-                updateStatusLabel("Data recording ended early. Please try recording again");
+                updateStatusLabel("Data recording ended early. Please try recording again.");
             }
             
             //stop the fatigue meter. close the file

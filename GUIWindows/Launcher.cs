@@ -75,9 +75,6 @@ namespace NeuroSky.MindView {
 
             InitializeComponent();
 
-            this.MaximumSize = new Size(391, 361);
-            this.MinimumSize = this.MaximumSize;
-
             rawCounter = 0;     //initially zero
             delay = 512 * 5;    //5 seconds delay
 
@@ -190,34 +187,36 @@ namespace NeuroSky.MindView {
                     if(mainForm.poorQuality == 200) {
                         rawCounter++;
 
-                        //pass the data off for peak detection
-                        tgHRVresult = tgHRV.AddData((short)thinkGearParser.ParsedData[i]["Raw"]);
-
-                        //update the label
-                        if((tgHRVresult > 150) && (tgHRVresult < 800) &&((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp))) {
-                            tgHRVresultInMS = (int)(tgHRVresult*1000.0/512.0);
-                            mainForm.updateHRVLabel(tgHRVresultInMS.ToString());
-                        }
-
-                        //play the the beep if necessary
-                        mainForm.playBeep(tgHRVresult, (rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp));
-
-                        //calulate the fatigue level
-                        mainForm.calculateFatigue(tgHRVresult);
-                    
                         //update the buffer with the latest eeg value
                         Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
                         tempeegBuffer[bufferSize_hp - 1] = (double)thinkGearParser.ParsedData[i]["Raw"];
                         Array.Copy(tempeegBuffer, eegBuffer, bufferSize_hp);
                         bufferCounter_raw++;
 
-                        //if the eeg buffer is full, and "delay" seconds have already passed
-                        if((rawCounter >= delay) && (bufferCounter_raw >= bufferSize_hp)) {
+                        //if the eeg buffer is full, calculate the filtered data
+                        if(bufferCounter_raw >= bufferSize_hp) {
 
-                            //filter the data and update the lp buffer
+                            //filter the data
                             filtered = applyFilter(eegBuffer, hp_coeff);
-                            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
-                            mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                            //pass filtered data to the TGHRV algorithm 
+                            tgHRVresult = tgHRV.AddData((short)filtered);
+
+                            //calulate the fatigue level
+                            mainForm.calculateFatigue(tgHRVresult);
+                            
+                            //update the label and play the beep (only if "delay" seconds have passed)
+                            if((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay)) {
+                                tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
+                                mainForm.updateHRVLabel(tgHRVresultInMS.ToString());
+                                mainForm.playBeep();
+                            }
+
+                            //if "delay" seconds have passed, start plotting the data
+                            if(rawCounter >= delay) {
+                                mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
+                                mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                            }
 
                             //clear the graph when it's full
                             if(mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints) {

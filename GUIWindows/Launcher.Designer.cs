@@ -85,6 +85,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Launcher";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
