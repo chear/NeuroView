@@ -18,8 +18,7 @@ using NeuroSky.ThinkGear.Algorithms;
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
-        private SaveFileDialog saveHRMdialog;   //for saving the HRM file    
-
+        
         private EnergyLevel energyLevel;
         public List<int> RRBufferInMS = new List<int>();          //holds the 64 seconds of RR values before they are dumped into the algorithm
         public bool runFatigueMeter = false;   //fatigue meter is off by default
@@ -68,9 +67,7 @@ namespace NeuroSky.MindView {
         private System.IO.StreamWriter dataLogStream;
         private string ECGLogOutFile;
         private System.IO.StreamWriter ECGLogStream;
-        private string HRMoutFile;
-        private System.IO.StreamWriter HRMstream;
-
+        
         private string currentPath;
         
         public event EventHandler ConnectButtonClicked = delegate { };
@@ -100,11 +97,7 @@ namespace NeuroSky.MindView {
             saveFileGUI.StartPosition = FormStartPosition.Manual;
 
             energyLevel = new EnergyLevel();
-            saveHRMdialog = new SaveFileDialog();
-            saveHRMdialog.Filter = "HRM file|*.hrm";
-            saveHRMdialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString();
-            saveHRMdialog.FileOk += new CancelEventHandler(saveHRMdialog_FileOk);
-
+          
             InitializeComponent();
 
             recordFlag = false;
@@ -532,16 +525,6 @@ namespace NeuroSky.MindView {
             toggleFatigueStartButton(false);
             toggleFatigueStopButton(true);
 
-            //disabling the HRM file saving
-            /*
-            //set up the HRM file
-            HRMoutFile = DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
-            + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".hrm";
-            HRMoutFile = Path.Combine(currentPath, HRMoutFile);
-                
-            this.HRMstream = new System.IO.StreamWriter(HRMoutFile, true);
-            */
-
             //update the status bar
             updateStatusLabel("Recording...please hold position for approximately 1 minute...");
 
@@ -583,20 +566,8 @@ namespace NeuroSky.MindView {
         //save the output of the fatigue meter
         public void outputFatigueResults(int[] RRbuffer) {
             
-            //disable the HRM file saving
-            /*
-            //write out the MILLISECOND values to the HRM file
-            try {
-                for(int k = 0; k < RRbuffer.Length; k++) {
-                    HRMstream.WriteLine(RRbuffer[k]);
-                }
-            } catch(Exception e) {
-                Console.WriteLine("Unable to write HRM file: " + e.Message);
-            }
-            */
-            
             //calculate the fatigue level based on the Energy Meter
-            if(fatigueTime > 64000) {
+            if(fatigueTime >= 64000) {
                 fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, RRbuffer.Length);
                 updateFatigueLevelLabel(fatigueResult.ToString());
                 toggleFatigueLevelLabelIndicator(true);
@@ -630,46 +601,6 @@ namespace NeuroSky.MindView {
             toggleFatigueStopButton(false);
             toggleRecordButton(true);
 
-            //disabling the HRM file saving
-            /*
-            Thread showDialogThread = new Thread(new ThreadStart(showDialog));
-            showDialogThread.SetApartmentState(ApartmentState.STA);
-            showDialogThread.Start();     
-            */
-        }
-
-        //show the dialog box
-        private void showDialog() {
-            DialogResult closeResult = saveHRMdialog.ShowDialog();
-
-            //if the user pressed cancel, delete the file
-            if(closeResult == DialogResult.Cancel) {
-                try {
-                    System.IO.File.Delete(System.IO.Path.Combine(currentPath, HRMoutFile));
-                } catch(Exception e) {
-                    Console.WriteLine("canceled saving HRM file. couldn't delete the file: " + e.Message);
-                }
-            }
-        }
-
-
-        //save HRM file dialog box
-        void saveHRMdialog_FileOk(object sender, CancelEventArgs e) {
-            string fileName = saveHRMdialog.FileName;
-            string path = Path.GetDirectoryName(fileName);
-            
-            try {
-                if(!System.IO.Directory.Exists(path)) {
-                    System.IO.Directory.CreateDirectory(path);
-                }
-
-                System.IO.File.Copy(HRMoutFile, fileName, true);
-                System.IO.File.Delete(HRMoutFile);
-
-            } catch(Exception ex) {
-                MessageBox.Show("To save data in this directory, please exit the application and run as Administrator.", "Warning",
-                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
-            }
         }
 
 
