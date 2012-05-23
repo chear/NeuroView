@@ -171,12 +171,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ThinkGear\ThinkGear.csproj">
-      <Project>{E6F6767E-9163-4675-BFA4-E11137A4FA98}</Project>
-      <Name>ThinkGear</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\heartbeep.wav" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +184,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\low.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ThinkGearNet\ThinkGear\ThinkGear.csproj">
+      <Project>{E6F6767E-9163-4675-BFA4-E11137A4FA98}</Project>
+      <Name>ThinkGear</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

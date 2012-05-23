@@ -11,7 +11,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 using NeuroSky.ThinkGear;
-using NeuroSky.ThinkGear.Parser;
 
 using NeuroSky.ThinkGear.Algorithms;
 
