@@ -783,7 +783,7 @@ namespace NeuroSky.ThinkGear.Algorithms {
     public class EnergyLevel {
 
         int[] t;    //this hold the timestamps for each RR interval
-        int numSamples = 128;  //Specifies the number of FFT.
+        int numSamples;  //Specifies the number of FFT.
         int[] reSampledTime;                //this holds the timestamps of the interpolated data (at 500 msec intervals, effectively 2Hz sampling rate)
         int[] reSampledData;    //this holds the data resampled at 2Hz
         double[] fftInput;   //this holds the data to be FFT'd
@@ -809,15 +809,9 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
         //initialize stuff in the constructor
         public EnergyLevel() {
-            reSampledTime = new int[numSamples];
-            reSampledData = new int[numSamples];
-            fftInput = new double[numSamples];
-            psd = new double[numSamples];
-            zeros = new double[numSamples];
-
+            
             fft = new FFT();
-            hanningWindow = new HanningWindow(numSamples);
-
+            
         }
 
         //pass in an array of RR intervals, in milliseconds. and also pass in the length of the array
@@ -832,16 +826,41 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
             
 
-            //Checks to see if there is enough points to do a 128 point FFT.
+            //Checks to see if there is at least 64 seconds of data
             if(t[length - 1] < 63500) {
                 Console.WriteLine("Need 64 seconds of data. Total ms = " + t[length - 1]);
                 return -1;
             }
-            
+
+            //if there are less than 5 minutes of data, take the first 64 seconds. therefore its 128 points resampled
+            if(t[length - 1] < 300000) {
+                numSamples = 128;
+                reSampledTime = new int[numSamples];
+                reSampledData = new int[numSamples];
+                fftInput = new double[numSamples];
+                zeros = new double[numSamples];
+                psd = new double[numSamples];
+                hanningWindow = new HanningWindow(numSamples);
+
+            //otherwise, if there is 5 minutes of data (or more), take the first 5 minutes (300 seconds). therefore its 600 points resampled
+            } else {
+                numSamples = 600;
+                reSampledTime = new int[numSamples];
+                reSampledData = new int[numSamples];
+                fftInput = new double[numSamples];
+                zeros = new double[numSamples];
+                psd = new double[1024];
+                hanningWindow = new HanningWindow(numSamples);
+
+            }
+
+
+
             //Time index used for resampling
             for(int i = 0; i < numSamples; i++) {
                 reSampledTime[i] = 1000 * i / 2;
             }
+
 
             //Resamples the data at 2Hz, which is 500ms
             reSampledData[0] = rrIntervalInMS[0];
@@ -876,7 +895,11 @@ namespace NeuroSky.ThinkGear.Algorithms {
             //apply the hanning window
             fftInput = hanningWindow.applyCoeffs(fftInput);
 
-            //finally calcuate the power spectrum of the FFT. this is a 128 point FFT
+            //finally calcuate the power spectrum of the FFT. check the length of fftInput. If numsamples = 600, take a 1024 point FFT (zero pad)
+            if(numSamples == 600) {
+                numSamples = 1024;
+            }
+
             fftResult = fft.calculateFFT(fftInput, zeros, 1, numSamples);
             real = fftResult.getReal();
             imag = fftResult.getImaginary();
@@ -902,14 +925,12 @@ namespace NeuroSky.ThinkGear.Algorithms {
 
             }
 
-            energyIndex = (3.0 - Math.Min(8.0, lowBand/highBand)) / 2.24;  //Original Equation
-            //energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10.
+            //energyIndex = (3.0 - Math.Min(8.0, lowBand/highBand)) / 2.24;  //Original Equation
+            //energyIndex = (5.005 - lowBand / highBand) / 3.33;  //New Equation by Calculated with assuming range of LF/HF of 0.01 to 10. Masa's equation
+            energyIndex = Math.Min(10, lowBand / highBand);
+            energyLevel = Math.Round(100 - 10 * energyIndex);
 
-            energyIndex = Math.Max(-1.5, energyIndex);
-            energyIndex = Math.Min(1.5, energyIndex);
-
-            energyLevel = (Math.Round(50.0 + 33.0 * energyIndex));
-            energyLevel = Math.Floor(energyLevel + 0.5);
+            if(energyLevel == 0) energyLevel = 1;
 
             return (int)energyLevel;
         }

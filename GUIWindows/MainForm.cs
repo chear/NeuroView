@@ -549,6 +549,7 @@ namespace NeuroSky.MindView {
 
                     //if at least 64 seconds of data has been collected
                     if(fatigueTime < 64000) {
+                    //if(fatigueTime < 300000) {
                         RRBufferInMS.Add((int)((RRvalue * 1000.0) / 512.0));
                         if(RRBufferInMS.Count > 1) {
                             fatigueTime = fatigueTime + RRBufferInMS[RRBufferInMS.Count - 1];
@@ -568,6 +569,7 @@ namespace NeuroSky.MindView {
             
             //calculate the fatigue level based on the Energy Meter
             if(fatigueTime >= 64000) {
+            //if(fatigueTime >= 300000) {
                 fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, RRbuffer.Length);
                 updateFatigueLevelLabel(fatigueResult.ToString());
                 toggleFatigueLevelLabelIndicator(true);
