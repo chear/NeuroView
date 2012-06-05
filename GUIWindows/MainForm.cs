@@ -446,7 +446,7 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.rawGraphPanel);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "BMD100 PC Starter Software";
+            this.Text = "CardioChip PC Starter Software";
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

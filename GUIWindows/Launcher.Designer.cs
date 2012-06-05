@@ -60,7 +60,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(361, 108);
             this.label1.TabIndex = 1;
-            this.label1.Text = "  BMD100 PC\r\nStarter Software";
+            this.label1.Text = "CardioChip PC\r\nStarter Software";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -86,10 +86,12 @@
             this.Controls.Add(this.button1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Launcher";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "BMD100 PC Starter Software";
+            this.Text = "CardioChip PC Starter Software";
             this.Load += new System.EventHandler(this.Launcher_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

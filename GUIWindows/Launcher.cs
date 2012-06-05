@@ -11,7 +11,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 using NeuroSky.ThinkGear;
-using NeuroSky.ThinkGear.Parser;
+//using NeuroSky.ThinkGear.Parser;
 
 using NeuroSky.ThinkGear.Algorithms;
 
@@ -168,12 +168,13 @@ namespace NeuroSky.MindView {
             /* Loop through new parsed data */
             for(int i = 0; i < thinkGearParser.ParsedData.Length; i++) {
                 //send the configuration bytes to the chip. this happens immediately and only once
-                if(thinkGearParser.ParsedData[i].ContainsKey("BMDConfig")) {
+                // no longer needed since the DLL does it now
+                /*if(thinkGearParser.ParsedData[i].ContainsKey("BMDConfig")) {
                     if(bytesToSend == null) {
                         bytesToSend = new byte[8] { 0xAA, 0xAA, 0x04, 0x03, 0x40, 0xF9, 0x00, (byte)thinkGearParser.ParsedData[i]["BMDConfig"] };
                         connector.Send(device.PortName, bytesToSend);
                     }
-                }
+                }*/
 
                 //save the poorsignal value. this is always updated
                 if(thinkGearParser.ParsedData[i].ContainsKey("PoorSignal")) {
@@ -247,6 +248,7 @@ namespace NeuroSky.MindView {
 
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate")) {
+                    
                     //if the "delay" number of seconds have passed, pass the heartrate value
                     if(rawCounter >= delay) {
                         mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
