@@ -445,7 +445,7 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.rawGraphPanel);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CardioChip PC Starter Software";
+            this.Text = "CardioChip PC Starter Software 2.0";
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -959,17 +959,19 @@ namespace NeuroSky.MindView {
         //update the fatigue level
         delegate void UpdateFatigueLabelDelegate(string tempString);
         public void updateFatigueLevelLabel(string tempString) {
-            if(this.InvokeRequired) {
-                //try catch necessary for handling case when form is disposing
-                try {
-                    UpdateFatigueLabelDelegate del = new UpdateFatigueLabelDelegate(updateFatigueLevelLabel);
-                    this.Invoke(del, new object[] { tempString });
-                } catch(Exception e) {
-                    Console.WriteLine("Caught exception at updateFatigueLevelLabel: " + e.Message);
-                }
+            if((!this.Disposing) && (!this.IsDisposed)) {
+                if(this.InvokeRequired) {
+                    //try catch necessary for handling case when form is disposing
+                    try {
+                        UpdateFatigueLabelDelegate del = new UpdateFatigueLabelDelegate(updateFatigueLevelLabel);
+                        this.Invoke(del, new object[] { tempString });
+                    } catch(Exception e) {
+                        Console.WriteLine("Caught exception at updateFatigueLevelLabel: " + e.Message);
+                    }
 
-            } else {
-                this.fatigueLabel.Text = tempString;
+                } else {
+                    this.fatigueLabel.Text = tempString;
+                }
             }
         }
 
@@ -1031,62 +1033,69 @@ namespace NeuroSky.MindView {
         //update the realtime heart rate label status
         delegate void UpdateRealTimeHeartRateLabelDelegate(string tempString);
         public void updateRealTimeHeartRateLabel(string tempString) {
-            if(this.InvokeRequired) {
-                //try catch necessary for handling case when form is disposing
-                try {
-                    UpdateRealTimeHeartRateLabelDelegate del = new UpdateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
-                    this.Invoke(del, new object[] { tempString });
-                } catch(Exception e) {
-                    Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
-                }
+            if((!this.Disposing) && (!this.IsDisposed)) {
+                if(this.InvokeRequired) {
+                    //try catch necessary for handling case when form is disposing
+                    try {
+                        UpdateRealTimeHeartRateLabelDelegate del = new UpdateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
+                        this.Invoke(del, new object[] { tempString });
+                    } catch(Exception e) {
+                        Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
+                    }
 
-            } else {
-                this.realtimeHeartRateLabel.Text = tempString;
+                } else {
+                    this.realtimeHeartRateLabel.Text = tempString;
+                }
             }
         }
 
         //update the average heart rate label status
         delegate void UpdateAverageHeartRateLabelDelegate(string tempString);
         public void updateAverageHeartRateLabel(string tempString) {
-            if(this.InvokeRequired) {
-                //try catch necessary for handling case when form is disposing
-                try {
-                    UpdateAverageHeartRateLabelDelegate del = new UpdateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
-                    this.Invoke(del, new object[] { tempString });
-                } catch(Exception e) {
-                    Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
-                }
+            if((!this.Disposing) && (!this.IsDisposed)) {
+                if(this.InvokeRequired) {
+                    //try catch necessary for handling case when form is disposing
+                    try {
+                        UpdateAverageHeartRateLabelDelegate del = new UpdateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
+                        this.Invoke(del, new object[] { tempString });
+                    } catch(Exception e) {
+                        Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
+                    }
 
-            } else {
-                this.averageHeartRateLabel.Text = tempString;
+                } else {
+                    this.averageHeartRateLabel.Text = tempString;
+                }
             }
         }
+
 
         //update the HRV label
         delegate void UpdateHRVLabelDelegate(string tempString);
         public void updateHRVLabel(string tempString) {
-            if(this.InvokeRequired) {
-                //try catch necessary for handling case when form is disposing
-                try {
-                    UpdateHRVLabelDelegate del = new UpdateHRVLabelDelegate(updateHRVLabel);
-                    this.Invoke(del, new object[] { tempString });
-                } catch(Exception e) {
-                    Console.WriteLine("Caught exception at updateHRVLabel: " + e.Message);
+            if((!this.Disposing) && (!this.IsDisposed)) {
+                if(this.InvokeRequired) {
+                    try {
+                        UpdateHRVLabelDelegate del = new UpdateHRVLabelDelegate(updateHRVLabel);
+                        this.Invoke(del, new object[] { tempString });
+                    } catch(Exception e) {
+                        Console.WriteLine("caught exception at UpdateHRVLabel: " + e.Message);
+                    }
+                } else {
+                    this.HRVLabel.Text = tempString;
                 }
-
-            } else {
-                this.HRVLabel.Text = tempString;
             }
         }
 
 
         delegate void UpdateStatusLabelDelegate(string tempText);
         public void updateStatusLabel(string tempText) {
-            if(this.InvokeRequired) {
-                UpdateStatusLabelDelegate del = new UpdateStatusLabelDelegate(updateStatusLabel);
-                this.Invoke(del, new object[] { tempText });
-            } else {
-                this.statusLabel.Text = tempText;
+            if((!this.Disposing) && (!this.IsDisposed)) {
+                if(this.InvokeRequired) {
+                    UpdateStatusLabelDelegate del = new UpdateStatusLabelDelegate(updateStatusLabel);
+                    this.Invoke(del, new object[] { tempText });
+                } else {
+                    this.statusLabel.Text = tempText;
+                }
             }
         }
 
