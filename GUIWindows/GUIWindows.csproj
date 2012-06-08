@@ -87,9 +87,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="ThinkGear">
-      <HintPath>..\..\ThinkGear.net\ThinkGear\bin\Release\ThinkGear.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BarGraph.cs">
@@ -192,6 +189,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\low.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ThinkGearNet\ThinkGear\ThinkGear.csproj">
+      <Project>{E6F6767E-9163-4675-BFA4-E11137A4FA98}</Project>
+      <Name>ThinkGear</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

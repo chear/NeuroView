@@ -20,7 +20,6 @@ namespace NeuroSky.MindView {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
         
         private EnergyLevel energyLevel;
-        public List<int> RRBufferInMS = new List<int>();          //holds the 64 seconds of RR values before they are dumped into the algorithm
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
         private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
@@ -517,9 +516,10 @@ namespace NeuroSky.MindView {
             toggleRecordButton(false);
             toggleEnergyPictureBox(false);
 
-            fatigueTime = 0;
+            fatigueResult = 0;
 
-            RRBufferInMS.Clear();
+            //reset the meter
+            fatigueResult = energyLevel.addInterval(0, 0);
 
             //disable the button
             toggleFatigueStartButton(false);
@@ -536,67 +536,67 @@ namespace NeuroSky.MindView {
         //stop fatigue button clicked
         private void stopFatigueMeter_Click(object sender, EventArgs e) {
             runFatigueMeter = false;
-            outputFatigueResults(RRBufferInMS.ToArray());
+
+            //reset the meter
+            fatigueResult = energyLevel.addInterval(0, 0);
+
+            outputFatigueResults(fatigueResult);
         }
+
+
 
 
         //calculate the fatigue value based on RR interval
         public void calculateFatigue(int RRvalue) {
             //if the Fatigue Meter button has been pressed
             if(runFatigueMeter) {
-                //if the return RR interval was between 150 and 800 points (292 msec to 1562 msec)
-                if((RRvalue > 150) && (RRvalue < 800)) {
+                //if the energy level is less than 1
+                if(fatigueResult < 1) {
 
-                    //if at least 64 seconds of data has been collected
-                    if(fatigueTime < 64000) {
-                    //if(fatigueTime < 300000) {
-                        RRBufferInMS.Add((int)((RRvalue * 1000.0) / 512.0));
-                        if(RRBufferInMS.Count > 1) {
-                            fatigueTime = fatigueTime + RRBufferInMS[RRBufferInMS.Count - 1];
-                        }
+                    fatigueResult = energyLevel.addInterval((int)((RRvalue * 1000.0) / 512.0), (byte)poorQuality);
 
-                    } else {
-                        //else there are now 64 seconds of data. or, the user has pressed the stop button. write it out to a text file
-                        runFatigueMeter = false;
-                        outputFatigueResults(RRBufferInMS.ToArray());
-                    }
+                } else {
+                    //else energy level is now greater than 0. or, the user has pressed the stop button. write it out to a text file
+                    runFatigueMeter = false;
+                    outputFatigueResults(fatigueResult);
                 }
+
             }
         }
+        
+
+
 
         //save the output of the fatigue meter
-        public void outputFatigueResults(int[] RRbuffer) {
-            
-            //calculate the fatigue level based on the Energy Meter
-            if(fatigueTime >= 64000) {
-            //if(fatigueTime >= 300000) {
-                fatigueResult = energyLevel.calculateEnergyLevel(RRbuffer, RRbuffer.Length);
-                updateFatigueLevelLabel(fatigueResult.ToString());
+        public void outputFatigueResults(int fatigueLevel) {
+
+
+            if(fatigueLevel > 0) {    //if we actually got a fatigue level
+                updateFatigueLevelLabel(fatigueLevel.ToString());
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
                 updateStatusLabel("Energy recording complete.");
 
-                if(fatigueResult < 25) {
+                if(fatigueLevel < 25) {
                     setEnergyPictureBox(emptyImage);
-                } else if(fatigueResult < 50) {
+                } else if(fatigueLevel < 50) {
                     setEnergyPictureBox(lowImage);
-                } else if(fatigueResult < 75) {
+                } else if(fatigueLevel < 75) {
                     setEnergyPictureBox(mediumImage);
-                } else if(fatigueResult <= 100) {
+                } else if(fatigueLevel <= 100) {
                     setEnergyPictureBox(fullImage);
                 }
                 toggleEnergyPictureBox(true);
 
-            } else {
+            } else {    //fatigue result = -1, because the user stopped it early
                 updateFatigueLevelLabel("");
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
                 updateStatusLabel("Data recording ended early. Please try recording again.");
             }
             
-            //stop the fatigue meter. close the file
+            //stop the fatigue meter
             runFatigueMeter = false;
-            //HRMstream.Close();        //disabling the HRM file saving
 
             //re-enable the button
             toggleFatigueStartButton(true);
