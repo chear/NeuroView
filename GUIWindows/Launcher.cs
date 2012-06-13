@@ -19,7 +19,7 @@ namespace NeuroSky.MindView {
     public partial class Launcher : Form {
         
         private Connector connector;
-
+        
         MainForm mainForm;
         Device device;
 
@@ -174,7 +174,10 @@ namespace NeuroSky.MindView {
 
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
-                    
+
+                    //pass data off for respiratory rate calculation
+                    mainForm.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw"]);
+
                     //if signal is good
                     if(mainForm.poorQuality == 200) {
                         rawCounter++;
@@ -234,6 +237,7 @@ namespace NeuroSky.MindView {
                         mainForm.updateHRVLabel("0");
                         mainForm.updateAverageHeartRateLabel("0");
                         mainForm.updateRealTimeHeartRateLabel("0");
+                        mainForm.updateRespiratoryRateLabel("0");
 
                         tgHRV.Reset();
                     }
