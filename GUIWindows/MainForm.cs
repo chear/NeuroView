@@ -281,9 +281,9 @@ namespace NeuroSky.MindView {
             // 
             this.realtimeHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.realtimeHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(797, 9);
+            this.realtimeHeartRateLabel.Location = new System.Drawing.Point(734, 9);
             this.realtimeHeartRateLabel.Name = "realtimeHeartRateLabel";
-            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(51, 24);
+            this.realtimeHeartRateLabel.Size = new System.Drawing.Size(81, 24);
             this.realtimeHeartRateLabel.TabIndex = 5;
             this.realtimeHeartRateLabel.Text = "0";
             this.realtimeHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -300,9 +300,9 @@ namespace NeuroSky.MindView {
             // 
             this.averageHeartRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.averageHeartRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.averageHeartRateLabel.Location = new System.Drawing.Point(797, 39);
+            this.averageHeartRateLabel.Location = new System.Drawing.Point(734, 39);
             this.averageHeartRateLabel.Name = "averageHeartRateLabel";
-            this.averageHeartRateLabel.Size = new System.Drawing.Size(51, 24);
+            this.averageHeartRateLabel.Size = new System.Drawing.Size(81, 24);
             this.averageHeartRateLabel.TabIndex = 14;
             this.averageHeartRateLabel.Text = "0";
             this.averageHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -310,7 +310,7 @@ namespace NeuroSky.MindView {
             // realtimeHeartRateLabelIndicator
             // 
             this.realtimeHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(647, 11);
+            this.realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(584, 11);
             this.realtimeHeartRateLabelIndicator.Name = "realtimeHeartRateLabelIndicator";
             this.realtimeHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
@@ -320,7 +320,7 @@ namespace NeuroSky.MindView {
             // averageHeartRateLabelIndicator
             // 
             this.averageHeartRateLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(647, 42);
+            this.averageHeartRateLabelIndicator.Location = new System.Drawing.Point(584, 42);
             this.averageHeartRateLabelIndicator.Name = "averageHeartRateLabelIndicator";
             this.averageHeartRateLabelIndicator.Size = new System.Drawing.Size(132, 19);
             this.averageHeartRateLabelIndicator.TabIndex = 16;
@@ -351,7 +351,7 @@ namespace NeuroSky.MindView {
             // fatigueLabelIndicator
             // 
             this.fatigueLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fatigueLabelIndicator.Location = new System.Drawing.Point(456, 61);
+            this.fatigueLabelIndicator.Location = new System.Drawing.Point(389, 61);
             this.fatigueLabelIndicator.Name = "fatigueLabelIndicator";
             this.fatigueLabelIndicator.Size = new System.Drawing.Size(84, 19);
             this.fatigueLabelIndicator.TabIndex = 20;
@@ -363,11 +363,10 @@ namespace NeuroSky.MindView {
             // 
             this.fatigueLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fatigueLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.fatigueLabel.Location = new System.Drawing.Point(558, 59);
+            this.fatigueLabel.Location = new System.Drawing.Point(491, 59);
             this.fatigueLabel.Name = "fatigueLabel";
-            this.fatigueLabel.Size = new System.Drawing.Size(51, 24);
+            this.fatigueLabel.Size = new System.Drawing.Size(83, 24);
             this.fatigueLabel.TabIndex = 19;
-            this.fatigueLabel.Text = " ";
             this.fatigueLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.fatigueLabel.Visible = false;
             // 
@@ -387,7 +386,7 @@ namespace NeuroSky.MindView {
             this.energyPictureBox.BackColor = System.Drawing.SystemColors.Control;
             this.energyPictureBox.ErrorImage = null;
             this.energyPictureBox.InitialImage = global::NeuroSky.ThinkGear.Properties.Resources.full;
-            this.energyPictureBox.Location = new System.Drawing.Point(465, 7);
+            this.energyPictureBox.Location = new System.Drawing.Point(398, 7);
             this.energyPictureBox.Name = "energyPictureBox";
             this.energyPictureBox.Size = new System.Drawing.Size(115, 49);
             this.energyPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -398,20 +397,20 @@ namespace NeuroSky.MindView {
             // HRVLabelIndicator
             // 
             this.HRVLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.HRVLabelIndicator.Location = new System.Drawing.Point(866, 45);
+            this.HRVLabelIndicator.Location = new System.Drawing.Point(853, 45);
             this.HRVLabelIndicator.Name = "HRVLabelIndicator";
             this.HRVLabelIndicator.Size = new System.Drawing.Size(103, 19);
             this.HRVLabelIndicator.TabIndex = 24;
-            this.HRVLabelIndicator.Text = "HRV:";
+            this.HRVLabelIndicator.Text = "R-R interval:";
             this.HRVLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // HRVLabel
             // 
             this.HRVLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.HRVLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.HRVLabel.Location = new System.Drawing.Point(987, 42);
+            this.HRVLabel.Location = new System.Drawing.Point(974, 42);
             this.HRVLabel.Name = "HRVLabel";
-            this.HRVLabel.Size = new System.Drawing.Size(79, 24);
+            this.HRVLabel.Size = new System.Drawing.Size(92, 24);
             this.HRVLabel.TabIndex = 23;
             this.HRVLabel.Text = "0";
             this.HRVLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -419,7 +418,7 @@ namespace NeuroSky.MindView {
             // RespiratoryRateIndicator
             // 
             this.RespiratoryRateIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.RespiratoryRateIndicator.Location = new System.Drawing.Point(866, 9);
+            this.RespiratoryRateIndicator.Location = new System.Drawing.Point(853, 9);
             this.RespiratoryRateIndicator.Name = "RespiratoryRateIndicator";
             this.RespiratoryRateIndicator.Size = new System.Drawing.Size(103, 19);
             this.RespiratoryRateIndicator.TabIndex = 26;
@@ -430,9 +429,9 @@ namespace NeuroSky.MindView {
             // 
             this.RespiratoryRateLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RespiratoryRateLabel.ImageAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.RespiratoryRateLabel.Location = new System.Drawing.Point(987, 6);
+            this.RespiratoryRateLabel.Location = new System.Drawing.Point(974, 6);
             this.RespiratoryRateLabel.Name = "RespiratoryRateLabel";
-            this.RespiratoryRateLabel.Size = new System.Drawing.Size(79, 24);
+            this.RespiratoryRateLabel.Size = new System.Drawing.Size(92, 24);
             this.RespiratoryRateLabel.TabIndex = 25;
             this.RespiratoryRateLabel.Text = "0";
             this.RespiratoryRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -552,17 +551,19 @@ namespace NeuroSky.MindView {
             }
             
             if(respirationRate > 0) {
-                updateRespiratoryRateLabel(respirationRate.ToString());
+                updateRespiratoryRateLabel(respirationRate.ToString() + " bpm");
             } 
 
         }
 
         //fatigue button clicked. set up stuff
         private void fatigueButton_Click(object sender, EventArgs e) {
-            updateFatigueLevelLabel("");
+            updateFatigueLevelLabel("Calculating...");
+            toggleFatigueLevelLabel(true);
+            toggleFatigueLevelLabelIndicator(true);
             toggleRecordButton(false);
             toggleEnergyPictureBox(false);
-
+            
             fatigueResult = 0;
 
             //reset the meter
@@ -620,8 +621,6 @@ namespace NeuroSky.MindView {
 
             if(fatigueLevel > 0) {    //if we actually got a fatigue level
                 updateFatigueLevelLabel(fatigueLevel.ToString());
-                toggleFatigueLevelLabelIndicator(true);
-                toggleFatigueLevelLabel(true);
                 updateStatusLabel("Energy recording complete.");
 
                 if(fatigueLevel < 25) {
@@ -783,7 +782,7 @@ namespace NeuroSky.MindView {
                     avgHBValue = avgHBValue / avgHBCounter;
 
                     //update the label
-                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString());
+                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString() + " bpm");
                 }
                     //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
                 else {
@@ -805,7 +804,7 @@ namespace NeuroSky.MindView {
                     avgHBValue = (avgHBValue / avgHBBufferLength);
 
                     //display the average heartbeat (rounded to nearest int)
-                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString());
+                    updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString() + " bpm");
                 }
             }
                 //else poor signal
@@ -837,7 +836,7 @@ namespace NeuroSky.MindView {
                     realTimeHBValue = realTimeHBValue / realTimeHBCounter;
 
                     //update the label
-                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString());
+                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString() + " bpm");
                 }
                     //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
                 else {
@@ -859,7 +858,7 @@ namespace NeuroSky.MindView {
                     realTimeHBValue = (realTimeHBValue / realTimeHBBufferLength);
 
                     //display the average heartbeat (rounded to nearest int)
-                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString());
+                    updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString() + " bpm");
                 }
             }
                 //else poor signal
@@ -1017,6 +1016,14 @@ namespace NeuroSky.MindView {
                     }
 
                 } else {
+
+                    //if the status is "calculating...", change the font to something smaller
+                    if(String.Equals("Calculating...", tempString)) {
+                        fatigueLabel.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                    } else {
+                        fatigueLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+                    }
+
                     this.fatigueLabel.Text = tempString;
                 }
             }
@@ -1196,22 +1203,22 @@ namespace NeuroSky.MindView {
         
         protected override void OnSizeChanged(EventArgs e) {
 
-            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 439, realtimeHeartRateLabelIndicator.Location.Y);
-            realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 289, realtimeHeartRateLabel.Location.Y);
+            realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 502, realtimeHeartRateLabelIndicator.Location.Y);
+            realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 352, realtimeHeartRateLabel.Location.Y);
 
-            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 439, realtimeHeartRateLabelIndicator.Location.Y + 30);
-            averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 289, realtimeHeartRateLabel.Location.Y + 30);
+            averageHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 502, realtimeHeartRateLabelIndicator.Location.Y + 30);
+            averageHeartRateLabel.Location = new System.Drawing.Point(this.Width - 352, realtimeHeartRateLabel.Location.Y + 30);
 
-            RespiratoryRateIndicator.Location = new System.Drawing.Point(this.Width - 220, RespiratoryRateIndicator.Location.Y);
-            RespiratoryRateLabel.Location = new System.Drawing.Point(this.Width - 99, RespiratoryRateLabel.Location.Y);
+            RespiratoryRateIndicator.Location = new System.Drawing.Point(this.Width - 233, RespiratoryRateIndicator.Location.Y);
+            RespiratoryRateLabel.Location = new System.Drawing.Point(this.Width - 112, RespiratoryRateLabel.Location.Y);
 
-            HRVLabelIndicator.Location = new System.Drawing.Point(this.Width - 220, RespiratoryRateIndicator.Location.Y + 30);
-            HRVLabel.Location = new System.Drawing.Point(this.Width - 99, RespiratoryRateLabel.Location.Y + 30);
+            HRVLabelIndicator.Location = new System.Drawing.Point(this.Width - 233, RespiratoryRateIndicator.Location.Y + 30);
+            HRVLabel.Location = new System.Drawing.Point(this.Width - 112, RespiratoryRateLabel.Location.Y + 30);
 
-            energyPictureBox.Location = new System.Drawing.Point(this.Width - 621, energyPictureBox.Location.Y);
+            energyPictureBox.Location = new System.Drawing.Point(this.Width - 688, energyPictureBox.Location.Y);
 
-            fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 630, energyPictureBox.Location.Y + energyPictureBox.Height + 8);
-            fatigueLabel.Location = new System.Drawing.Point(this.Width - 528, energyPictureBox.Location.Y + energyPictureBox.Height + 6);
+            fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 697, energyPictureBox.Location.Y + energyPictureBox.Height + 8);
+            fatigueLabel.Location = new System.Drawing.Point(this.Width - 595, energyPictureBox.Location.Y + energyPictureBox.Height + 6);
 
             statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
 

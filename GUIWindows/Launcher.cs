@@ -203,7 +203,7 @@ namespace NeuroSky.MindView {
                             //update the label and play the beep (only if "delay" seconds have passed)
                             if((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay)) {
                                 tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
-                                mainForm.updateHRVLabel(tgHRVresultInMS.ToString());
+                                mainForm.updateHRVLabel(tgHRVresultInMS.ToString() + " msec");
                                 mainForm.playBeep();
                             }
 
