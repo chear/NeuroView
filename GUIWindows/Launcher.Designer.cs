@@ -59,7 +59,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(361, 156);
             this.label1.TabIndex = 1;
-            this.label1.Text = "CardioChip PC Starter Software 2.0";
+            this.label1.Text = "CardioChip PC Starter Software 2.1";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -90,7 +90,7 @@
             this.Name = "Launcher";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CardioChip PC Starter Software 2.0";
+            this.Text = "CardioChip PC Starter Software 2.1";
             this.Load += new System.EventHandler(this.Launcher_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
