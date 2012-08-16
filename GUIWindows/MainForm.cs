@@ -19,7 +19,7 @@ namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
         
-        private EnergyLevel energyLevel;
+        private RelaxationLevel energyLevel;
         
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
@@ -96,7 +96,7 @@ namespace NeuroSky.MindView {
             saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
             saveFileGUI.StartPosition = FormStartPosition.Manual;
 
-            energyLevel = new EnergyLevel();
+            energyLevel = new RelaxationLevel();
             
             InitializeComponent();
 
@@ -280,7 +280,6 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabel.TabIndex = 5;
             this.realtimeHeartRateLabel.Text = "0";
             this.realtimeHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.realtimeHeartRateLabel.Click += new System.EventHandler(this.realtimeHeartRateLabel_Click);
             // 
             // fileLabel
             // 
@@ -300,7 +299,6 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabel.TabIndex = 14;
             this.averageHeartRateLabel.Text = "0";
             this.averageHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.averageHeartRateLabel.Click += new System.EventHandler(this.averageHeartRateLabel_Click);
             // 
             // realtimeHeartRateLabelIndicator
             // 
@@ -311,7 +309,6 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
             this.realtimeHeartRateLabelIndicator.Text = "Real Time Heart Rate:";
             this.realtimeHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.realtimeHeartRateLabelIndicator.Click += new System.EventHandler(this.realtimeHeartRateLabelIndicator_Click);
             // 
             // averageHeartRateLabelIndicator
             // 
@@ -322,7 +319,6 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabelIndicator.TabIndex = 16;
             this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
             this.averageHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.averageHeartRateLabelIndicator.Click += new System.EventHandler(this.averageHeartRateLabelIndicator_Click);
             // 
             // soundCheckBox
             // 
@@ -402,7 +398,6 @@ namespace NeuroSky.MindView {
             this.HRVLabelIndicator.TabIndex = 24;
             this.HRVLabelIndicator.Text = "R-R interval:";
             this.HRVLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.HRVLabelIndicator.Click += new System.EventHandler(this.HRVLabelIndicator_Click);
             // 
             // HRVLabel
             // 
@@ -414,7 +409,6 @@ namespace NeuroSky.MindView {
             this.HRVLabel.TabIndex = 23;
             this.HRVLabel.Text = "0";
             this.HRVLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.HRVLabel.Click += new System.EventHandler(this.HRVLabel_Click);
             // 
             // rawGraphPanel
             // 
@@ -455,7 +449,6 @@ namespace NeuroSky.MindView {
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CardioChip PC Starter Software 2.1";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -1156,37 +1149,7 @@ namespace NeuroSky.MindView {
             base.OnSizeChanged(e);
         }
 
-        private void MainForm_Load(object sender, EventArgs e) {
-
-        }
-
-        private void realtimeHeartRateLabel_Click(object sender, EventArgs e) {
-
-        }
-
-        private void averageHeartRateLabel_Click(object sender, EventArgs e) {
-
-        }
-
-        private void HRVLabel_Click(object sender, EventArgs e) {
-
-        }
-
-        private void averageHeartRateLabelIndicator_Click(object sender, EventArgs e) {
-
-        }
-
-        private void realtimeHeartRateLabelIndicator_Click(object sender, EventArgs e) {
-
-        }
-
-        private void HRVLabelIndicator_Click(object sender, EventArgs e) {
-
-        }
-        
-     
-
-       
+ 
 
     }
     /*End of MainForm*/

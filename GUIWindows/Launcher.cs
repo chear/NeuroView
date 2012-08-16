@@ -32,6 +32,8 @@ namespace NeuroSky.MindView {
         private int rawCounter;         //counter for delay of EGO output
         private int delay;              //delay for lead on/lead off
 
+        private int hr;         //heart rate, calculated from the RR interval
+
         private int bufferSize_hp = 1009;       //length of the low pass filter
         
         //bandpass filter, 0.5 to 2Hz, 35 to 36.5Hz, equiripple
@@ -199,9 +201,16 @@ namespace NeuroSky.MindView {
                             mainForm.calculateFatigue(tgHRVresult);
                             
                             //update the label and play the beep (only if "delay" seconds have passed)
-                            if((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay)) {
+                            if(tgHRVresult > 0) {
                                 tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
+                                hr = (int)Math.Floor((60.0 / (tgHRVresultInMS / 1000.0)) + 0.5);
+                                
                                 mainForm.updateHRVLabel(tgHRVresultInMS.ToString() + " msec");
+
+                                mainForm.ASICHBValue = hr;
+                                mainForm.updateAverageHeartBeatValue(hr);
+                                mainForm.updateRealTimeHeartBeatValue(hr);
+
                                 mainForm.playBeep();
                             }
 
@@ -238,25 +247,6 @@ namespace NeuroSky.MindView {
                         
 
                         tgHRV.Reset();
-                    }
-                }
-
-
-                if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate")) {
-                    
-                    //if the "delay" number of seconds have passed, pass the heartrate value
-                    if(rawCounter >= delay) {
-                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
-                        mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
-                        mainForm.updateRealTimeHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
-                    }
-                        //otherwise just pass a value of 0 to make it think its poor signal
-                    else {
-                        mainForm.updateAverageHeartBeatValue(0);
-                        mainForm.updateRealTimeHeartBeatValue(0);
-
-                        //but still pass the correct heartbeat value for ecglog.txt
-                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
                     }
                 }
 
