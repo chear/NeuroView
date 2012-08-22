@@ -19,7 +19,7 @@ namespace NeuroSky.MindView {
     public partial class Launcher : Form {
         
         private Connector connector;
-        
+        RespiratoryRate respRate;
         MainForm mainForm;
         Device device;
 
@@ -31,8 +31,6 @@ namespace NeuroSky.MindView {
         private byte[] bytesToSend;     //bytes to send for EGO
         private int rawCounter;         //counter for delay of EGO output
         private int delay;              //delay for lead on/lead off
-
-        private int hr;         //heart rate, calculated from the RR interval
 
         private int bufferSize_hp = 1009;       //length of the low pass filter
         
@@ -60,6 +58,7 @@ namespace NeuroSky.MindView {
         public Launcher() {
             mainForm = new MainForm();
             tgHRV = new TGHrv();
+            respRate = new RespiratoryRate();
 
             connector = new Connector();
             connector.DeviceConnected += new EventHandler(OnDeviceConnected);
@@ -71,6 +70,7 @@ namespace NeuroSky.MindView {
 
             mainForm.ConnectButtonClicked += new EventHandler(OnConnectButtonClicked);
             mainForm.DisconnectButtonClicked += new EventHandler(OnDisconnectButtonClicked);
+            mainForm.ConfirmHeartAgeButtonClicked += new EventHandler(OnConfirmHeartAgeButtonClicked);
             mainForm.Disposed += new EventHandler(OnMainFormDisposed);
 
             InitializeComponent();
@@ -87,6 +87,15 @@ namespace NeuroSky.MindView {
             //counter to track when we should plot
             bufferCounter_raw = 0;
  
+        }
+        //accept heart age input parameters from mainForm then calculate
+        void OnConfirmHeartAgeButtonClicked(object sender, EventArgs e)
+        {
+
+            HeartAgeEventArgs heartAgeEventArgs = (HeartAgeEventArgs)e;   //cast this as a HeartAgeEventArgs
+            string heartAgeFileName = heartAgeEventArgs.parametersFileName;     //get the filename
+            int heartAge = heartAgeEventArgs.parametersAge;  //get the heart age
+            connector.GetHeartAge(heartAge, heartAgeFileName);
         }
 
         private void button1_Click(object sender, EventArgs e) {
@@ -172,15 +181,30 @@ namespace NeuroSky.MindView {
                 //save the poorsignal value. this is always updated
                 if(thinkGearParser.ParsedData[i].ContainsKey("PoorSignal")) {
                     mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
+                    
                 }
-
+                //update heart age
+                if (thinkGearParser.ParsedData[i].ContainsKey("HeartAge"))
+                {
+                    mainForm.updateHeartAgeIndicator((thinkGearParser.ParsedData[i]["HeartAge"]).ToString());
+                    Console.WriteLine("HeartAge = " + thinkGearParser.ParsedData[i]["HeartAge"]);
+                }
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
 
                     
+
                     //if signal is good
                     if(mainForm.poorQuality == 200) {
                         rawCounter++;
+
+                        double rr = respRate.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw"], (byte)mainForm.poorQuality);
+                        if (rr > 0)
+                        {
+                            //display this
+                            mainForm.updateRespirationRateIndicator(rr.ToString());
+                            Console.WriteLine("rr = " + rr);
+                        }
 
                         //update the buffer with the latest eeg value
                         Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
@@ -201,16 +225,9 @@ namespace NeuroSky.MindView {
                             mainForm.calculateFatigue(tgHRVresult);
                             
                             //update the label and play the beep (only if "delay" seconds have passed)
-                            if(tgHRVresult > 0) {
+                            if((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay)) {
                                 tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
-                                hr = (int)Math.Floor((60.0 / (tgHRVresultInMS / 1000.0)) + 0.5);
-                                
                                 mainForm.updateHRVLabel(tgHRVresultInMS.ToString() + " msec");
-
-                                mainForm.ASICHBValue = hr;
-                                mainForm.updateAverageHeartBeatValue(hr);
-                                mainForm.updateRealTimeHeartBeatValue(hr);
-
                                 mainForm.playBeep();
                             }
 
@@ -238,15 +255,37 @@ namespace NeuroSky.MindView {
 
                         Array.Clear(eegBuffer, 0, eegBuffer.Length);
 
+                        respRate.calculateRespiratoryRate(0, 0);    //reset the respiration buffer
+
                         mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                         mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
 
                         mainForm.updateHRVLabel("0");
                         mainForm.updateAverageHeartRateLabel("0");
                         mainForm.updateRealTimeHeartRateLabel("0");
-                        
+                        //mainForm.updateHeartAgeIndicator("0");
+                        //mainForm.updateRespirationRateIndicator("0");
 
                         tgHRV.Reset();
+                    }
+                }
+
+
+                if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate")) {
+                    
+                    //if the "delay" number of seconds have passed, pass the heartrate value
+                    if(rawCounter >= delay) {
+                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
+                        mainForm.updateAverageHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+                        mainForm.updateRealTimeHeartBeatValue(thinkGearParser.ParsedData[i]["HeartRate"]);
+                    }
+                        //otherwise just pass a value of 0 to make it think its poor signal
+                    else {
+                        mainForm.updateAverageHeartBeatValue(0);
+                        mainForm.updateRealTimeHeartBeatValue(0);
+
+                        //but still pass the correct heartbeat value for ecglog.txt
+                        mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
                     }
                 }
 

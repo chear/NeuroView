@@ -67,6 +67,10 @@
   <PropertyGroup>
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AForge.Math, Version=2.1.4.0, Culture=neutral, PublicKeyToken=abba2e25397ee8c9, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -95,6 +99,12 @@
     <Compile Include="GraphPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="HeartAgeInputGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HeartAgeInputGUI.Designer.cs">
+      <DependentUpon>HeartAgeInputGUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,6 +126,9 @@
     </Compile>
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="HeartAgeInputGUI.resx">
+      <DependentUpon>HeartAgeInputGUI.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

@@ -59,7 +59,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(361, 156);
             this.label1.TabIndex = 1;
-            this.label1.Text = "CardioChip PC Starter Software 2.1";
+            this.label1.Text = "CardioChip PC Starter Software 2.2";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2

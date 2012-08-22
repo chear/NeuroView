@@ -18,8 +18,8 @@ using NeuroSky.ThinkGear.Algorithms;
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
-        
-        private RelaxationLevel energyLevel;
+        private HeartAgeInputGUI heartAgeInputGUI;  //for inputing age and file name
+        private RelaxationLevel relaxationLevel;
         
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
@@ -35,7 +35,7 @@ namespace NeuroSky.MindView {
         private System.Windows.Forms.Button recordButton;
         private System.Windows.Forms.Button disconnectButton;
         private System.Windows.Forms.Button stopButton;
-
+        private System.Windows.Forms.Button inputAgeAndFileNameButton;
         private System.ComponentModel.Container components = null;
 
         public int timeStampIndex = 0;
@@ -72,6 +72,7 @@ namespace NeuroSky.MindView {
         
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
+        public event EventHandler ConfirmHeartAgeButtonClicked = delegate { };
 
         public CheckBox soundCheckBox;
         private Button startFatigueButton;
@@ -88,6 +89,11 @@ namespace NeuroSky.MindView {
         public Label HRVLabel;
         private Bitmap fullImage;
 
+        private Label respirationRateLabel;
+        public Label respirationRateIndicator;
+        private Label heartAgeLabel;
+        public Label heartAgeIndicator;
+
         public MainForm() {
 
             saveFileGUI = new SaveFileGUI();
@@ -96,7 +102,10 @@ namespace NeuroSky.MindView {
             saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
             saveFileGUI.StartPosition = FormStartPosition.Manual;
 
-            energyLevel = new RelaxationLevel();
+            heartAgeInputGUI = new HeartAgeInputGUI();
+            heartAgeInputGUI.ConfirmButtonClicked += new EventHandler(OnConfirmButtonClicked);
+
+            relaxationLevel = new RelaxationLevel();
             
             InitializeComponent();
 
@@ -154,8 +163,16 @@ namespace NeuroSky.MindView {
             System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.full.gif");
             fullImage = new Bitmap(fullStream);
         }
+        //transfer input parameters
+        void OnConfirmButtonClicked(object sender, EventArgs e)
+        {
+            string filename = heartAgeInputGUI.getFilename();
+            int age = heartAgeInputGUI.getAge();
 
+            HeartAgeEventArgs heartAgeEventArgs = new HeartAgeEventArgs(age, filename);     //cast this as a HeartAgeEvent
 
+            ConfirmHeartAgeButtonClicked(this, heartAgeEventArgs);
+        }
 
         /// <summary>
         /// Clean up any resources being used.
@@ -197,6 +214,11 @@ namespace NeuroSky.MindView {
             this.energyPictureBox = new System.Windows.Forms.PictureBox();
             this.HRVLabelIndicator = new System.Windows.Forms.Label();
             this.HRVLabel = new System.Windows.Forms.Label();
+            this.inputAgeAndFileNameButton = new System.Windows.Forms.Button();
+            this.respirationRateLabel = new System.Windows.Forms.Label();
+            this.respirationRateIndicator = new System.Windows.Forms.Label();
+            this.heartAgeLabel = new System.Windows.Forms.Label();
+            this.heartAgeIndicator = new System.Windows.Forms.Label();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
@@ -280,6 +302,7 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabel.TabIndex = 5;
             this.realtimeHeartRateLabel.Text = "0";
             this.realtimeHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.realtimeHeartRateLabel.Click += new System.EventHandler(this.realtimeHeartRateLabel_Click);
             // 
             // fileLabel
             // 
@@ -299,6 +322,7 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabel.TabIndex = 14;
             this.averageHeartRateLabel.Text = "0";
             this.averageHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.averageHeartRateLabel.Click += new System.EventHandler(this.averageHeartRateLabel_Click);
             // 
             // realtimeHeartRateLabelIndicator
             // 
@@ -309,6 +333,7 @@ namespace NeuroSky.MindView {
             this.realtimeHeartRateLabelIndicator.TabIndex = 15;
             this.realtimeHeartRateLabelIndicator.Text = "Real Time Heart Rate:";
             this.realtimeHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.realtimeHeartRateLabelIndicator.Click += new System.EventHandler(this.realtimeHeartRateLabelIndicator_Click);
             // 
             // averageHeartRateLabelIndicator
             // 
@@ -319,6 +344,7 @@ namespace NeuroSky.MindView {
             this.averageHeartRateLabelIndicator.TabIndex = 16;
             this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
             this.averageHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.averageHeartRateLabelIndicator.Click += new System.EventHandler(this.averageHeartRateLabelIndicator_Click);
             // 
             // soundCheckBox
             // 
@@ -336,9 +362,9 @@ namespace NeuroSky.MindView {
             this.startFatigueButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.startFatigueButton.Location = new System.Drawing.Point(733, 513);
             this.startFatigueButton.Name = "startFatigueButton";
-            this.startFatigueButton.Size = new System.Drawing.Size(100, 24);
+            this.startFatigueButton.Size = new System.Drawing.Size(108, 24);
             this.startFatigueButton.TabIndex = 18;
-            this.startFatigueButton.Text = "Energy Level";
+            this.startFatigueButton.Text = "RelaxationLevel";
             this.startFatigueButton.UseVisualStyleBackColor = true;
             this.startFatigueButton.Click += new System.EventHandler(this.fatigueButton_Click);
             // 
@@ -347,10 +373,10 @@ namespace NeuroSky.MindView {
             this.fatigueLabelIndicator.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fatigueLabelIndicator.Location = new System.Drawing.Point(585, 61);
             this.fatigueLabelIndicator.Name = "fatigueLabelIndicator";
-            this.fatigueLabelIndicator.Size = new System.Drawing.Size(84, 19);
+            this.fatigueLabelIndicator.Size = new System.Drawing.Size(124, 19);
             this.fatigueLabelIndicator.TabIndex = 20;
-            this.fatigueLabelIndicator.Text = "Energy Level:";
-            this.fatigueLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.fatigueLabelIndicator.Text = "Relaxation Level:";
+            this.fatigueLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.fatigueLabelIndicator.Visible = false;
             // 
             // fatigueLabel
@@ -367,9 +393,9 @@ namespace NeuroSky.MindView {
             // stopFatigueButton
             // 
             this.stopFatigueButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.stopFatigueButton.Location = new System.Drawing.Point(733, 512);
+            this.stopFatigueButton.Location = new System.Drawing.Point(733, 513);
             this.stopFatigueButton.Name = "stopFatigueButton";
-            this.stopFatigueButton.Size = new System.Drawing.Size(100, 24);
+            this.stopFatigueButton.Size = new System.Drawing.Size(108, 24);
             this.stopFatigueButton.TabIndex = 21;
             this.stopFatigueButton.Text = "Stop";
             this.stopFatigueButton.UseVisualStyleBackColor = true;
@@ -398,6 +424,7 @@ namespace NeuroSky.MindView {
             this.HRVLabelIndicator.TabIndex = 24;
             this.HRVLabelIndicator.Text = "R-R interval:";
             this.HRVLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.HRVLabelIndicator.Click += new System.EventHandler(this.HRVLabelIndicator_Click);
             // 
             // HRVLabel
             // 
@@ -409,6 +436,58 @@ namespace NeuroSky.MindView {
             this.HRVLabel.TabIndex = 23;
             this.HRVLabel.Text = "0";
             this.HRVLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.HRVLabel.Click += new System.EventHandler(this.HRVLabel_Click);
+            // 
+            // inputAgeAndFileNameButton
+            // 
+            this.inputAgeAndFileNameButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.inputAgeAndFileNameButton.Location = new System.Drawing.Point(604, 513);
+            this.inputAgeAndFileNameButton.Name = "inputAgeAndFileNameButton";
+            this.inputAgeAndFileNameButton.Size = new System.Drawing.Size(100, 24);
+            this.inputAgeAndFileNameButton.TabIndex = 18;
+            this.inputAgeAndFileNameButton.Text = "HeartAgeInput";
+            this.inputAgeAndFileNameButton.UseVisualStyleBackColor = true;
+            this.inputAgeAndFileNameButton.Click += new System.EventHandler(this.inputAgeAndFileNameButton_Click);
+            // 
+            // respirationRateLabel
+            // 
+            this.respirationRateLabel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.respirationRateLabel.Location = new System.Drawing.Point(353, 65);
+            this.respirationRateLabel.Name = "respirationRateLabel";
+            this.respirationRateLabel.Size = new System.Drawing.Size(132, 19);
+            this.respirationRateLabel.TabIndex = 16;
+            this.respirationRateLabel.Text = "Respiration Rate:";
+            this.respirationRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // respirationRateIndicator
+            // 
+            this.respirationRateIndicator.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.respirationRateIndicator.Location = new System.Drawing.Point(507, 65);
+            this.respirationRateIndicator.Name = "respirationRateIndicator";
+            this.respirationRateIndicator.Size = new System.Drawing.Size(132, 19);
+            this.respirationRateIndicator.TabIndex = 16;
+            this.respirationRateIndicator.Text = "0";
+            this.respirationRateIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // heartAgeLabel
+            // 
+            this.heartAgeLabel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.heartAgeLabel.Location = new System.Drawing.Point(353, 35);
+            this.heartAgeLabel.Name = "heartAgeLabel";
+            this.heartAgeLabel.Size = new System.Drawing.Size(132, 19);
+            this.heartAgeLabel.TabIndex = 16;
+            this.heartAgeLabel.Text = "Heart Age:";
+            this.heartAgeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // heartAgeIndicator
+            // 
+            this.heartAgeIndicator.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold);
+            this.heartAgeIndicator.Location = new System.Drawing.Point(507, 35);
+            this.heartAgeIndicator.Name = "heartAgeIndicator";
+            this.heartAgeIndicator.Size = new System.Drawing.Size(132, 19);
+            this.heartAgeIndicator.TabIndex = 16;
+            this.heartAgeIndicator.Text = "0";
+            this.heartAgeIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // rawGraphPanel
             // 
@@ -446,9 +525,15 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.realtimeHeartRateLabel);
             this.Controls.Add(this.rawGraphPanel);
+            this.Controls.Add(this.inputAgeAndFileNameButton);
+            this.Controls.Add(this.respirationRateLabel);
+            this.Controls.Add(this.respirationRateIndicator);
+            this.Controls.Add(this.heartAgeLabel);
+            this.Controls.Add(this.heartAgeIndicator);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CardioChip PC Starter Software 2.1";
+            this.Text = "CardioChip PC Starter Software 2.2";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -493,6 +578,10 @@ namespace NeuroSky.MindView {
 
         //disconnect button clicked
         private void disconnect_Click(object sender, System.EventArgs e) {
+            this.respirationRateIndicator.Text = "0";
+            this.heartAgeIndicator.Text = "0";
+            this.fatigueLabelIndicator.Visible = false;
+            this.fatigueLabel.Text = "";
             DisconnectButtonClicked(this, EventArgs.Empty);
         }
 
@@ -527,7 +616,7 @@ namespace NeuroSky.MindView {
             fatigueResult = 0;
 
             //reset the meter
-            fatigueResult = energyLevel.addInterval(0, 0);
+            fatigueResult = relaxationLevel.addInterval(0, 0);
 
             //disable the button
             toggleFatigueStartButton(false);
@@ -546,7 +635,7 @@ namespace NeuroSky.MindView {
             runFatigueMeter = false;
 
             //reset the meter
-            fatigueResult = energyLevel.addInterval(0, 0);
+            fatigueResult = relaxationLevel.addInterval(0, 0);
 
             outputFatigueResults(fatigueResult);
         }
@@ -561,7 +650,7 @@ namespace NeuroSky.MindView {
                 //if the energy level is less than 1
                 if(fatigueResult < 1) {
 
-                    fatigueResult = energyLevel.addInterval((int)((RRvalue * 1000.0) / 512.0), (byte)poorQuality);
+                    fatigueResult = relaxationLevel.addInterval((int)((RRvalue * 1000.0) / 512.0), (byte)poorQuality);
 
                 } else {
                     //else energy level is now greater than 0. or, the user has pressed the stop button. write it out to a text file
@@ -592,7 +681,7 @@ namespace NeuroSky.MindView {
                 } else if(fatigueLevel <= 100) {
                     setEnergyPictureBox(fullImage);
                 }
-                toggleEnergyPictureBox(true);
+                toggleEnergyPictureBox(false);
 
             } else {    //fatigue result = -1, because the user stopped it early
                 updateFatigueLevelLabel("");
@@ -831,6 +920,7 @@ namespace NeuroSky.MindView {
 
                 //since poor signal, display 0 as average heartbeat
                 updateRealTimeHeartRateLabel("0");
+               
             }
         }
 
@@ -1114,7 +1204,57 @@ namespace NeuroSky.MindView {
             }
         }
 
+        //update the respiration rate
+        delegate void UpdateRespirationRateIndicatorDelegate(string tempString);
+        public void updateRespirationRateIndicator(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
+                    //try catch necessary for handling case when form is disposing
+                    try
+                    {
+                        UpdateRespirationRateIndicatorDelegate del = new UpdateRespirationRateIndicatorDelegate(updateRespirationRateIndicator);
+                        this.Invoke(del, new object[] { tempString });
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Caught exception at UpdateRespirationRateIndicator: " + e.Message);
+                    }
 
+                }
+                else
+                {
+                    this.respirationRateIndicator.Text = tempString;
+                }
+            }
+        }
+
+        //update heart age
+        delegate void UpdateHeartAgeDelegate(string tempString);
+        public void updateHeartAgeIndicator(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
+                    try
+                    {
+                        UpdateHeartAgeDelegate del = new UpdateHeartAgeDelegate(updateHeartAgeIndicator);
+                        this.Invoke(del, new object[] { tempString });
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("caught exception at UpdateHeartAgeIndicator: " + e.Message);
+                    }
+                }
+                else
+                {
+                    this.heartAgeIndicator.Text = tempString;
+                }
+            }
+        }
         
         protected override void OnSizeChanged(EventArgs e) {
 
@@ -1146,11 +1286,72 @@ namespace NeuroSky.MindView {
             rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
             rawGraphPanel.Width = this.Width - 10;
 
+            inputAgeAndFileNameButton.Location = new System.Drawing.Point(this.Width - 480, this.Height - 73);
             base.OnSizeChanged(e);
         }
 
- 
+        private void MainForm_Load(object sender, EventArgs e) {
+
+        }
+
+        private void realtimeHeartRateLabel_Click(object sender, EventArgs e) {
+
+        }
+
+        private void averageHeartRateLabel_Click(object sender, EventArgs e) {
+
+        }
+
+        private void HRVLabel_Click(object sender, EventArgs e) {
+
+        }
+
+        private void averageHeartRateLabelIndicator_Click(object sender, EventArgs e) {
+
+        }
+
+        private void realtimeHeartRateLabelIndicator_Click(object sender, EventArgs e) {
+
+        }
+
+        private void HRVLabelIndicator_Click(object sender, EventArgs e) {
+
+        }
+
+        private void inputAgeAndFileNameButton_Click(object sender, EventArgs e)
+        {
+            heartAgeInputGUI.Show();
+
+        }
+        
+     
+
+       
 
     }
     /*End of MainForm*/
+    public class HeartAgeEventArgs : EventArgs
+    {
+        string filename;
+        int age;
+
+        public HeartAgeEventArgs(int age, string filename)
+        {
+            this.filename = filename;
+            this.age = age;
+        }
+
+        public string parametersFileName
+        {
+            get { return filename; }
+            set { this.filename = value; }
+        }
+
+        public int parametersAge
+        {
+            get { return age; }
+            set { this.age = value; }
+        }
+    }
+
 }
