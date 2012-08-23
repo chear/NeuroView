@@ -15,6 +15,8 @@ using System.Threading;
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Algorithms;
 
+//comment here
+
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
