@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
-
+using System.Collections;
 using System.Text.RegularExpressions;
 
 using NeuroSky.ThinkGear;
@@ -18,10 +18,11 @@ using NeuroSky.ThinkGear.Algorithms;
 namespace NeuroSky.MindView {
     public partial class Launcher : Form {
         
-        private Connector connector;
+        private static Connector connector;
         RespiratoryRate respRate;
         MainForm mainForm;
         Device device;
+        RecognitionRecordingGUI identificationRecordingGUI;
 
         private TGHrv tgHRV;                //the RR interval detection algorithm
         
@@ -39,6 +40,14 @@ namespace NeuroSky.MindView {
 
         //hold the filtered data
         private double filtered;
+
+        //hold the replayed raw data
+        private List<short> loadedList;
+        private int loadedIndex;
+        private double filteredLoadedData;
+        private double[] loadedDataBuffer;
+        private List<double> tempLoadedDataBuffer;
+        private int bufferCounter_loadedRaw;
 
         //hold the raw data in a continuously updating buffer
         private double[] eegBuffer;
@@ -59,6 +68,7 @@ namespace NeuroSky.MindView {
             mainForm = new MainForm();
             tgHRV = new TGHrv();
             respRate = new RespiratoryRate();
+            identificationRecordingGUI = new RecognitionRecordingGUI();
 
             connector = new Connector();
             connector.DeviceConnected += new EventHandler(OnDeviceConnected);
@@ -67,11 +77,16 @@ namespace NeuroSky.MindView {
             connector.DeviceConnectFail += new EventHandler(OnDeviceNotFound);
             connector.DeviceDisconnected += new EventHandler(OnDeviceDisconnected);
             connector.DeviceValidating += new EventHandler(OnDeviceValidating);
+            Connector.EKGPersonalizationEvent += new EventHandler(OnEKGPersonalizationEvent);
 
             mainForm.ConnectButtonClicked += new EventHandler(OnConnectButtonClicked);
             mainForm.DisconnectButtonClicked += new EventHandler(OnDisconnectButtonClicked);
             mainForm.ConfirmHeartAgeButtonClicked += new EventHandler(OnConfirmHeartAgeButtonClicked);
+            mainForm.IdentificationButtonClicked += new EventHandler(OnIdentificationButtonClicked);
+            mainForm.NewUserButtonClicked += new EventHandler(OnNewUserButtonClicked);
             mainForm.Disposed += new EventHandler(OnMainFormDisposed);
+            mainForm.ReplyButtonClicked += new EventHandler(OnReplayButtonClicked);
+            mainForm.StopReplayButtonClicked += new EventHandler(OnStopReplayButtonClicked);
 
             InitializeComponent();
 
@@ -84,9 +99,13 @@ namespace NeuroSky.MindView {
             eegBuffer = new double[bufferSize_hp];
             tempeegBuffer = new double[bufferSize_hp];
 
+            loadedDataBuffer = new double[bufferSize_hp];
+            tempLoadedDataBuffer = new List<double>();
+
             //counter to track when we should plot
             bufferCounter_raw = 0;
- 
+
+            bufferCounter_loadedRaw = 0;
         }
         //accept heart age input parameters from mainForm then calculate
         void OnConfirmHeartAgeButtonClicked(object sender, EventArgs e)
@@ -97,7 +116,46 @@ namespace NeuroSky.MindView {
             int heartAge = heartAgeEventArgs.parametersAge;  //get the heart age
             connector.GetHeartAge(heartAge, heartAgeFileName);
         }
+        //accept the order of identification from mainForm
+        void OnIdentificationButtonClicked(object sender, EventArgs e)
+        {
+            //start identification
+            connector.EKGstartDetection();
+        }
+        //accept the order of training from mainForm
+        void OnNewUserButtonClicked(object sender, EventArgs e)
+        { 
+            //get the username from addNewUserGUI
+            NewUserNameEventArgs newAddUserNameEventArgs = (NewUserNameEventArgs)e;
+            string newUserName = newAddUserNameEventArgs.parametersUserName; //get new user name
+            connector.EKGstartLongTraining(newUserName); // start training process
+            //Console.WriteLine("new user name: " + newUserName);
+        }
 
+        //replay EKG from saved file
+        void OnReplayButtonClicked(object sender, EventArgs e)
+        {
+            mainForm.Replay.Visible = false;
+            mainForm.stopReplay.Visible = true;
+            loadedList = new List<short>();
+            captureData(mainForm.loadedFileData, loadedList);
+            //Console.WriteLine("loaded size: " + loadedList.Count);
+            //clear graph
+            mainForm.rawGraphPanel.LineGraph.Clear();
+            loadedIndex = 0;
+
+        }
+
+        //plot one raw data
+        private void timerPlot(object sender, EventArgs e)
+        {
+            if (loadedIndex < loadedList.Count)
+            {
+                plotCapturedData(loadedList[loadedIndex]);
+                loadedIndex++;
+            }
+            
+        }
         private void button1_Click(object sender, EventArgs e) {
             //UpdateConnectButton(true);
             //UpdateStatusLabel("Searching for MindSet...");
@@ -133,6 +191,48 @@ namespace NeuroSky.MindView {
 
             mainForm.updateStatusLabel("Validating " + ce.Connection.PortName + ".");
         }
+        //get message from algo, then transfer it to mainform
+        void OnEKGPersonalizationEvent(object sender, EventArgs e)
+        {
+
+            EKGPersonalizationEventArgs ekgArgs = (EKGPersonalizationEventArgs)(e);
+            int status = ekgArgs.statusMessage;
+
+            switch (status)
+            {
+                case 268:
+                    string data = (string)(ekgArgs.dataMessage);
+                    Console.WriteLine("Handler Message: status = MSG_EKG_IDENTIFIED " + " and username = " + data);
+                    //update result
+                    mainForm.identificationGUI.updateIdentificationResultIndicator(data);
+                    //stop
+                    //connector.EKGstopDetection();
+                    
+                    break;
+
+                case 269:
+                    Console.WriteLine("Handler Message: status = MSG_EKG_TRAINED");
+
+                    //connector.EKGstopTraining();
+                    //mainForm.updateTrainingStepIndicator((string)ekgArgs.dataMessage);
+                    mainForm.identificationRecordingGUI.updateTrainingStepIndicator("MSG_EKG_TRAINED");
+                    //connector.EKGstartDetection();
+
+                    break;
+
+                case 270:
+                    int trainStep = (int)ekgArgs.dataMessage;
+                    Console.WriteLine("Handler Message: status = MSG_EKG_TRAIN_STEP " + " and training step = " + trainStep);
+                    //update training step status
+                    mainForm.identificationRecordingGUI.updateTrainingStepIndicator(trainStep.ToString());
+                    break;
+                case 271:
+                    Console.WriteLine("Handler Message: status = MSG_EKG_TRAIN_TOUCH");
+                    //if wait for 2 seconds, tell user to touch sensors again
+                    mainForm.identificationRecordingGUI.updateTrainingStepIndicator("MSG_EKG_TRAIN_TOUCH");
+                    break;
+            }
+        }
 
         void OnDeviceConnected(object sender, EventArgs e) {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
@@ -144,7 +244,7 @@ namespace NeuroSky.MindView {
 
             de.Device.DataReceived += new EventHandler(OnDataReceived);
             mainForm.updateConnectButton(true);
-
+            
             UpdateVisibility(false);
             Console.WriteLine("Done");
         }
@@ -181,7 +281,8 @@ namespace NeuroSky.MindView {
                 //save the poorsignal value. this is always updated
                 if(thinkGearParser.ParsedData[i].ContainsKey("PoorSignal")) {
                     mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
-                    
+
+                    mainForm.identificationRecordingGUI.poorSignal = thinkGearParser.ParsedData[i]["PoorSignal"];
                 }
                 //update heart age
                 if (thinkGearParser.ParsedData[i].ContainsKey("HeartAge"))
@@ -192,82 +293,145 @@ namespace NeuroSky.MindView {
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
 
-                    
-
-                    //if signal is good
-                    if(mainForm.poorQuality == 200) {
-                        rawCounter++;
-
-                        double rr = respRate.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw"], (byte)mainForm.poorQuality);
-                        if (rr > 0)
+                    if (mainForm.replayEnable == true)
+                    {
+                        /*
+                        if (loadedIndex < loadedList.Count)
                         {
-                            //display this
-                            mainForm.updateRespirationRateIndicator(rr.ToString());
-                            Console.WriteLine("rr = " + rr);
+                            plotCapturedData(loadedList[loadedIndex]);
+                            loadedIndex++;
                         }
 
-                        //update the buffer with the latest eeg value
-                        Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
-                        tempeegBuffer[bufferSize_hp - 1] = (double)thinkGearParser.ParsedData[i]["Raw"];
-                        Array.Copy(tempeegBuffer, eegBuffer, bufferSize_hp);
-                        bufferCounter_raw++;
+                        */
+                        //update the buffer with loaded data
+                        if (loadedIndex < loadedList.Count)
+                        {
+                            //loadedDataBuffer[loadedIndex] = loadedList[loadedIndex];
+                            tempLoadedDataBuffer.Add(loadedList[loadedIndex]);
+                            loadedIndex++;
+                            //when buffer is full, plotting
+                            if (loadedIndex  >= bufferSize_hp)
+                            {
+                                
+                                //copy data
+                                for (int m = 0; m < tempLoadedDataBuffer.Count; m++)
+                                {
+                                    loadedDataBuffer[m] = tempLoadedDataBuffer[m];
+                                }
+                               
+                                //filter the data
+                                filtered = applyFilter(loadedDataBuffer, hp_coeff);
+                                //if "delay" seconds have passed, start plotting the data
+                                if (loadedIndex >= delay)
+                                {
+                                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
+                                    mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                                }
 
-                        //if the eeg buffer is full, calculate the filtered data
-                        if(bufferCounter_raw >= bufferSize_hp) {
+                                //clear the graph when it's full
+                                if (mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints)
+                                {
+                                    mainForm.rawGraphPanel.LineGraph.Clear();
+                                }
+                                //shift buffer window 
+                                tempLoadedDataBuffer.RemoveAt(0);
+                            }
+                         
+                        }
+                        
+                    }
 
-                            //filter the data
-                            filtered = applyFilter(eegBuffer, hp_coeff);
+                    else if(mainForm.replayEnable == false)
+                    {
+                        //if signal is good
+                        if (mainForm.poorQuality == 200)
+                        {
+                            rawCounter++;
 
-                            //pass filtered data to the TGHRV algorithm 
-                            tgHRVresult = tgHRV.AddData((short)filtered);
-
-                            //calulate the fatigue level
-                            mainForm.calculateFatigue(tgHRVresult);
-                            
-                            //update the label and play the beep (only if "delay" seconds have passed)
-                            if((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay)) {
-                                tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
-                                mainForm.updateHRVLabel(tgHRVresultInMS.ToString() + " msec");
-                                mainForm.playBeep();
+                            double rr = respRate.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw"], (byte)mainForm.poorQuality);
+                            if (rr > 0)
+                            {
+                                //display this
+                                mainForm.updateRespirationRateIndicator(((int)rr).ToString());
+                                Console.WriteLine("rr = " + rr);
                             }
 
-                            //if "delay" seconds have passed, start plotting the data
-                            if(rawCounter >= delay) {
-                                mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
+                            //update the buffer with the latest eeg value
+                            Array.Copy(eegBuffer, 1, tempeegBuffer, 0, bufferSize_hp - 1);
+                            tempeegBuffer[bufferSize_hp - 1] = (double)thinkGearParser.ParsedData[i]["Raw"];
+                            Array.Copy(tempeegBuffer, eegBuffer, bufferSize_hp);
+                            bufferCounter_raw++;
+
+                            //if the eeg buffer is full, calculate the filtered data
+                            if (bufferCounter_raw >= bufferSize_hp)
+                            {
+
+                                //filter the data
+                                filtered = applyFilter(eegBuffer, hp_coeff);
+
+                                //pass filtered data to the TGHRV algorithm 
+                                tgHRVresult = tgHRV.AddData((short)filtered);
+
+                                //calulate the fatigue level
+                                mainForm.calculateFatigue(tgHRVresult);
+
+                                //update the label and play the beep (only if "delay" seconds have passed)
+                                if ((tgHRVresult > 150) && (tgHRVresult < 800) && (rawCounter >= delay))
+                                {
+                                    tgHRVresultInMS = (int)(tgHRVresult * 1000.0 / 512.0);
+                                    mainForm.updateHRVLabel(tgHRVresultInMS.ToString() + " msec");
+                                    mainForm.playBeep();
+                                }
+
+                                //if "delay" seconds have passed, start plotting the data
+                                if (rawCounter >= delay)
+                                {
+                                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
+                                    mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                                }
+
+                                //clear the graph when it's full
+                                if (mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints)
+                                {
+                                    mainForm.rawGraphPanel.LineGraph.Clear();
+                                }
+
+                            }
+                            else
+                            {
+                                //raw buffer is not full yet. plot zero
+                                mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                                 mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
                             }
 
-                            //clear the graph when it's full
-                            if(mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints) {
-                                mainForm.rawGraphPanel.LineGraph.Clear();
-                            }
+                        }
+                        else
+                        {
+                            //otherwise signal is bad, plot zero. reset counter. reset HRV
+                            rawCounter = 0;
+                            bufferCounter_raw = 0;
 
-                        } else {
-                            //raw buffer is not full yet. plot zero
+                            Array.Clear(eegBuffer, 0, eegBuffer.Length);
+
+                            respRate.calculateRespiratoryRate(0, 0);    //reset the respiration buffer
+
                             mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                             mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+
+                            mainForm.updateHRVLabel("0");
+                            mainForm.updateAverageHeartRateLabel("0");
+                            mainForm.updateRealTimeHeartRateLabel("0");
+                            //mainForm.updateHeartAgeIndicator("0");
+                            //mainForm.updateRespirationRateIndicator("0");
+
+                            tgHRV.Reset();
                         }
-
-                    } else {
-                        //otherwise signal is bad, plot zero. reset counter. reset HRV
-                        rawCounter = 0;
-                        bufferCounter_raw = 0;
-
-                        Array.Clear(eegBuffer, 0, eegBuffer.Length);
-
-                        respRate.calculateRespiratoryRate(0, 0);    //reset the respiration buffer
-
-                        mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
-                        mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-
-                        mainForm.updateHRVLabel("0");
-                        mainForm.updateAverageHeartRateLabel("0");
-                        mainForm.updateRealTimeHeartRateLabel("0");
-                        //mainForm.updateHeartAgeIndicator("0");
-                        //mainForm.updateRespirationRateIndicator("0");
-
-                        tgHRV.Reset();
+                     
                     }
+                    
+                    
+                    
+                     
                 }
 
 
@@ -340,12 +504,17 @@ namespace NeuroSky.MindView {
         void OnDisconnectButtonClicked(object sender, EventArgs e) {
             connector.Disconnect();
             mainForm.updateConnectButton(false);
-
+            mainForm.replayEnable = false;
             //make the byteToSend null so it will be resent when pressing connect
             bytesToSend = null;
         }
 
-
+        void OnStopReplayButtonClicked(object sender, EventArgs e)
+        {
+            mainForm.replayEnable = false;
+            mainForm.Replay.Visible = true;
+            mainForm.stopReplay.Visible = false;
+        }
 
         delegate void UpdateVisibilityDelegate(bool enable);
         public void UpdateVisibility(bool enable) {
@@ -402,6 +571,42 @@ namespace NeuroSky.MindView {
                 result += data[i] * coeffs[i];
             }
             return result;
+        }
+
+        //capture high byte and low byte data from loaded file
+        private void captureData(string loadedFile, List<short> loadedList)
+        {
+            string[] tem = loadedFile.Split('\n');
+            for (int i = 1; i < (tem.Length - 1); i++)//the last line is empty,just filter it
+            {
+                string[] temp = tem[i].Split(' ');
+                //System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+                byte high, low;
+                short temp_raw = 0;
+                //only parse the good signal raw data
+                if (Int32.Parse(temp[1]) == 80)
+                {
+                    high = Convert.ToByte(temp[2],16);
+                    low = Convert.ToByte(temp[3], 16);
+                    temp_raw = (short)((high << 8) + low);
+                    loadedList.Add(temp_raw);
+                }
+                
+            }
+        }
+
+        //plot loaded data
+        private void plotCapturedData(short loadedRawData)
+        {
+            mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), loadedRawData));
+            mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+            
+            //clear the graph when it's full
+            if (mainForm.rawGraphPanel.LineGraph.timeStampIndex >= mainForm.rawGraphPanel.LineGraph.numberOfPoints)
+            {
+                mainForm.rawGraphPanel.LineGraph.Clear();
+            }
+            
         }
     }
 }

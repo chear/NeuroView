@@ -10,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Media;
-using System.Threading;
 
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Algorithms;
@@ -20,9 +19,12 @@ using NeuroSky.ThinkGear.Algorithms;
 namespace NeuroSky.MindView {
     public class MainForm : System.Windows.Forms.Form {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
-        private HeartAgeInputGUI heartAgeInputGUI;  //for inputing age and file name
+        private UserAgeInputGUI heartAgeInputGUI;  //for inputing age and file name
         private RelaxationLevel relaxationLevel;
-        
+        private AddNewUserGUI addNewUerGUI;
+        public RecognitionRecordingGUI identificationRecordingGUI;//display trained steps
+        public RecognitionGUI identificationGUI;//display the identification result
+
         public bool runFatigueMeter = false;   //fatigue meter is off by default
         private int fatigueResult;              //output of the EnergyLevel algorithm
         private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
@@ -75,6 +77,10 @@ namespace NeuroSky.MindView {
         public event EventHandler ConnectButtonClicked = delegate { };
         public event EventHandler DisconnectButtonClicked = delegate { };
         public event EventHandler ConfirmHeartAgeButtonClicked = delegate { };
+        public event EventHandler IdentificationButtonClicked = delegate { };
+        public event EventHandler NewUserButtonClicked = delegate { };
+        public event EventHandler ReplyButtonClicked = delegate { };
+        public event EventHandler StopReplayButtonClicked = delegate { };
 
         public CheckBox soundCheckBox;
         private Button startFatigueButton;
@@ -96,6 +102,14 @@ namespace NeuroSky.MindView {
         private Label heartAgeLabel;
         public Label heartAgeIndicator;
 
+        private Button identificationButton;
+        public Button Replay;
+        private Button newUserButton;
+
+        public string loadedFileData;
+        public Button stopReplay;
+        public Boolean replayEnable;
+
         public MainForm() {
 
             saveFileGUI = new SaveFileGUI();
@@ -104,14 +118,21 @@ namespace NeuroSky.MindView {
             saveFileGUI.BrowseButtonClicked += new EventHandler(OnBrowseButtonClicked);
             saveFileGUI.StartPosition = FormStartPosition.Manual;
 
-            heartAgeInputGUI = new HeartAgeInputGUI();
+            heartAgeInputGUI = new UserAgeInputGUI();
             heartAgeInputGUI.ConfirmButtonClicked += new EventHandler(OnConfirmButtonClicked);
+
+            addNewUerGUI = new AddNewUserGUI();
+            addNewUerGUI.OnSaveNewUserNameButtonClicked += new EventHandler(OnSaveNewUserNameButtonClicked);
+
+            identificationRecordingGUI = new RecognitionRecordingGUI();
+            identificationGUI = new RecognitionGUI();
 
             relaxationLevel = new RelaxationLevel();
             
             InitializeComponent();
 
             recordFlag = false;
+            replayEnable = false;
 
             rawGraphPanel.samplingRate = 512;
             rawGraphPanel.xAxisMax = 4;
@@ -165,7 +186,7 @@ namespace NeuroSky.MindView {
             System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.full.gif");
             fullImage = new Bitmap(fullStream);
         }
-        //transfer input parameters
+        //transfer user input parameters
         void OnConfirmButtonClicked(object sender, EventArgs e)
         {
             string filename = heartAgeInputGUI.getFilename();
@@ -175,7 +196,14 @@ namespace NeuroSky.MindView {
 
             ConfirmHeartAgeButtonClicked(this, heartAgeEventArgs);
         }
-
+        //transfer new user name
+        void OnSaveNewUserNameButtonClicked(object sender, EventArgs e)
+        {
+            string newUserName = addNewUerGUI.getNewUserName();
+            NewUserNameEventArgs newAddUserNameEventArgs = new NewUserNameEventArgs(newUserName);
+            NewUserButtonClicked(this, newAddUserNameEventArgs);
+            identificationRecordingGUI.Show();//open window to display the trained steps
+        }
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -221,7 +249,11 @@ namespace NeuroSky.MindView {
             this.respirationRateIndicator = new System.Windows.Forms.Label();
             this.heartAgeLabel = new System.Windows.Forms.Label();
             this.heartAgeIndicator = new System.Windows.Forms.Label();
+            this.identificationButton = new System.Windows.Forms.Button();
+            this.newUserButton = new System.Windows.Forms.Button();
+            this.Replay = new System.Windows.Forms.Button();
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
+            this.stopReplay = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -288,9 +320,9 @@ namespace NeuroSky.MindView {
             // statusLabel
             // 
             this.statusLabel.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.statusLabel.Location = new System.Drawing.Point(12, 532);
+            this.statusLabel.Location = new System.Drawing.Point(0, 512);
             this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(400, 24);
+            this.statusLabel.Size = new System.Drawing.Size(340, 41);
             this.statusLabel.TabIndex = 4;
             this.statusLabel.Text = "Type COM port to connect and press Connect";
             // 
@@ -447,7 +479,7 @@ namespace NeuroSky.MindView {
             this.inputAgeAndFileNameButton.Name = "inputAgeAndFileNameButton";
             this.inputAgeAndFileNameButton.Size = new System.Drawing.Size(100, 24);
             this.inputAgeAndFileNameButton.TabIndex = 18;
-            this.inputAgeAndFileNameButton.Text = "HeartAgeInput";
+            this.inputAgeAndFileNameButton.Text = "UserAgeInput";
             this.inputAgeAndFileNameButton.UseVisualStyleBackColor = true;
             this.inputAgeAndFileNameButton.Click += new System.EventHandler(this.inputAgeAndFileNameButton_Click);
             // 
@@ -491,6 +523,41 @@ namespace NeuroSky.MindView {
             this.heartAgeIndicator.Text = "0";
             this.heartAgeIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // identificationButton
+            // 
+            this.identificationButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.identificationButton.Location = new System.Drawing.Point(475, 513);
+            this.identificationButton.Name = "identificationButton";
+            this.identificationButton.Size = new System.Drawing.Size(100, 24);
+            this.identificationButton.TabIndex = 18;
+            this.identificationButton.Text = "Recognition";
+            this.identificationButton.UseVisualStyleBackColor = true;
+            this.identificationButton.Visible = false;
+            this.identificationButton.Click += new System.EventHandler(this.identificationButton_Click);
+            // 
+            // newUserButton
+            // 
+            this.newUserButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.newUserButton.Location = new System.Drawing.Point(346, 513);
+            this.newUserButton.Name = "newUserButton";
+            this.newUserButton.Size = new System.Drawing.Size(100, 24);
+            this.newUserButton.TabIndex = 18;
+            this.newUserButton.Text = "NewUser";
+            this.newUserButton.UseVisualStyleBackColor = true;
+            this.newUserButton.Visible = false;
+            this.newUserButton.Click += new System.EventHandler(this.newUserButton_Click);
+            // 
+            // Replay
+            // 
+            this.Replay.Location = new System.Drawing.Point(10, 57);
+            this.Replay.Name = "Replay";
+            this.Replay.Size = new System.Drawing.Size(75, 23);
+            this.Replay.TabIndex = 25;
+            this.Replay.Text = "Replay";
+            this.Replay.UseVisualStyleBackColor = true;
+            this.Replay.Visible = false;
+            this.Replay.Click += new System.EventHandler(this.Replay_Click);
+            // 
             // rawGraphPanel
             // 
             this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -504,9 +571,22 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.yAxisMax = 0D;
             this.rawGraphPanel.yAxisMin = 0D;
             // 
+            // stopReplay
+            // 
+            this.stopReplay.Location = new System.Drawing.Point(10, 59);
+            this.stopReplay.Name = "stopReplay";
+            this.stopReplay.Size = new System.Drawing.Size(75, 23);
+            this.stopReplay.TabIndex = 26;
+            this.stopReplay.Text = "Stop";
+            this.stopReplay.UseVisualStyleBackColor = true;
+            this.stopReplay.Visible = false;
+            this.stopReplay.Click += new System.EventHandler(this.stopReplay_Click);
+            // 
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
+            this.Controls.Add(this.stopReplay);
+            this.Controls.Add(this.Replay);
             this.Controls.Add(this.HRVLabelIndicator);
             this.Controls.Add(this.HRVLabel);
             this.Controls.Add(this.energyPictureBox);
@@ -532,6 +612,8 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.respirationRateIndicator);
             this.Controls.Add(this.heartAgeLabel);
             this.Controls.Add(this.heartAgeIndicator);
+            this.Controls.Add(this.identificationButton);
+            this.Controls.Add(this.newUserButton);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CardioChip PC Starter Software 2.2";
@@ -984,6 +1066,17 @@ namespace NeuroSky.MindView {
 
                     this.disconnectButton.Enabled = true;
                     this.disconnectButton.Visible = true;
+
+                    //when connected, enable identification and add new user
+                    this.identificationButton.Enabled = true;
+                    this.identificationButton.Visible = true;
+
+                    this.newUserButton.Enabled = true;
+                    this.newUserButton.Visible = true;
+
+                    this.Replay.Enabled = true;
+                    this.Replay.Visible = true;
+
                 } else {
                     this.disconnectButton.Enabled = false;
                     this.disconnectButton.Visible = false;
@@ -992,6 +1085,17 @@ namespace NeuroSky.MindView {
 
                     this.connectButton.Enabled = true;
                     this.connectButton.Visible = true;
+
+                    //when disconnected, disable identification and add new user
+                    this.identificationButton.Enabled = false;
+                    this.identificationButton.Visible = false;
+
+                    this.newUserButton.Enabled = false;
+                    this.newUserButton.Visible = false;
+
+                    this.Replay.Enabled = false;
+                    this.Replay.Visible = false;
+
                 }
 
             }
@@ -1258,6 +1362,8 @@ namespace NeuroSky.MindView {
             }
         }
         
+       
+       
         protected override void OnSizeChanged(EventArgs e) {
 
             realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 262, realtimeHeartRateLabelIndicator.Location.Y);
@@ -1289,6 +1395,9 @@ namespace NeuroSky.MindView {
             rawGraphPanel.Width = this.Width - 10;
 
             inputAgeAndFileNameButton.Location = new System.Drawing.Point(this.Width - 480, this.Height - 73);
+
+            identificationButton.Location = new System.Drawing.Point(this.Width - 600, this.Height - 73);
+            newUserButton.Location = new System.Drawing.Point(this.Width - 720, this.Height - 73);
             base.OnSizeChanged(e);
         }
 
@@ -1323,10 +1432,71 @@ namespace NeuroSky.MindView {
         private void inputAgeAndFileNameButton_Click(object sender, EventArgs e)
         {
             heartAgeInputGUI.Show();
+            heartAgeInputGUI.TopMost = true;
+            if (heartAgeInputGUI.WindowState != FormWindowState.Normal)
+            {
+                heartAgeInputGUI.WindowState = FormWindowState.Normal;
+            }
+            if (heartAgeInputGUI.Visible == false)
+            {
+                heartAgeInputGUI.Visible = true;
+            }
+            
+        }
+
+        private void identificationButton_Click(object sender, EventArgs e)
+        {
+            //tell launcher to start identification
+            identificationGUI.Show();
+            IdentificationButtonClicked(this, EventArgs.Empty);
+
 
         }
-        
-     
+
+        private void newUserButton_Click(object sender, EventArgs e)
+        {
+            addNewUerGUI.Show();
+            addNewUerGUI.TopMost = true;
+            if (addNewUerGUI.WindowState != FormWindowState.Normal)
+            {
+                addNewUerGUI.WindowState = FormWindowState.Normal;
+            }
+            if (addNewUerGUI.Visible == false)
+            {
+                addNewUerGUI.Visible = true;
+            }
+        }
+
+        private void Replay_Click(object sender, EventArgs e)
+        {
+
+            rawGraphPanel.LineGraph.Clear();
+            stopButton.Visible = true;
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.Filter = "Text Files (.txt)|*.txt";
+            openFileDialog1.FilterIndex = 1;
+            DialogResult result = openFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                string file = openFileDialog1.FileName;
+                try
+                {
+                    loadedFileData = File.ReadAllText(file);
+                    replayEnable = true;
+                }
+                catch(IOException)
+                {
+                }
+
+                ReplyButtonClicked(this, EventArgs.Empty);
+                //Console.WriteLine(text);
+            }
+        }
+
+        private void stopReplay_Click(object sender, EventArgs e)
+        {
+            StopReplayButtonClicked(this, EventArgs.Empty);
+        }
 
        
 
@@ -1355,5 +1525,21 @@ namespace NeuroSky.MindView {
             set { this.age = value; }
         }
     }
+    //class for new user name
+    public class NewUserNameEventArgs : EventArgs
+    {
+        string newUserName;
 
+        public NewUserNameEventArgs(string userName)
+        {
+            this.newUserName = userName;
+        }
+
+        public string parametersUserName
+        {
+            get { return newUserName; }
+            set { this.newUserName = value; }
+        }
+    }
+    
 }
