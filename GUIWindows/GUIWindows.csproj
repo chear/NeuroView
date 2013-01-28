@@ -91,6 +91,9 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="ThinkGear">
+      <HintPath>Libraries\ThinkGear.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BarGraph.cs">
@@ -99,11 +102,29 @@
     <Compile Include="GraphPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="HeartAgeInputGUI.cs">
+    <Compile Include="AddNewUserGUI.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="HeartAgeInputGUI.Designer.cs">
-      <DependentUpon>HeartAgeInputGUI.cs</DependentUpon>
+    <Compile Include="AddNewUserGUI.Designer.cs">
+      <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RecognitionGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RecognitionGUI.Designer.cs">
+      <DependentUpon>RecognitionGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RecognitionRecordingGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RecognitionRecordingGUI.Designer.cs">
+      <DependentUpon>RecognitionRecordingGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UserAgeInputGUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserAgeInputGUI.Designer.cs">
+      <DependentUpon>UserAgeInputGUI.cs</DependentUpon>
     </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -127,8 +148,17 @@
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="HeartAgeInputGUI.resx">
-      <DependentUpon>HeartAgeInputGUI.cs</DependentUpon>
+    <EmbeddedResource Include="AddNewUserGUI.resx">
+      <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RecognitionGUI.resx">
+      <DependentUpon>RecognitionGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RecognitionRecordingGUI.resx">
+      <DependentUpon>RecognitionRecordingGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserAgeInputGUI.resx">
+      <DependentUpon>UserAgeInputGUI.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -202,12 +232,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\low.gif" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\ThinkGearNet\ThinkGear\ThinkGear.csproj">
-      <Project>{E6F6767E-9163-4675-BFA4-E11137A4FA98}</Project>
-      <Name>ThinkGear</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

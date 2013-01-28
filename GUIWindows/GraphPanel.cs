@@ -792,7 +792,21 @@ namespace NeuroSky.MindView {
         private void YMaxTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
             try {
-                this.yAxisMax = Double.Parse(YMaxTextBox.Text);
+                double temp = Double.Parse(YMaxTextBox.Text);
+                // make sure input value is valid
+                if (temp.Equals(Double.Parse(YMinTextBox.Text)))
+                {
+                    MessageBox.Show("Invalid value, Y Max can not be equal to Y Min!");
+                }
+                else if (temp < Double.Parse(YMinTextBox.Text))
+                {
+                    MessageBox.Show("Invalid value, Y Max can not be less than Y Min!");
+                }
+                else
+                {
+                    this.yAxisMax = temp;
+                }
+               
             } catch(Exception ex) { }
         }
         //user presses enter in the YMaxTextBox
@@ -804,7 +818,20 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    this.yAxisMax = Double.Parse(YMaxTextBox.Text);
+                    double temp = Double.Parse(YMaxTextBox.Text);
+                    // make sure input value is valid
+                    if (temp.Equals(Double.Parse(YMinTextBox.Text)))
+                    {
+                        MessageBox.Show("Invalid value, Y Max can not be equal to Y Min!");
+                    }
+                    else if (temp < Double.Parse(YMinTextBox.Text))
+                    {
+                        MessageBox.Show("Invalid value, Y Max can not be less than Y Min!");
+                    }
+                    else
+                    {
+                        this.yAxisMax = temp;
+                    }
                 } catch(Exception ex) { }
             }
         }
@@ -814,7 +841,22 @@ namespace NeuroSky.MindView {
         private void YMinTextBox_Leave(object sender, EventArgs e) {
             //verify that the string entered in the box is actually a number (try catch)
             try {
-                this.yAxisMin = Double.Parse(YMinTextBox.Text);
+                double temp = Double.Parse(YMinTextBox.Text);
+                // make sure input value is valid
+                if (temp.Equals(Double.Parse(YMaxTextBox.Text)))
+                {
+                    MessageBox.Show("Invalid value, Y Min can not be equal to Y Max!");
+                }
+                else if (temp > Double.Parse(YMaxTextBox.Text))
+                {
+                    MessageBox.Show("Invalid value, Y Min can not be larger than Y Max!");
+                }
+                else
+                {
+                    this.yAxisMin = temp;
+                }
+                
+  
             } catch(Exception ex) { }
         }
         //press the enter button in YMinTextBox
@@ -826,7 +868,21 @@ namespace NeuroSky.MindView {
 
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
-                    this.yAxisMin = Double.Parse(YMinTextBox.Text);
+                    double temp = Double.Parse(YMinTextBox.Text);
+                    // make sure input value is valid
+                    if (temp.Equals(Double.Parse(YMaxTextBox.Text)))
+                    {
+                        MessageBox.Show("Invalid value, Y Min can not be equal to Y Max!");
+                    }
+                    else if (temp > Double.Parse(YMaxTextBox.Text))
+                    {
+                        MessageBox.Show("Invalid value, Y Min can not be larger than Y Max!");
+                    }
+                    else
+                    {
+                        this.yAxisMin = temp;
+                    }
+                   
                 } catch(Exception ex) { }
             }
         }
@@ -839,8 +895,22 @@ namespace NeuroSky.MindView {
             try {
                 int temp = Int32.Parse(XMaxTextBox.Text);
                 if(temp >= 0) {
-                    this.xAxisMax = temp;
+                    // make sure input value is valid
+                    if (temp.Equals(Int32.Parse(XMinTextBox.Text)))
+                    {
+                        MessageBox.Show("Invalid value, X Max can not be equal to X Min!");
+                    }
+                    else if (temp < Int32.Parse(XMinTextBox.Text))
+                    {
+                        MessageBox.Show("Invalid value, X Max can not be less than X Min!");
+                    }
+                    else
+                    {
+                        this.xAxisMax = temp;
+                    }
+                    
                 }
+               
             } catch(Exception ex) { }
         }
         //press enter in the XMaxTextBox
@@ -853,8 +923,22 @@ namespace NeuroSky.MindView {
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
                     int temp = Int32.Parse(XMaxTextBox.Text);
-                    if(temp >= 0) {
-                        this.xAxisMax = Int32.Parse(XMaxTextBox.Text);
+                    if (temp >= 0)
+                    {
+                        // make sure input value is valid
+                        if (temp.Equals(Int32.Parse(XMinTextBox.Text)))
+                        {
+                            MessageBox.Show("Invalid value, X Max can not be equal to X Min!");
+                        }
+                        else if (temp < Int32.Parse(XMinTextBox.Text))
+                        {
+                            MessageBox.Show("Invalid value, X Max can not be less than X Min!");
+                        }
+                        else
+                        {
+                            this.xAxisMax = temp;
+                        }
+
                     }
                 } catch(Exception ex) { }
             }
@@ -867,8 +951,21 @@ namespace NeuroSky.MindView {
             try {
                 int temp = Int32.Parse(XMinTextBox.Text);
                 if(temp >= 0) {
-                    this.xAxisMin = temp;
+                    // make sure input value is valid
+                    if (temp.Equals(Int32.Parse(XMaxTextBox.Text)))
+                    {
+                        MessageBox.Show("Invalid value, X Min can not be equal to X Max!");
+                    }
+                    else if (temp > Int32.Parse(XMaxTextBox.Text))
+                    {
+                        MessageBox.Show("Invalid value, X Min can not be larger than X Max!");
+                    }
+                    else
+                    {
+                        this.xAxisMin = temp;
+                    }
                 }
+                
             } catch(Exception ex) {
                 Console.WriteLine("user entered non integer value");
             }
@@ -883,8 +980,21 @@ namespace NeuroSky.MindView {
                 //verify that the string entered in the box is actually a number (try catch)
                 try {
                     int temp = Int32.Parse(XMinTextBox.Text);
-                    if(temp >= 0) {
-                        this.xAxisMin = Int32.Parse(XMinTextBox.Text);
+                    if (temp >= 0)
+                    {
+                        // make sure input value is valid
+                        if (temp.Equals(Int32.Parse(XMaxTextBox.Text)))
+                        {
+                            MessageBox.Show("Invalid value, X Min can not be equal to X Max!");
+                        }
+                        else if (temp > Int32.Parse(XMaxTextBox.Text))
+                        {
+                            MessageBox.Show("Invalid value, X Min can not be larger than X Max!");
+                        }
+                        else
+                        {
+                            this.xAxisMin = temp;
+                        }
                     }
                 } catch(Exception ex) { }
             }
