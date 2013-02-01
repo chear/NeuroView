@@ -54,9 +54,6 @@ namespace NeuroSky.MindView {
 
         public double poorQuality;
         private int ADCValue;
-        private double tempADCValue;
-        private int tempIntADCValue;
-        private String[] newHighLowByte;
 
         public double ASICHBValue;     //actual value coming out of the chip
 
@@ -113,9 +110,6 @@ namespace NeuroSky.MindView {
         public Button stopReplay;
         public Boolean replayEnable;
 
-        public List<int> ECGbuffer;
-        public SplineInterpolation splineInterp;
-
         public MainForm() {
 
             saveFileGUI = new SaveFileGUI();
@@ -134,8 +128,6 @@ namespace NeuroSky.MindView {
             identificationGUI = new RecognitionGUI();
 
             relaxationLevel = new RelaxationLevel();
-
-            splineInterp = new SplineInterpolation();
             
             InitializeComponent();
 
@@ -799,8 +791,6 @@ namespace NeuroSky.MindView {
             recordButton.Visible = false;
             fatigueStartButton(false);
 
-            ECGbuffer = new List<int>();
-
             updateStatusLabel("Recording...");
 
             //save linegraph data in a seperate file
@@ -832,7 +822,7 @@ namespace NeuroSky.MindView {
             }
 
             if(ECGLogStream != null) {
-                //this.ECGLogStream.WriteLine("timestamp: ADC HeartRate4sAverage HeartRate30sAverage");
+                this.ECGLogStream.WriteLine("timestamp: ADC HeartRate4sAverage HeartRate30sAverage");
             }
 
             recordFlag = true;
@@ -858,6 +848,7 @@ namespace NeuroSky.MindView {
             RecordStopTime = DateTime.Now;
 
             dataLogStream.Close();
+            ECGLogStream.Close();
 
             saveFileGUI.updateDataLogTextBox(Path.GetFileName(dataLogOutFile));
             saveFileGUI.updateECGLogTextBox(Path.GetFileName(ECGLogOutFile));
@@ -869,33 +860,6 @@ namespace NeuroSky.MindView {
 
         //when the save button is clicked in the save dialog
         void OnSaveButtonClicked(object sender, EventArgs e) {
-
-            //create xIn
-            double[] xIn = new double[ECGbuffer.Count];
-            xIn[0] = 0;
-            for (int i = 1; i < xIn.Length; i++) {
-                xIn[i] = xIn[i - 1] + 1;
-            }
-
-            //create xOut
-            double[] xOut = new double[(int)((double)ECGbuffer.Count * 250.0 / 512.0)];
-            xOut[0] = 0;
-            for (int i = 1; i < xOut.Length; i++) {
-                xOut[i] = xOut[i - 1] + (double)(512.0 / 250.0);
-            }
-
-            //resample the ECG data to 250 Hz
-            double[] resampled = splineInterp.interpolate(xIn, ECGbuffer.ToArray(), xOut);
-
-            int tempECGvalue;
-            for (int i = 0; i < resampled.Length; i++) {
-                //ECGLogStream.WriteLine((int)Math.Floor(resampled[i] + 0.5));
-                tempECGvalue = (int)Math.Floor(resampled[i] + 0.5);
-                newHighLowByte = tempECGvalue.ToString("X4").Insert(2, " ").Split(' ');
-                ECGLogStream.WriteLine(newHighLowByte[1] + " " + newHighLowByte[0]);
-            }
-
-            ECGLogStream.Close();
 
             try {
                 if(!System.IO.Directory.Exists(saveFileGUI.folderPathTextBox.Text)) {
@@ -1066,32 +1030,15 @@ namespace NeuroSky.MindView {
 
                     //also print to the EGCLog
                     if(dr.Type.GetHashCode() == 0x80) {
-                        /*
                         //write the timestamp
                         ECGLogStream.Write(dr.Time.ToString("#0.000") + ": ");
-                        */
+
                         //print out the EGC waveform, ASIC heartbeat value, and "real time" heartbeat value into EGCLog
-
-                        //lower byte first, then high byte
-                        //vlotage range is 0 ~ 3.3v
-                        //gain 505
-                        ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
-                        ADCValue += 32768;
-                        tempADCValue = ADCValue * ((1.2 / 65536) / 128) * 505 * 1024 / 3.3;
-
-                        ECGbuffer.Add((int)(Math.Floor(tempADCValue + 0.5)));
-
-                        //tempIntADCValue = (int)(tempADCValue);
-                        //newHighLowByte = tempIntADCValue.ToString("X").Insert(2," ").Split(' ');
-
-                        ///newHighLowByte = tempIntADCValue.ToString("X4").Insert(2, " ").Split(' ');
-                        //Console.WriteLine(newHighLowByte[1] + " " + newHighLowByte[0]);
-                        
-                        //ECGLogStream.Write(tempIntADCValue.ToString("X") + " " + newHighLowByte[1] + " " + newHighLowByte[0]);
-                        ///ECGLogStream.WriteLine(newHighLowByte[1] + " " + newHighLowByte[0]);
-                        //ECGLogStream.Write(ADCValue.ToString().PadLeft(6, ' ') + " " + ASICHBValue.ToString().PadLeft(3, ' ') + " " + Math.Round(realTimeHBValue).ToString().PadLeft(3, ' '));
-
-
+                        if(dr.Type.GetHashCode() == 0x80) {
+                            ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
+                            ECGLogStream.Write(ADCValue.ToString().PadLeft(6, ' ') + " " + ASICHBValue.ToString().PadLeft(3, ' ') + " " + Math.Round(realTimeHBValue).ToString().PadLeft(3, ' '));
+                            ECGLogStream.Write(ECGLogStream.NewLine);
+                        }
                     }
                 }
             }
