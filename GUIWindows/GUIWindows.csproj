@@ -120,6 +120,7 @@
     <Compile Include="RecognitionRecordingGUI.Designer.cs">
       <DependentUpon>RecognitionRecordingGUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReplayLoadData.cs" />
     <Compile Include="UserAgeInputGUI.cs">
       <SubType>Form</SubType>
     </Compile>

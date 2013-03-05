@@ -558,7 +558,6 @@ namespace NeuroSky.MindView {
             this.Replay.TabIndex = 25;
             this.Replay.Text = "Replay";
             this.Replay.UseVisualStyleBackColor = true;
-            this.Replay.Visible = false;
             this.Replay.Click += new System.EventHandler(this.Replay_Click);
             // 
             // rawGraphPanel
@@ -588,8 +587,6 @@ namespace NeuroSky.MindView {
             // MainForm
             // 
             this.ClientSize = new System.Drawing.Size(1078, 562);
-            this.Controls.Add(this.stopReplay);
-            this.Controls.Add(this.Replay);
             this.Controls.Add(this.HRVLabelIndicator);
             this.Controls.Add(this.HRVLabel);
             this.Controls.Add(this.energyPictureBox);
@@ -617,6 +614,8 @@ namespace NeuroSky.MindView {
             this.Controls.Add(this.heartAgeIndicator);
             this.Controls.Add(this.identificationButton);
             this.Controls.Add(this.newUserButton);
+            this.Controls.Add(this.stopReplay);
+            this.Controls.Add(this.Replay);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "CardioChip PC Starter Software 2.2";
@@ -1113,8 +1112,8 @@ namespace NeuroSky.MindView {
                     this.newUserButton.Enabled = false;
                     this.newUserButton.Visible = false;
 
-                    this.Replay.Enabled = false;
-                    this.Replay.Visible = false;
+                    //this.Replay.Enabled = false;
+                    //this.Replay.Visible = false;
 
                 }
 
@@ -1469,7 +1468,7 @@ namespace NeuroSky.MindView {
             //tell launcher to start identification
             identificationGUI.Show();
             IdentificationButtonClicked(this, EventArgs.Empty);
-
+            
 
         }
 
@@ -1502,7 +1501,7 @@ namespace NeuroSky.MindView {
                 try
                 {
                     loadedFileData = File.ReadAllText(file);
-                    replayEnable = true;
+                    replayEnable = true;                   
                 }
                 catch(IOException)
                 {

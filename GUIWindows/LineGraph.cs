@@ -64,7 +64,6 @@ namespace NeuroSky.MindView {
 
         public event EventHandler DataSavingFinished = delegate { };
 
-
         public void Add(DataPair p) {
             lock(data0) {
                 data0.Add(p);
