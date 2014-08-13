@@ -249,19 +249,7 @@ namespace NeuroSky.MindView {
 
         void OnDeviceConnected(object sender, EventArgs e) {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
-
-            byte[] trimByte = new byte[8];
-            trimByte[0] = 0xAA;
-            trimByte[1] = 0xAA;
-            trimByte[2] = 0x04;
-            trimByte[3] = 0x04;
-            trimByte[4] = 0x00;
-            trimByte[5] = 0xF9;
-            trimByte[6] = 0x00;
-            if (trimByte != null)
-            {
-                connector.Send(de.Device.PortName, trimByte);
-            }
+        
             //save the device
             device = de.Device;
 
