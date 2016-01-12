@@ -29,7 +29,14 @@ namespace NeuroSky.MindView
             string filePath = Environment.CurrentDirectory +"\\raw\\FFT.txt";
             using (FileStream fsRead = new FileStream(filePath, FileMode.Open))
             {
-                Console.WriteLine("file path:"+filePath);
+                StreamReader sr = new StreamReader(fsRead);
+                while (sr.ReadLine() != null)
+                {
+                    string line= sr.ReadLine();
+                    double fft = Double.Parse(line);
+                    Console.WriteLine("line:"+line);
+                }
+
             }
         }
     }
