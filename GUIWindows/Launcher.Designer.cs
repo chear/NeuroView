@@ -59,7 +59,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(361, 156);
             this.label1.TabIndex = 1;
-            this.label1.Text = "CardioChip PC Starter Software 2.2";
+            this.label1.Text = "BMD200          Test Software x64";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -68,10 +68,8 @@
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(39, 165);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(306, 87);
+            this.label2.Size = new System.Drawing.Size(0, 29);
             this.label2.TabIndex = 2;
-            this.label2.Text = "Please turn on the device,\r\nplace your fingers on the\r\nsensors, and click Continu" +
-                "e";
             this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // Launcher
@@ -90,7 +88,7 @@
             this.Name = "Launcher";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "CardioChip PC Starter Software 2.1";
+            this.Text = "BMD200 Test Software x64";
             this.Load += new System.EventHandler(this.Launcher_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

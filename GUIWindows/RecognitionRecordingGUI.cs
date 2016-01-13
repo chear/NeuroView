@@ -76,7 +76,7 @@ namespace NeuroSky.ThinkGear
             }
         }
 
-        private void updateMessage()
+        private  void updateMessage()
         {
             while (trigger == -1)
             {

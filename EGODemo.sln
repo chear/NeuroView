@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUIWindows", "GUIWindows\GUIWindows.csproj", "{0A951B99-C060-4DCD-8727-8EFF9001096B}"
 EndProject
 Global
@@ -15,8 +17,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A951B99-C060-4DCD-8727-8EFF9001096B}.Release|Any CPU.Build.0 = Release|Any CPU

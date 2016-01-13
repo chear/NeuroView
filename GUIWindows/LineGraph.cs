@@ -53,7 +53,7 @@ namespace NeuroSky.MindView {
         public int numberOfPoints;
 
         private double conversionFactor = 0.0183;
-        private int    gain             = 128;
+        private int    gain             = 64;
 
         private int DCOffsetCounter;
         public bool DCRemovalEnabled;
@@ -150,7 +150,8 @@ namespace NeuroSky.MindView {
             frameWidth = rect.Right - rect.Left;
             frameHeight = rect.Bottom - rect.Top;
 
-            numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate));
+            //numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * samplingRate));
+            numberOfPoints = (int)Math.Abs(((xAxisMax - xAxisMin) * 600));
             double timeStampOffset = 0;
 
             DrawXAxis(drawingSurface);
@@ -245,8 +246,8 @@ namespace NeuroSky.MindView {
 
         //Labels the x-axis with minor grid lines
         private void DrawXAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink, 2.5f);
-            SolidBrush myBrush = new SolidBrush(Color.Black);
+            Pen myPen = new Pen(Color.DeepPink, 2);
+            //SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
             Point pt;
@@ -269,7 +270,7 @@ namespace NeuroSky.MindView {
                 pt = Point2Pixel(X, 0);
                 try {
                     //shift the major gridline slightly so that it's visible on the edge
-                    if(i == numGroups - 1) {
+                    if(i == numGroups) {
                         drawingSurface.DrawLine(myPen, pt.X - 2, Y1, pt.X - 2, Y2);
                     } else {
                         drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, Y2);
@@ -280,13 +281,13 @@ namespace NeuroSky.MindView {
             }
 
             myPen.Dispose();
-            myBrush.Dispose();
+            //myBrush.Dispose();
         }
 
         //Labels the x-axis with major grid lines
         private void DrawXAxisMinor(Graphics drawingSurface) {
             Pen myPen = new Pen(Color.DeepPink,1);
-            SolidBrush myBrush = new SolidBrush(Color.Black);
+            //SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
             Point pt;
@@ -311,12 +312,12 @@ namespace NeuroSky.MindView {
             }
 
             myPen.Dispose();
-            myBrush.Dispose();
+            //myBrush.Dispose();
         }
 
         //Labels the y-axis with major grid lines
         private void DrawYAxis(Graphics drawingSurface) {
-            Pen myPen = new Pen(Color.DeepPink, 2.5f);
+            Pen myPen = new Pen(Color.DeepPink, 2);
 
             double mVolts_step = .5 * gain;     //number of mVolts between each line * gain
             int X = frameWidth;
@@ -334,7 +335,8 @@ namespace NeuroSky.MindView {
                 try {
                     //shift the major gridline slightly so that it's visible on the edge
                     if(i == numLines) {
-                        drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
+                        //drawingSurface.DrawLine(myPen, X, tempPoint.Y - 2, (X + Xwide), tempPoint.Y - 2);
+                        drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
                     } else {
                         drawingSurface.DrawLine(myPen, X, tempPoint.Y, (X + Xwide), tempPoint.Y);
                     }

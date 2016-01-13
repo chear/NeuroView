@@ -63,7 +63,7 @@ namespace NeuroSky.MindView {
         private int delta;
 
         private double conversionFactor = 0.0183;
-        private int    gain             = 128;
+        private int    gain             = 64;
 
         private System.ComponentModel.Container components = null;
         private Timer ValueUpdateTimer;
@@ -340,29 +340,29 @@ namespace NeuroSky.MindView {
                 case DataType.EEG:
                     switch(deviceType) {
                         case DeviceType.MindSet:
-                            LineGraph.samplingRate = 512;
-                            LineGraph.yAxisMax = 2047;
-                            LineGraph.yAxisMin = -2048;
+                            LineGraph.samplingRate = 600;
+                            LineGraph.yAxisMax = 32767;
+                            LineGraph.yAxisMin = -32768;
                             break;
                         case DeviceType.Circlet:
-                            LineGraph.samplingRate = 512;
-                            LineGraph.yAxisMax = 2047;
-                            LineGraph.yAxisMin = -2048;
+                            LineGraph.samplingRate = 600;
+                            LineGraph.yAxisMax = 32767;
+                            LineGraph.yAxisMin = -32768;
                             break;
                         case DeviceType.Bandana:
-                            LineGraph.samplingRate = 256;
-                            LineGraph.yAxisMax = 2047;
-                            LineGraph.yAxisMin = -2048;
+                            LineGraph.samplingRate = 600;
+                            LineGraph.yAxisMax = 32767;
+                            LineGraph.yAxisMin = -32768;
                             break;
                         case DeviceType.Bandana_P300:
-                            LineGraph.samplingRate = 256;
-                            LineGraph.yAxisMax = 2047;
-                            LineGraph.yAxisMin = -2048;
+                            LineGraph.samplingRate = 600;
+                            LineGraph.yAxisMax = 32767;
+                            LineGraph.yAxisMin = -32768;
                             break;
                         case DeviceType.Bandana_Med:
-                            LineGraph.samplingRate = 128;
-                            LineGraph.yAxisMax = 2047;
-                            LineGraph.yAxisMin = -2048;
+                            LineGraph.samplingRate = 600;
+                            LineGraph.yAxisMax = 32767;
+                            LineGraph.yAxisMin = -32768;
                             break;
                         default:
                             SetTypes(DeviceType.Bandana, DataType.EEG);
