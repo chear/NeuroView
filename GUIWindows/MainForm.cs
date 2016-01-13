@@ -443,7 +443,7 @@ namespace NeuroSky.MindView {
             // 
             this.energyPictureBox.BackColor = System.Drawing.SystemColors.Control;
             this.energyPictureBox.ErrorImage = null;
-            this.energyPictureBox.InitialImage = global::NeuroSky.ThinkGear.Properties.Resources.full;
+            this.energyPictureBox.InitialImage = global::NeuroSky.MindView.Properties.Resources.full;
             this.energyPictureBox.Location = new System.Drawing.Point(594, 7);
             this.energyPictureBox.Name = "energyPictureBox";
             this.energyPictureBox.Size = new System.Drawing.Size(115, 49);

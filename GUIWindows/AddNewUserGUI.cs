@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace NeuroSky.ThinkGear
+namespace NeuroSky.MindView
 {
     public partial class AddNewUserGUI : Form
     {

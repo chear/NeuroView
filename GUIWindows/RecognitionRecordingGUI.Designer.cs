@@ -1,4 +1,4 @@
-﻿namespace NeuroSky.ThinkGear
+﻿namespace NeuroSky.MindView
 {
     partial class RecognitionRecordingGUI
     {

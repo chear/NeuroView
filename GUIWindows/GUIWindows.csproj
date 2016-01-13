@@ -8,7 +8,7 @@
     <ProjectGuid>{0A951B99-C060-4DCD-8727-8EFF9001096B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NeuroSky.ThinkGear</RootNamespace>
+    <RootNamespace>NeuroSky.MindView</RootNamespace>
     <AssemblyName>CardioChip</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -99,6 +99,12 @@
     <Compile Include="BarGraph.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="FormFFT.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormFFT.Designer.cs">
+      <DependentUpon>FormFFT.cs</DependentUpon>
+    </Compile>
     <Compile Include="GraphPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -107,6 +113,12 @@
     </Compile>
     <Compile Include="AddNewUserGUI.Designer.cs">
       <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GraphPanelFFT.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GraphPanelFFT.Designer.cs">
+      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
     </Compile>
     <Compile Include="RecognitionGUI.cs">
       <SubType>Form</SubType>
@@ -146,11 +158,17 @@
     <Compile Include="SaveFileGUI.designer.cs">
       <DependentUpon>SaveFileGUI.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="FormFFT.resx">
+      <DependentUpon>FormFFT.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="AddNewUserGUI.resx">
       <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphPanelFFT.resx">
+      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="RecognitionGUI.resx">
       <DependentUpon>RecognitionGUI.cs</DependentUpon>
@@ -233,6 +251,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\low.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="raw\FFT.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
