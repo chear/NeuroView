@@ -174,19 +174,19 @@ namespace NeuroSky.MindView {
             //grab the embedded audio file to play. note that player.Play() is a nonblocking function, so you can plot
             //and play audio and record data at the same time
             System.Reflection.Assembly a = System.Reflection.Assembly.GetExecutingAssembly();
-            System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.heartbeep.wav");
+            System.IO.Stream s = a.GetManifestResourceStream("NeuroSky.MindView.Resources.heartbeep.wav");
             player = new SoundPlayer(s);
 
-            System.IO.Stream emptyStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.empty.gif");
+            System.IO.Stream emptyStream = a.GetManifestResourceStream("NeuroSky.MindView.Resources.empty.gif");
             emptyImage = new Bitmap(emptyStream);
 
-            System.IO.Stream lowStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.low.gif");
+            System.IO.Stream lowStream = a.GetManifestResourceStream("NeuroSky.MindView.Resources.low.gif");
             lowImage = new Bitmap(lowStream);
 
-            System.IO.Stream mediumStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.medium.gif");
+            System.IO.Stream mediumStream = a.GetManifestResourceStream("NeuroSky.MindView.Resources.medium.gif");
             mediumImage = new Bitmap(mediumStream);
 
-            System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.full.gif");
+            System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.MindView.Resources.full.gif");
             fullImage = new Bitmap(fullStream);
         }
         //transfer user input parameters

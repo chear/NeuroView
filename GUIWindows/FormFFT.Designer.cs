@@ -47,10 +47,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(788, 264);
+            this.ClientSize = new System.Drawing.Size(788, 277);
             this.Controls.Add(this.graphPanel);
             this.Name = "FormFFT";
-            this.Text = "FormFFT";
+            this.Text = "FFT Chat";
             this.Load += new System.EventHandler(this.FormFFT_Load);
             this.ResumeLayout(false);
 

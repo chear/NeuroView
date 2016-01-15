@@ -20,6 +20,7 @@ namespace NeuroSky.MindView
         private Size defaultSize;
         public int frameHeight = 240;
         public int frameWidth = 760;
+        public int samplingRate = 10;
 
         private double conversionFactor = 0.0183;
         private int gain = 128;
@@ -137,83 +138,70 @@ namespace NeuroSky.MindView
             Graphics drawingSurface = pe.Graphics;
             Pen myPen = new Pen(Color.Black, 2);
             Rectangle rect = this.ClientRectangle;
-
+            DrawXAxis(drawingSurface);
             myPen.Dispose();
         }
 
-        private double DrawGraph(DataPair[] data, Graphics drawingSurface, Pen myPen)
+        //Labels the x-axis with minor grid lines
+        private void DrawXAxis(Graphics drawingSurface)
         {
-            int graphStartIndex = 0;
-            double timeStampOffset = -1;
-            int d = 0;
+            Pen myPen = new Pen(Color.Black, 0.5f);
+            SolidBrush myBrush = new SolidBrush(Color.Black);
+            System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 8.5F);
 
-            /*If there is more points enable the scrollbar*/
-            //if (data.Length > numberOfPoints)
-            //{
-            //    hScrollBar.Visible = true;
-            //    frameHeight = frameHeight - hScrollBar.Height;
-            //    hScrollBar.Maximum = data.Length - numberOfPoints + 9;
+            Point pt;
+            float X;
+            float Xoffset = 0;
 
-            //    if (!hScrollBarInUse)
-            //    {
-            //        hScrollBar.Value = data.Length - numberOfPoints;
-            //    }
+            //define the "tick length" to be the entire windows
+            float YtickLength = frameHeight;
+            float Y1 = frameHeight;
+            float Y2 = 0;
+            int sampleRate = 512;
+            int tickDistance = this.Width / sampleRate;     //distance between each tick, in msec
 
-            //    graphStartIndex = hScrollBar.Value;
-            //}
-            //else
-            //{
-            //    graphStartIndex = 0;
-            //}
+            int numGroups = (int)(xAxisMax - xAxisMin) + 1;   //number of lines to draw
+            //double stepSize = (double)(this.Width /(numGroups-1));
+            double stepSize = 10;
 
-            //int numberOfPointsToGraph = 0;
+            /// Write the X Axis
+            
 
-            //if (numberOfPoints > data.Length)
-            //{
-            //    numberOfPointsToGraph = data.Length;
-            //}
-            //else
-            //{
-            //    numberOfPointsToGraph = numberOfPoints;
-            //}
+            //// Write the labels
+            for (int i = 0; i <= numGroups; i++)
+            {
+                X = (float)(i * stepSize) + Xoffset;
+                pt = Point2Pixel(X, 0);
+                try
+                {
+                    //shift the major gridline slightly so that it's visible on the edge
+                    if (i == 0)
+                    {
+                        drawingSurface.DrawLine(myPen, pt.X+1, Y1, pt.X+1, 0);
+                    }
+                    else
+                    {
+                        drawingSurface.DrawLine(myPen, pt.X, Y1, pt.X, frameHeight - 5);
+                    }
+                }
+                catch (Exception e)
+                {
 
-            //timeStampOffset = data[graphStartIndex].timeStamp;
+                }
+            }
 
-            //Point[] graphPoints = new Point[numberOfPointsToGraph];
-            //for (int i = 0; i < numberOfPointsToGraph; i++)
-            //{
-            //    d = i + graphStartIndex;
-
-            //    try
-            //    {
-            //        if (DCRemovalEnabled)
-            //        {
-            //            graphPoints[i] = Point2Pixel((data[d].timeStamp - timeStampOffset), data[d].data - DCOffset);
-            //        }
-            //        else
-            //        {
-            //            graphPoints[i] = Point2Pixel((data[d].timeStamp - timeStampOffset), data[d].data);
-            //        }
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine("LineGraph: " + e.Message);
-            //    }
-
-            //}
-
-            //drawingSurface.DrawLines(myPen, graphPoints);
-
-            return timeStampOffset;
+            myPen.Dispose();
+            myBrush.Dispose();
         }
 
-        private Point Point2Pixel(double xValue, double yValue) {
+        private Point Point2Pixel(double xValue, double yValue)
+        {
             Point temp = new Point();
-
-            temp.X = (int)Math.Abs((xValue - xAxisMin) / (xAxisMax - xAxisMin) * frameWidth);
-            temp.Y = (int)((yValue - yAxisMin) / (yAxisMax - yAxisMin) * frameHeight);
-            temp.Y = frameHeight - temp.Y;
-
+            //temp.X = (int)Math.Abs((xValue - xAxisMin) / (xAxisMax - xAxisMin) * frameWidth);
+            //temp.Y = (int)((yValue - yAxisMin) / (yAxisMax - yAxisMin) * frameHeight);            
+            //temp.Y = frameHeight - temp.Y;
+            temp.X = (int)xValue;
+            temp.Y = frameHeight-(int)yValue;
             return temp;
         }
     }

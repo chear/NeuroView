@@ -17,10 +17,16 @@ namespace NeuroSky.MindView
         {
             InitializeComponent();
 
-            this.graphPanel.XAxisMax = 0D;
-            this.graphPanel.XAxisMin = 0D;
-            this.graphPanel.YAxisMax = 0D;
-            this.graphPanel.YAxisMin = 0D;
+            //this.graphPanel.XAxisMax = 512;
+            //this.graphPanel.XAxisMin = 0D;
+            //this.graphPanel.YAxisMax = 0D;
+            //this.graphPanel.YAxisMin = 0D;
+
+            graphPanel.samplingRate = 512;
+            graphPanel.XAxisMax = 512;
+            graphPanel.XAxisMin = 0;
+            graphPanel.YAxisMax = 2;
+            graphPanel.YAxisMin = -2;
         }
 
         private void FormFFT_Load(object sender, EventArgs e)
@@ -33,7 +39,7 @@ namespace NeuroSky.MindView
                 while (sr.ReadLine() != null)
                 {
                     string line= sr.ReadLine();
-                    double fft = Double.Parse(line);
+                    //double fft = Double.Parse(line);
                     Console.WriteLine("line:"+line);
                 }
 
