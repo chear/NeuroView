@@ -28,27 +28,24 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.graphPanel = new NeuroSky.MindView.GraphPanelFFT();
+            this.barGraph = new NeuroSky.MindView.BarGraph();
             this.SuspendLayout();
             // 
-            // graphPanel
+            // barGraph
             // 
-            this.graphPanel.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.graphPanel.Location = new System.Drawing.Point(12, 12);
-            this.graphPanel.Name = "graphPanel";
-            this.graphPanel.Size = new System.Drawing.Size(760, 240);
-            this.graphPanel.TabIndex = 0;
-            this.graphPanel.XAxisMax = 0D;
-            this.graphPanel.XAxisMin = 0D;
-            this.graphPanel.YAxisMax = 0D;
-            this.graphPanel.YAxisMin = 0D;
+            this.barGraph.BackColor = System.Drawing.Color.White;
+            this.barGraph.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.barGraph.Location = new System.Drawing.Point(12, 282);
+            this.barGraph.Name = "barGraph";
+            this.barGraph.Size = new System.Drawing.Size(760, 240);
+            this.barGraph.TabIndex = 1;
             // 
             // FormFFT
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(788, 277);
-            this.Controls.Add(this.graphPanel);
+            this.ClientSize = new System.Drawing.Size(785, 577);
+            this.Controls.Add(this.barGraph);
             this.Name = "FormFFT";
             this.Text = "FFT Chat";
             this.Load += new System.EventHandler(this.FormFFT_Load);
@@ -58,7 +55,7 @@
 
         #endregion
 
-        private GraphPanelFFT graphPanel;
+        private BarGraph barGraph;
 
 
     }

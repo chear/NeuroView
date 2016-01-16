@@ -138,10 +138,8 @@ namespace NeuroSky.MindView {
             return value;
         }
 
-
         protected override void OnPaint(PaintEventArgs pe)
         {
-
             Graphics drawingSurface = pe.Graphics;
             Pen myPen = new Pen(Color.Black, 2);
             Rectangle rect = this.ClientRectangle;
@@ -181,14 +179,9 @@ namespace NeuroSky.MindView {
                     } else {
                         timeStampOffset = DrawGraph(data0.ToArray(), drawingSurface, myPen);
                     }
-
                 }
             }
-
- 
-
             myPen.Dispose();
-
         }
 
         private double DrawGraph(DataPair[] data, Graphics drawingSurface, Pen myPen) {

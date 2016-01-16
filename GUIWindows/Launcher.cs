@@ -307,18 +307,15 @@ namespace NeuroSky.MindView {
                 }
 
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
-
                     if(mainForm.replayEnable == false)
                     {
                         //if signal is good
                         if (mainForm.poorQuality == 200)
                         {
                             rawCounter++;
-
                             double rr = respRate.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw"], (byte)mainForm.poorQuality);
                             if (rr > 0)
                             {
-                                //display this
                                 mainForm.updateRespirationRateIndicator(((int)rr).ToString());
                                 Console.WriteLine("rr = " + rr);
                             }
@@ -332,7 +329,6 @@ namespace NeuroSky.MindView {
                             //if the eeg buffer is full, calculate the filtered data
                             if (bufferCounter_raw >= bufferSize_hp)
                             {
-
                                 //filter the data
                                 filtered = applyFilter(eegBuffer, hp_coeff);
 

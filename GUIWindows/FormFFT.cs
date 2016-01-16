@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using AForge.Math;
 
 namespace NeuroSky.MindView
 {
@@ -17,16 +18,11 @@ namespace NeuroSky.MindView
         {
             InitializeComponent();
 
-            //this.graphPanel.XAxisMax = 512;
-            //this.graphPanel.XAxisMin = 0D;
-            //this.graphPanel.YAxisMax = 0D;
-            //this.graphPanel.YAxisMin = 0D;
-
-            graphPanel.samplingRate = 512;
-            graphPanel.XAxisMax = 512;
-            graphPanel.XAxisMin = 0;
-            graphPanel.YAxisMax = 2;
-            graphPanel.YAxisMin = -2;
+            //graphPanel.samplingRate = 512;
+            //graphPanel.XAxisMax = 512;
+            //graphPanel.XAxisMin = 0;
+            //graphPanel.YAxisMax = 2;
+            //graphPanel.YAxisMin = -2;
         }
 
         private void FormFFT_Load(object sender, EventArgs e)
@@ -39,8 +35,10 @@ namespace NeuroSky.MindView
                 while (sr.ReadLine() != null)
                 {
                     string line= sr.ReadLine();
-                    //double fft = Double.Parse(line);
+                    double fft = Double.Parse(line);
                     Console.WriteLine("line:"+line);
+                    Complex d = new Complex(32760,0);
+                    barGraph.Add(d);
                 }
 
             }
