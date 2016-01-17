@@ -251,12 +251,18 @@ namespace NeuroSky.MindView
                 X = (i * (float)binWidth);
                 Y = graphPoint.Y;
                 height = (int)((data[d] - yAxisMin) / (yAxisMax - yAxisMin + 1) * frameHeight);
-                //if (height == 0)
-                //{
-                    Console.WriteLine("data[d]" + data[d] + ",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);                                      
-                //}                  
-                // Draw the bar
-                drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
+                if (height == 0)
+                {
+                    Console.WriteLine("data[d]" + data[d] + ",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);
+                    drawingSurface.FillRectangle(myBrush, 20, 20, 10, 20);
+                    drawingSurface.FillRectangle(myBrush, X, frameHeight - 50, 10, data[d]);
+
+                }
+                else
+                {
+                    // Draw the bar
+                    drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
+                }
                 
             }
         }

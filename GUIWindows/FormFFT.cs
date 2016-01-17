@@ -31,6 +31,7 @@ namespace NeuroSky.MindView
             //graphPanel.YAxisMax = 2;
             //graphPanel.YAxisMin = -2;
 
+            checkBox1.Checked = true;
             rawGraphPanel.samplingRate = 512;
             rawGraphPanel.xAxisMax = 20;
             rawGraphPanel.xAxisMin = 0;
@@ -97,6 +98,14 @@ namespace NeuroSky.MindView
         public string filePath;
         private void button1_Click(object sender, EventArgs e)
         {
+            if (checkBox1.Checked)
+            {
+                rawGraphPanel.BarGraph.BarReadType = ReadType.RawArray;
+            }
+            else
+            {
+                rawGraphPanel.BarGraph.BarReadType = ReadType.FFTArray;
+            }
             rawGraphPanel.Clear();
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Filter = "Text Files (.txt)|*.txt";
@@ -162,6 +171,18 @@ namespace NeuroSky.MindView
                 //{
                 //    Console.WriteLine(ex.Message);
                 //}
+            }
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                checkBox1.Text = "Raw Input";
+            }
+            else
+            {
+                checkBox1.Text = "FFT Input";
             }
         }
     }
