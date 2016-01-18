@@ -121,7 +121,7 @@ namespace NeuroSky.MindView
                     numberOfPoints = (int)(pwrSpecWindow * samplingRate);
 
                     // Assure that there are enough data points to work with
-                    if ((data0 != null) && (data0.Count >= numberOfPoints + 32))
+                    if ((data0 != null) && (data0.Count >= numberOfPoints+32 ))
                     {
                         // Trim excess values to minimize memory usage
                         hScrollBar.Visible = false;
@@ -133,8 +133,7 @@ namespace NeuroSky.MindView
                         // If so, then go compute and disply the result
                         oldPwr = new float[numberOfPoints];
                         Array.Copy(ComputePwrSpec(data0.ToArray()), oldPwr, numberOfPoints);
-                        DrawGraph(oldPwr, drawingSurface, myBrush);
-
+                        DrawGraph(oldPwr, drawingSurface, myBrush);                       
                     }
                     else if ((data0 != null) && (data0.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
                     {
@@ -154,7 +153,7 @@ namespace NeuroSky.MindView
                     numberOfPoints = (int)(pwrSpecWindow * samplingRate);
 
                     // Assure that there are enough data points to work with
-                    if ((data1 != null) && (data1.Count >= numberOfPoints + 32))
+                    if ((data1 != null) && (data1.Count >= numberOfPoints ))
                     {
                         // Trim excess values to minimize memory usage
                         hScrollBar.Visible = false;
@@ -165,15 +164,8 @@ namespace NeuroSky.MindView
                        
                         // If so, then go compute and disply the result
                         oldPwr = new float[numberOfPoints];
-                        Array.Copy(data1.ToArray(), oldPwr, numberOfPoints);
-                        try
-                        {
-                            DrawGraph(oldPwr, drawingSurface, myBrush);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                        }
+                        Array.Copy(data1.ToArray(), oldPwr, numberOfPoints); 
+                        DrawGraph(oldPwr, drawingSurface, myBrush);                        
                     }
                     else if ((data1 != null) && (data1.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
                     {
@@ -259,9 +251,13 @@ namespace NeuroSky.MindView
                 X = (i * (float)binWidth);
                 Y = graphPoint.Y;
                 height = (int)((data[d] - yAxisMin) / (yAxisMax - yAxisMin + 1) * frameHeight);
-
+                //if (height == 0)
+                //{
+                    Console.WriteLine("data[d]" + data[d] + ",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);                                      
+                //}                  
                 // Draw the bar
                 drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
+                
             }
         }
 

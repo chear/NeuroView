@@ -59,8 +59,9 @@ namespace NeuroSky.MindView
 
         private void FormFFT_Load(object sender, EventArgs e)
         {
-           
+             
         }
+
 
         delegate void UpdateDataForGraphicDelegate(double raw);
         private void UpdateDataForGraphic(double raw)
@@ -71,10 +72,11 @@ namespace NeuroSky.MindView
                 UpdateDataForGraphicDelegate del = new UpdateDataForGraphicDelegate(UpdateDataForGraphic);
                 this.Invoke(del, new object[] { raw });
             } else {
-                Console.WriteLine("update BarGraph data:" + raw);  
                
                 if (rawGraphPanel.BarGraph.BarReadType == ReadType.RawArray)
                 {
+                    Console.WriteLine("update BarGraph data:" + raw);  
+
                     /// TODO: Input 'Raw' from ThinkGear SDK or text ,then BarGraph.cs should be caculate the FFT with 
                     /// AForge.Math.FourierTransform.FFT(Complex[] , AForge.Math.FourierTransform.Direction.Forward).
                     Complex d = new Complex(raw, 0);
@@ -82,9 +84,11 @@ namespace NeuroSky.MindView
                 }
                 else if (rawGraphPanel.BarGraph.BarReadType == ReadType.FFTArray)
                 {
-                    float f = (float)raw;
+                    
+                    float f = Convert.ToSingle(raw);
                     /// TODO: Input data for FFT array,
                     rawGraphPanel.BarGraph.AddFFT(f);
+                    Console.WriteLine("update float data:" + f+",raw:"+raw);  
                 }
             }        
         }
@@ -106,6 +110,7 @@ namespace NeuroSky.MindView
             }
         }
 
+
         private void DataLoading()
         {
             /// Only for function test.
@@ -115,17 +120,17 @@ namespace NeuroSky.MindView
                 List<string> strArray = new List<string>();
                 
                 StreamReader sr = new StreamReader(fsRead);
-                while (sr.ReadLine() != null)
+                string line;
+                while ((line = sr.ReadLine()) != null)
                 {
-                    string line = sr.ReadLine();
                     if (line != null)
-                    {
+                    {                       
                         double fft = Double.Parse(line);
                         UpdateDataForGraphic(fft);
-                        strArray.Add(line);
+                        strArray.Add(line);                        
                     }
                 }
-
+                Console.WriteLine("reading finish!");
                 /// test code for 'AForge.Math.FourierTransform.FFT' function
                 //try
                 //{
