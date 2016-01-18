@@ -117,7 +117,6 @@ namespace NeuroSky.MindView
 
         public MainForm()
         {
-
             saveFileGUI = new SaveFileGUI();
             saveFileGUI.SaveButtonClicked += new EventHandler(OnSaveButtonClicked);
             saveFileGUI.DiscardButtonClicked += new EventHandler(OnDiscardButtonClicked);
@@ -149,7 +148,16 @@ namespace NeuroSky.MindView
             rawGraphPanel.EnableValueDisplay();
             rawGraphPanel.OptimizeScrollBar();
             rawGraphPanel.DataSavingFinished += new EventHandler(OnDataSavingFinished);
-            rawGraphPanel.LineGraph.DCRemovalEnabled = false;
+            if (rawGraphPanel.PlotType == PlotType.Line)
+            {
+                rawGraphPanel.LineGraph.DCRemovalEnabled = false;
+            }
+            //else if (rawGraphPanel.PlotType == PlotType.Bar)
+            //{
+            //    ///To do nothing
+            //}
+            
+            
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
@@ -651,7 +659,14 @@ namespace NeuroSky.MindView
 #if true
             this.connectButton.Enabled = false;
             this.portText.Enabled = false;
-            rawGraphPanel.LineGraph.Clear();
+            if (rawGraphPanel.PlotType == PlotType.Line)
+            {
+                rawGraphPanel.LineGraph.Clear();
+            }
+            else if (rawGraphPanel.PlotType == PlotType.Bar)
+            {
+                rawGraphPanel.BarGraph.Clear();
+            }
             ConnectButtonClicked(this, EventArgs.Empty);
 #else
             double tempData = 0;
@@ -687,15 +702,18 @@ namespace NeuroSky.MindView
         /*Clear Button Clicked*/
         private void clearButton_Click(object sender, System.EventArgs e)
         {
-            rawGraphPanel.LineGraph.Clear();
-
+            if (rawGraphPanel.PlotType == PlotType.Line)
+            {
+                rawGraphPanel.LineGraph.Clear();
+                rawGraphPanel.LineGraph.Invalidate();
+            }
+            else if (rawGraphPanel.PlotType == PlotType.Bar)
+            {
+                rawGraphPanel.BarGraph.Clear();
+                rawGraphPanel.BarGraph.Invalidate();
+            }
             timeStampIndex = 0;
-
-            rawGraphPanel.LineGraph.Invalidate();
         }
-
-
-
 
         //fatigue button clicked. set up stuff
         private void fatigueButton_Click(object sender, EventArgs e)
@@ -733,10 +751,7 @@ namespace NeuroSky.MindView
 
             outputFatigueResults(fatigueResult);
         }
-
-
-
-
+        
         //calculate the fatigue value based on RR interval
         public void calculateFatigue(int RRvalue)
         {
@@ -756,12 +771,8 @@ namespace NeuroSky.MindView
                     runFatigueMeter = false;
                     outputFatigueResults(fatigueResult);
                 }
-
             }
         }
-
-
-
 
         //save the output of the fatigue meter
         public void outputFatigueResults(int fatigueLevel)
@@ -807,7 +818,6 @@ namespace NeuroSky.MindView
             toggleFatigueStartButton(true);
             toggleFatigueStopButton(false);
             toggleRecordButton(true);
-
         }
 
 
@@ -861,8 +871,17 @@ namespace NeuroSky.MindView
         //stop button clicked
         private void stopButton_Click(object sender, System.EventArgs e)
         {
-            rawGraphPanel.LineGraph.SaveDataFlag = true;
-            rawGraphPanel.LineGraph.RecordDataFlag = false;
+            if (rawGraphPanel.PlotType == PlotType.Line)
+            {
+                rawGraphPanel.LineGraph.SaveDataFlag = true;
+                rawGraphPanel.LineGraph.RecordDataFlag = false;
+            }
+            else if (rawGraphPanel.PlotType == PlotType.Bar)
+            {
+                rawGraphPanel.BarGraph.SaveDataFlag = true;
+                rawGraphPanel.BarGraph.RecordDataFlag = false;
+            }
+           
             updateStatusLabel("Recording complete.");
 
             recordFlag = false;
@@ -1643,8 +1662,15 @@ namespace NeuroSky.MindView
 
         private void Replay_Click(object sender, EventArgs e)
         {
-
-            rawGraphPanel.LineGraph.Clear();
+            if (rawGraphPanel.PlotType == PlotType.Line)
+            {
+                rawGraphPanel.LineGraph.Clear();              
+            }
+            else if (rawGraphPanel.PlotType == PlotType.Bar)
+            {
+                rawGraphPanel.BarGraph.Clear();                
+            }
+           
             stopButton.Visible = true;
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             openFileDialog1.Filter = "Text Files (.txt)|*.txt";

@@ -28,24 +28,39 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.barGraph = new NeuroSky.MindView.BarGraph();
+            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // barGraph
+            // rawGraphPanel
             // 
-            this.barGraph.BackColor = System.Drawing.Color.White;
-            this.barGraph.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.barGraph.Location = new System.Drawing.Point(12, 282);
-            this.barGraph.Name = "barGraph";
-            this.barGraph.Size = new System.Drawing.Size(760, 240);
-            this.barGraph.TabIndex = 1;
+            this.rawGraphPanel.Location = new System.Drawing.Point(12, 43);
+            this.rawGraphPanel.Name = "rawGraphPanel";
+            this.rawGraphPanel.samplingRate = 10;
+            this.rawGraphPanel.Size = new System.Drawing.Size(800, 200);
+            this.rawGraphPanel.TabIndex = 0;
+            this.rawGraphPanel.xAxisMax = 0D;
+            this.rawGraphPanel.xAxisMin = 0D;
+            this.rawGraphPanel.yAxisMax = 0D;
+            this.rawGraphPanel.yAxisMin = 0D;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(12, 12);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "Load";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // FormFFT
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(785, 577);
-            this.Controls.Add(this.barGraph);
+            this.ClientSize = new System.Drawing.Size(830, 255);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.rawGraphPanel);
             this.Name = "FormFFT";
             this.Text = "FFT Chat";
             this.Load += new System.EventHandler(this.FormFFT_Load);
@@ -55,7 +70,9 @@
 
         #endregion
 
-        private BarGraph barGraph;
+        private GraphPanel rawGraphPanel;
+        private System.Windows.Forms.Button button1;
+
 
 
     }

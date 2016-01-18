@@ -25,6 +25,7 @@ namespace NeuroSky.MindView
         public System.Windows.Forms.HScrollBar hScrollBar;
         private System.Windows.Forms.Timer maxFrameRateTimer;
 
+        public List<float> data1;              // Storage of data for FFT array
         public List<AForge.Math.Complex> data0; // Storage of data points to compute with
         public float[] oldPwr;                  // Storage of old power spectrum
 
@@ -56,14 +57,26 @@ namespace NeuroSky.MindView
         private Thread saveDataThread;
 
         public event EventHandler DataSavingFinished = delegate { };
+        public ReadType BarReadType;
 
-
+      
         /**
          * Add a data point to the storage bin
          */
         public void Add(AForge.Math.Complex d)
         {
-            data0.Add(d);
+            lock (data0)
+            {
+                data0.Add(d);
+            }
+        }
+
+        public void AddFFT(float value)
+        {
+            lock (data1)
+            {
+                data1.Add(value);
+            }
         }
 
 
@@ -97,34 +110,81 @@ namespace NeuroSky.MindView
             frameWidth = rect.Right - rect.Left;
             frameHeight = rect.Bottom - rect.Top;
 
-            // Update the bin indices
-            ResetBinIndices();
-
-            // Set the number of data points needed to compute power spectrum
-            numberOfPoints = (int)(pwrSpecWindow * samplingRate);
-
-
-            // Assure that there are enough data points to work with
-            if ((data0 != null) && (data0.Count >= numberOfPoints+32))
+            if (BarReadType == ReadType.RawArray)
             {
-                // Trim excess values to minimize memory usage
-                hScrollBar.Visible = false;
-                while (data0.Count > numberOfPoints)
+                lock (data0)
                 {
-                    data0.RemoveAt(0);
+                    // Update the bin indices
+                    ResetBinIndices();
+
+                    // Set the number of data points needed to compute power spectrum
+                    numberOfPoints = (int)(pwrSpecWindow * samplingRate);
+
+                    // Assure that there are enough data points to work with
+                    if ((data0 != null) && (data0.Count >= numberOfPoints + 32))
+                    {
+                        // Trim excess values to minimize memory usage
+                        hScrollBar.Visible = false;
+                        while (data0.Count > numberOfPoints)
+                        {
+                            data0.RemoveAt(0);
+                        }
+
+                        // If so, then go compute and disply the result
+                        oldPwr = new float[numberOfPoints];
+                        Array.Copy(ComputePwrSpec(data0.ToArray()), oldPwr, numberOfPoints);
+                        DrawGraph(oldPwr, drawingSurface, myBrush);
+
+                    }
+                    else if ((data0 != null) && (data0.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
+                    {
+                        // Draw the old power spectrum
+                        DrawGraph(oldPwr, drawingSurface, myBrush);
+                    }
                 }
-
-                // If so, then go compute and disply the result
-                oldPwr = new float[numberOfPoints];
-                Array.Copy(ComputePwrSpec(data0.ToArray()), oldPwr, numberOfPoints);
-                DrawGraph(oldPwr, drawingSurface, myBrush);
-
-            } else if ((data0 != null) && (data0.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints)) {
-                // Draw the old power spectrum
-                DrawGraph(oldPwr, drawingSurface, myBrush);
             }
+            else if(BarReadType == ReadType.FFTArray)
+            {
+                lock (data1)
+                {
+                    // Update the bin indices
+                    ResetBinIndices();
+
+                    // Set the number of data points needed to compute power spectrum
+                    numberOfPoints = (int)(pwrSpecWindow * samplingRate);
+
+                    // Assure that there are enough data points to work with
+                    if ((data1 != null) && (data1.Count >= numberOfPoints + 32))
+                    {
+                        // Trim excess values to minimize memory usage
+                        hScrollBar.Visible = false;
+                        while (data1.Count > numberOfPoints)
+                        {
+                            data1.RemoveAt(0);
+                        }
+                       
+                        // If so, then go compute and disply the result
+                        oldPwr = new float[numberOfPoints];
+                        Array.Copy(data1.ToArray(), oldPwr, numberOfPoints);
+                        try
+                        {
+                            DrawGraph(oldPwr, drawingSurface, myBrush);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                    else if ((data1 != null) && (data1.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
+                    {
+                        // Draw the old power spectrum
+                        DrawGraph(oldPwr, drawingSurface, myBrush);
+                    }
+                }
+            }
+
             // End repainting sequence.
-            
+
             // Label bins
             DrawXAxis(drawingSurface);
 
@@ -374,9 +434,10 @@ namespace NeuroSky.MindView
 #endif
         }
 
+
         /**
-         * On intialization
-         */
+        * On intialization
+        */
         public BarGraph()
         {
             defaultSize = new Size(frameWidth, frameHeight);
@@ -391,15 +452,14 @@ namespace NeuroSky.MindView
             this.DoubleBuffered = true;
 
             data0 = new List<AForge.Math.Complex>();
+            data1 = new List<float>();
             oldPwr = new float[1];
 
             ///*Setting up the timer for the max frame rate*/
-            //maxFrameRateTimer = new System.Windows.Forms.Timer();
-            //maxFrameRateTimer.Interval = 16; //In milliseconds
-            //maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
-            //maxFrameRateTimer.Start();
-
-
+            maxFrameRateTimer = new System.Windows.Forms.Timer();
+            maxFrameRateTimer.Interval = 16; //In milliseconds
+            maxFrameRateTimer.Tick += new EventHandler(MaxFrameRateTimer_Tick);
+            maxFrameRateTimer.Start();
         }
 
 
@@ -425,7 +485,6 @@ namespace NeuroSky.MindView
             temp.Y = frameHeight - temp.Y;
 
             return temp;
-
         }
 
 
@@ -511,7 +570,6 @@ namespace NeuroSky.MindView
             this.hScrollBar.Width = this.Width;
 
             base.OnSizeChanged(e);
-
         }
 
 
@@ -525,9 +583,6 @@ namespace NeuroSky.MindView
             this.hScrollBar.LargeChange = numberOfPoints / 8;
              * */
         }
-
-        
-
 
     }/*End of BarGraph Class*/
 

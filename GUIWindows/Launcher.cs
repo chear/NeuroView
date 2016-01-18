@@ -296,7 +296,6 @@ namespace NeuroSky.MindView {
                 //save the poorsignal value. this is always updated
                 if(thinkGearParser.ParsedData[i].ContainsKey("PoorSignal")) {
                     mainForm.poorQuality = thinkGearParser.ParsedData[i]["PoorSignal"];
-
                     mainForm.identificationRecordingGUI.poorSignal = thinkGearParser.ParsedData[i]["PoorSignal"];
                 }
                 //update heart age
@@ -306,9 +305,11 @@ namespace NeuroSky.MindView {
                     Console.WriteLine("HeartAge = " + thinkGearParser.ParsedData[i]["HeartAge"]);
                 }
 
-                if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
-                    if(mainForm.replayEnable == false)
-                    {
+                if(thinkGearParser.ParsedData[i].ContainsKey("Raw"))
+                {
+                    #region Raw
+                    if (mainForm.replayEnable == false)
+                    {                         
                         //if signal is good
                         if (mainForm.poorQuality == 200)
                         {
@@ -349,8 +350,8 @@ namespace NeuroSky.MindView {
                                 //if "delay" seconds have passed, start plotting the data
                                 if (rawCounter >= delay)
                                 {
-                                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
-                                    mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
+                                    //mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
+                                    //mainForm.rawGraphPanel.LineGraph.timeStampIndex++;                                   
                                 }
 
                                 //clear the graph when it's full
@@ -373,33 +374,24 @@ namespace NeuroSky.MindView {
                             //otherwise signal is bad, plot zero. reset counter. reset HRV
                             rawCounter = 0;
                             bufferCounter_raw = 0;
-
                             Array.Clear(eegBuffer, 0, eegBuffer.Length);
-
                             respRate.calculateRespiratoryRate(0, 0);    //reset the respiration buffer
-
                             mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                             mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-
                             mainForm.updateHRVLabel("0");
                             mainForm.updateAverageHeartRateLabel("0");
                             mainForm.updateRealTimeHeartRateLabel("0");
                             //mainForm.updateHeartAgeIndicator("0");
                             //mainForm.updateRespirationRateIndicator("0");
-
                             tgHRV.Reset();
                         }
-                     
                     }
-                    
-                    
-                    
-                     
+                    #endregion
                 }
+                if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate"))
+                {
+                    #region HeartRate
 
-
-                if(thinkGearParser.ParsedData[i].ContainsKey("HeartRate")) {
-                    
                     //if the "delay" number of seconds have passed, pass the heartrate value
                     if(rawCounter >= delay) {
                         mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
@@ -414,8 +406,8 @@ namespace NeuroSky.MindView {
                         //but still pass the correct heartbeat value for ecglog.txt
                         mainForm.ASICHBValue = thinkGearParser.ParsedData[i]["HeartRate"];
                     }
+                    #endregion
                 }
-
                 /* End "Check for the data flag for each panel..." */
             }
         }
@@ -557,8 +549,7 @@ namespace NeuroSky.MindView {
                     low = Convert.ToByte(temp[3], 16);
                     temp_raw = (short)((high << 8) + low);
                     loadedList.Add(temp_raw);
-                }
-                
+                }                
             }
         }
 
