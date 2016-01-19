@@ -153,7 +153,7 @@ namespace NeuroSky.MindView
                     numberOfPoints = (int)(pwrSpecWindow * samplingRate);
 
                     // Assure that there are enough data points to work with
-                    if ((data1 != null) && (data1.Count >= numberOfPoints ))
+                    if ((data1 != null) && (data1.Count >0 ))
                     {
                         // Trim excess values to minimize memory usage
                         hScrollBar.Visible = false;
@@ -161,11 +161,11 @@ namespace NeuroSky.MindView
                         {
                             data1.RemoveAt(0);
                         }
-                       
+                        
                         // If so, then go compute and disply the result
                         oldPwr = new float[numberOfPoints];
-                        Array.Copy(data1.ToArray(), oldPwr, numberOfPoints); 
-                        DrawGraph(oldPwr, drawingSurface, myBrush);                        
+                        Array.Copy(data1.ToArray(), oldPwr, data1.Count); 
+                        DrawGraph(oldPwr, drawingSurface, myBrush);
                     }
                     else if ((data1 != null) && (data1.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
                     {
@@ -250,20 +250,22 @@ namespace NeuroSky.MindView
                 // Set variables
                 X = (i * (float)binWidth);
                 Y = graphPoint.Y;
-                height = (int)((data[d] - yAxisMin) / (yAxisMax - yAxisMin + 1) * frameHeight);
-                if (height == 0)
-                {
+                height = (float)((data[d] - yAxisMin) / (yAxisMax - yAxisMin + 1) * frameHeight);
+                //if (height == 0)
+                //{
                     Console.WriteLine("data[d]" + data[d] + ",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);
-                    drawingSurface.FillRectangle(myBrush, 20, 20, 10, 20);
-                    drawingSurface.FillRectangle(myBrush, X, frameHeight - 50, 10, data[d]);
+                    if ((d%2)==0)
+                        drawingSurface.FillRectangle(myBrush, 20, 20, 10, 20);
+                  
+                    float fd = data[d]/Convert.ToSingle(yAxisMax);
+                    drawingSurface.FillRectangle(myBrush, X, (frameHeight -fd), 5, fd);
 
-                }
-                else
-                {
-                    // Draw the bar
-                    drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
-                }
-                
+                //}
+                //else
+                //{
+                //    // Draw the bar
+                //    drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
+                //}                
             }
         }
 
@@ -328,6 +330,14 @@ namespace NeuroSky.MindView
 
             myPen.Dispose();
             myBrush.Dispose();
+        }
+
+
+        /**
+         *  drawing the base line for FFT
+         */
+        private void DrawBaseLine(Graphics drawingSurface)
+        {
         }
 
 

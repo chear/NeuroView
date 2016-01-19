@@ -121,9 +121,11 @@ namespace NeuroSky.MindView {
                 if(this.PlotType == PlotType.Bar) {
                     //account for slight rounding error
                     if(value > 0) {
-                        BarGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
+                        //BarGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Ceiling(value);
                     } else {
-                        BarGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
+                        //BarGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Floor(value);
                     }
 
                 } else {
@@ -151,9 +153,11 @@ namespace NeuroSky.MindView {
             set {
                 if(this.PlotType == PlotType.Bar) {
                     if(value > 0) {
-                        BarGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
+                        //BarGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Ceiling(value);
                     } else {
-                        BarGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
+                        //BarGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Floor(value);
                     }
 
                 } else {

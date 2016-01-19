@@ -31,11 +31,12 @@ namespace NeuroSky.MindView
             //graphPanel.YAxisMax = 2;
             //graphPanel.YAxisMin = -2;
 
-            checkBox1.Checked = true;
+            checkBox1.Checked = false;
+            checkBox1.Text = "FFT Input";
             rawGraphPanel.samplingRate = 512;
-            rawGraphPanel.xAxisMax = 20;
+            rawGraphPanel.xAxisMax = 512;
             rawGraphPanel.xAxisMin = 0;
-            rawGraphPanel.yAxisMax = 50;
+            rawGraphPanel.yAxisMax = 100;
             rawGraphPanel.yAxisMin = 0;
             rawGraphPanel.Text = "ECG";
             rawGraphPanel.EnableValueDisplay();
@@ -50,6 +51,10 @@ namespace NeuroSky.MindView
                 rawGraphPanel.BarGraph.pwrSpecWindow = 1;
                 rawGraphPanel.BarGraph.BarReadType = ReadType.RawArray;
             }
+            double a = 699454.0;
+            float f =(float)31.1835938;
+            float d= (float)((double)f /a);
+            Console.WriteLine("ddddd="+d);
         }
 
         //when data saving is done
@@ -132,14 +137,11 @@ namespace NeuroSky.MindView
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    if (line != null)
-                    {                       
-                        double fft = Double.Parse(line);
-                        UpdateDataForGraphic(fft);
-                        strArray.Add(line);                        
-                    }
+                    double fft = Double.Parse(line);    
+                    UpdateDataForGraphic(fft);
+                    strArray.Add(line);                   
                 }
-                Console.WriteLine("reading finish!");
+                Console.WriteLine("Read finish!");
                 /// test code for 'AForge.Math.FourierTransform.FFT' function
                 //try
                 //{
