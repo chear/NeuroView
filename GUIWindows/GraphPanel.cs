@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using System.Drawing;
-
 using System.Windows.Forms;
 
 namespace NeuroSky.MindView {
@@ -17,7 +15,6 @@ namespace NeuroSky.MindView {
         Bandana_P300 = 3,       // Bandana, 3 Channel on MSB, 3 Accel, 2 Offhead, Sleep Firmware  
         Bandana_Med = 4         // Bandana, 3 Channel on MSB, Meditation FirmWare
     };
-
 
     /* Possible types of data */
     public enum DataType {
@@ -36,7 +33,6 @@ namespace NeuroSky.MindView {
         Bar = 2         // Bar graphs
     };
 
-
     public class GraphPanel : System.Windows.Forms.UserControl {
         public LineGraph LineGraph;
         public BarGraph BarGraph;
@@ -49,25 +45,19 @@ namespace NeuroSky.MindView {
         public DeviceType DeviceType;
         public DataType DataType;
         public PlotType PlotType;
-
         public TextBox YMaxTextBox;
         public TextBox YMinTextBox;
         public TextBox XMaxTextBox;
         public TextBox XMinTextBox;
-
         public Label YMaxLabel;
         public Label YMinLabel;
         public Label XMaxLabel;
         public Label XMinLabel;
-
         private int delta;
-
         private double conversionFactor = 0.0183;
-        private int    gain             = 64;
-
+        private int    gain             = 128;
         private System.ComponentModel.Container components = null;
         private Timer ValueUpdateTimer;
-
         public event EventHandler DataSavingFinished = delegate { };
 
         //get or set the xAxisMax value
@@ -121,9 +111,11 @@ namespace NeuroSky.MindView {
                 if(this.PlotType == PlotType.Bar) {
                     //account for slight rounding error
                     if(value > 0) {
-                        BarGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
+                        //BarGraph.yAxisMax = (int)Math.Ceiling((value*gain) / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Ceiling(value);
                     } else {
-                        BarGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
+                        //BarGraph.yAxisMax = (int)Math.Floor((value*gain) / conversionFactor);
+                        BarGraph.yAxisMax = (int)Math.Floor(value);
                     }
 
                 } else {
@@ -151,9 +143,11 @@ namespace NeuroSky.MindView {
             set {
                 if(this.PlotType == PlotType.Bar) {
                     if(value > 0) {
-                        BarGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
+                        //BarGraph.yAxisMin = (int)Math.Ceiling((value * gain) / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Ceiling(value);
                     } else {
-                        BarGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
+                        //BarGraph.yAxisMin = (int)Math.Floor((value * gain) / conversionFactor);
+                        BarGraph.yAxisMin = (int)Math.Floor(value);
                     }
 
                 } else {
@@ -340,29 +334,29 @@ namespace NeuroSky.MindView {
                 case DataType.EEG:
                     switch(deviceType) {
                         case DeviceType.MindSet:
-                            LineGraph.samplingRate = 600;
-                            LineGraph.yAxisMax = 32767;
-                            LineGraph.yAxisMin = -32768;
+                            LineGraph.samplingRate = 512;
+                            LineGraph.yAxisMax = 2047;
+                            LineGraph.yAxisMin = -2048;
                             break;
                         case DeviceType.Circlet:
-                            LineGraph.samplingRate = 600;
-                            LineGraph.yAxisMax = 32767;
-                            LineGraph.yAxisMin = -32768;
+                            LineGraph.samplingRate = 512;
+                            LineGraph.yAxisMax = 2047;
+                            LineGraph.yAxisMin = -2048;
                             break;
                         case DeviceType.Bandana:
-                            LineGraph.samplingRate = 600;
-                            LineGraph.yAxisMax = 32767;
-                            LineGraph.yAxisMin = -32768;
+                            LineGraph.samplingRate = 256;
+                            LineGraph.yAxisMax = 2047;
+                            LineGraph.yAxisMin = -2048;
                             break;
                         case DeviceType.Bandana_P300:
-                            LineGraph.samplingRate = 600;
-                            LineGraph.yAxisMax = 32767;
-                            LineGraph.yAxisMin = -32768;
+                            LineGraph.samplingRate = 256;
+                            LineGraph.yAxisMax = 2047;
+                            LineGraph.yAxisMin = -2048;
                             break;
                         case DeviceType.Bandana_Med:
-                            LineGraph.samplingRate = 600;
-                            LineGraph.yAxisMax = 32767;
-                            LineGraph.yAxisMin = -32768;
+                            LineGraph.samplingRate = 128;
+                            LineGraph.yAxisMax = 2047;
+                            LineGraph.yAxisMin = -2048;
                             break;
                         default:
                             SetTypes(DeviceType.Bandana, DataType.EEG);

@@ -5,4 +5,8 @@ obj/
 *.pidb
 *.userprefs
 *.resources
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+>>>>>>> MindViewFFT
