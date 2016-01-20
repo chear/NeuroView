@@ -102,6 +102,18 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="complex.cs" />
+    <Compile Include="FormFFT.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormFFT.Designer.cs">
+      <DependentUpon>FormFFT.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GraphPanelFFT.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GraphPanelFFT.Designer.cs">
+      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
+    </Compile>
     <Compile Include="GraphPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -148,6 +160,12 @@
     <Compile Include="SaveFileGUI.designer.cs">
       <DependentUpon>SaveFileGUI.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="FormFFT.resx">
+      <DependentUpon>FormFFT.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GraphPanelFFT.resx">
+      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
     </EmbeddedResource>

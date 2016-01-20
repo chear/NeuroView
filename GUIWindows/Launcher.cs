@@ -1209,8 +1209,8 @@ namespace NeuroSky.MindView {
                             ///////////////////////////////////////////////////////////////////////smooth_raw_filters///////////////////////////////////////////////////////////////////////
                             //resampled = interplated((short)thinkGearParser.ParsedData[i]["Raw200"]);
 
-                            //if (resampled != -1000000)
-                            //{
+                            if (resampled != -1000000)
+                            {
                                 sample_Before[FFT_RAW++] = (double)thinkGearParser.ParsedData[i]["Raw200"];
                                 if (FFT_RAW >= 600)
                                 {
@@ -1226,18 +1226,71 @@ namespace NeuroSky.MindView {
                                         Complex[number].imag = 0;
                                     }
                                         fft.FFT(Complex, 512);//开始FFT转换
-                                        for (int number = 0; number < 512; number++)
-                                        {
-                                            Console.WriteLine("number=" + number);
-                                            Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
-                                        }
+                                        //for (int number = 0; number < 512; number++)
+                                        //{
+                                        //    Console.WriteLine("number=" + number);
+                                        //    Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
+                                        //}
                                           fft_amp = fft.amplitude(Complex, 512); //FFT后的幅值
-                                          for (int k = 0; k < 512; k++)
+                                          Console.WriteLine("The amp value will be output:");
+                                          for (int k = 1; k <= 512; k++)
                                           {
                                               ///chear: output the data to drawing FFT graphic
-                                              Console.WriteLine("fft_amp" + k + "=" + fft_amp[k]);
+                                              Console.WriteLine(fft_amp[k-1]);
                                           }
                                 }
+                                                        
+                             /*   string line;
+                                int line_number=0;
+                                double[] example = new double[1024];
+                                while (true)
+                                {
+                                   
+                                    System.IO.StreamReader file = new System.IO.StreamReader(@"stand_sin_ecg_1hz.txt");
+                                    while ((line = file.ReadLine()) != null)
+                                    {
+
+                                        line_number++;
+                                        example[line_number] = double.Parse(line);
+                                        if (line_number >= 1023)
+                                        {
+                                            line_number = 0;
+                                            for (int number = 0; number < 1024; number++)
+                                            {
+                                                //初始化复数的实虚部.
+                                                Complex[number].real = example[number];
+                                                Complex[number].imag = 0;
+                                            }
+                                            fft.FFT(Complex, 1024);//开始FFT转换
+                                            for (int number = 0; number < 1024; number++)
+                                            {
+                                                Console.WriteLine("number=" + number);
+                                                Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
+                                            }
+                                            fft_amp = fft.amplitude(Complex, 1024); //FFT后的幅值
+                                            for (int k = 0; k < 1024; k++)
+                                            {
+                                                ///chear: output the data to drawing FFT graphic
+                                                Console.WriteLine(fft_amp[k]);
+                                            }
+
+                                        
+                                        }
+                                        Console.WriteLine("line is:" + line.ToString());
+                                       
+                                        try
+                                        {
+
+                                        }
+                                        catch (FormatException)
+                                        {
+                                            Console.ReadLine();
+                                        }
+                                    }
+
+                                    file.Close();
+
+                                }*/
 
                                 bw = baselineRemove((short)thinkGearParser.ParsedData[i]["Raw200"]);
 
@@ -1245,7 +1298,7 @@ namespace NeuroSky.MindView {
 
                                 filteredRui = cpf((short)notched);
 
-                            //}
+                            }
 
                             //update the buffer with the latest eeg value
                             //Array.Copy(eegBuffer_600, 1, tempeegBuffer_600, 0, bufferSize_hp_600 - 1);
@@ -1255,7 +1308,7 @@ namespace NeuroSky.MindView {
 
                             //if the eeg buffer is full, calculate the filtered data
                             //if (bufferCounter_raw >= bufferSize_hp_600)
-                            if (true)
+                            if (false)
                             {
 
                                 //filter the data
