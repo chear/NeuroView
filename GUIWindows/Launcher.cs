@@ -981,7 +981,7 @@ namespace NeuroSky.MindView {
                 } 
 
 
-#if false
+#if true
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
 
                     if (mainForm.replayEnable == true)
