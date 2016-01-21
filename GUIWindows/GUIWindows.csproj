@@ -73,9 +73,14 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AForge.Math, Version=2.1.4.0, Culture=neutral, PublicKeyToken=abba2e25397ee8c9, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\AForge.Math.dll</HintPath>
+    <Reference Include="AForge.Math">
+      <HintPath>Libraries\AForge.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="Jayrock.Json">
+      <HintPath>Libraries\Jayrock.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog">
+      <HintPath>Libraries\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -92,8 +97,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="ThinkGear, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="ThinkGear">
       <HintPath>Libraries\ThinkGear.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -110,10 +114,6 @@
     <Compile Include="FormFFT.Designer.cs">
       <DependentUpon>FormFFT.cs</DependentUpon>
     </Compile>
-    <Compile Include="GraphPanelFFT.cs" />
-    <Compile Include="GraphPanelFFT.Designer.cs">
-      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
-    </Compile>
     <Compile Include="GraphPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -122,6 +122,11 @@
     </Compile>
     <Compile Include="AddNewUserGUI.Designer.cs">
       <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RecognitionGUI.cs">
       <SubType>Form</SubType>
@@ -135,6 +140,7 @@
     <Compile Include="RecognitionRecordingGUI.Designer.cs">
       <DependentUpon>RecognitionRecordingGUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="ReplayLoadData.cs" />
     <Compile Include="UserAgeInputGUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -163,23 +169,25 @@
     <EmbeddedResource Include="FormFFT.resx">
       <DependentUpon>FormFFT.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="GraphPanelFFT.resx">
-      <DependentUpon>GraphPanelFFT.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="GraphPanel.resx">
       <DependentUpon>GraphPanel.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="AddNewUserGUI.resx">
       <DependentUpon>AddNewUserGUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="RecognitionGUI.resx">
       <DependentUpon>RecognitionGUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="RecognitionRecordingGUI.resx">
       <DependentUpon>RecognitionRecordingGUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="UserAgeInputGUI.resx">
       <DependentUpon>UserAgeInputGUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -195,17 +203,14 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <EmbeddedResource Include="SaveFileGUI.resx">
       <DependentUpon>SaveFileGUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -253,6 +258,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\low.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="raw\FFT.txt" />
+    <None Include="Resources\full1.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

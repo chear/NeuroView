@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<logicalClassDesignerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm4="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm5="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/ModelStore" dslVersion="1.0.0.0" Id="70b95e7f-6ff8-4a9f-9c74-a3216b97119a" name="MindView" linkedPackageId="74db5a9d-5954-4968-bc3b-c172da511bb6" xmlns="http://schemas.microsoft.com/dsltools/LogicalClassDesigner">
+  <profileInstances>
+    <packageHasProfileInstances Id="371e1014-8f70-43bc-842e-51284237c66d">
+      <profileInstance Id="bd061390-f6ac-4a63-ae72-90e34d13291a" name="StandardProfileL2">
+        <elementDefinition Id="e34d544e-0fea-4ed6-ac5e-1b74119ac791" />
+      </profileInstance>
+      <elementDefinition Id="0caec977-1f8c-4ba3-a7db-8cc9ad9cc73b" />
+    </packageHasProfileInstances>
+    <packageHasProfileInstances Id="bc3456cb-ad8a-47fa-88cb-8209d2034bbf">
+      <profileInstance Id="d8b407b1-3fe3-4a97-82e9-870dce2e88eb" name="StandardProfileL3">
+        <elementDefinition Id="532ea607-fb19-44b8-8502-3351b05452be" />
+      </profileInstance>
+      <elementDefinition Id="29349502-908c-4fda-9054-c48619c59ed0" />
+    </packageHasProfileInstances>
+  </profileInstances>
+  <packagedElements>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0e53f80e-d840-42f0-88e0-c733e77f69b2" name="ThinkGear" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="dc93dccd-84d3-4963-8f71-dc13cba956a2" />
+        <ownedAttributesInternal>
+          <property Id="79820d1e-60f9-40f0-a526-abfc9736bc68" name="Raw" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="3db3e92f-b278-4548-b373-7929263348a4" />
+          </property>
+          <property Id="9725ae91-5718-40c0-b3b2-e1ee319ac196" name="HeartRate" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="9b7d3d4e-9c5b-4949-b551-3a7b03d2a1d8" />
+          </property>
+        </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="e5d53fe0-0f7b-4e6d-a4b2-1d0a6b15e951" name="OnDataReceived" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="cd0fc045-1671-4a2e-bff7-6e11c354ef9d" />
+          </operation>
+        </ownedOperationsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="7aeaf891-5929-4973-b78d-875db56a5b3f" name="MainForm" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="dfddaed1-3345-42ee-bad8-77deec6fe063" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="e23700e8-3d96-43b9-9158-795459b344d2" name="GraphPanel" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="d0e39850-149a-4f6c-a778-c181e9505ca0" />
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="043a40f8-9c7b-4456-a8f2-a83ad2723a83" name="LineGraph" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="a4dc0771-6000-47b8-9b8b-45136ef3a8e6" />
+        <ownedAttributesInternal>
+          <property Id="e99b9453-5474-4160-803f-2d445fdf4bc6" name="data0" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="3c7e4565-942d-4d2a-be10-ddcab64d8d6b" />
+          </property>
+        </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="95ad445a-b752-4ad4-b083-e90bfe2277bf" name="Add" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="b93d6b49-fc6d-4cc8-b124-4f808c14e84d" />
+          </operation>
+          <operation Id="4aae8993-ef1f-4959-8521-c0498817e1b9" name="OnPaint" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="ca488823-ad3c-4e4c-9345-a44ae523e562" />
+          </operation>
+        </ownedOperationsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+  </packagedElements>
+  <package Id="74db5a9d-5954-4968-bc3b-c172da511bb6" name="ModelingProject1">
+    <elementDefinition Id="54b5194d-926f-450d-a468-53a34f716b17" />
+  </package>
+</logicalClassDesignerModel>
