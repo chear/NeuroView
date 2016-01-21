@@ -63,10 +63,10 @@ namespace NeuroSky.MindView
 
         public void AddFFT(float value)
         {
-            lock (data1)
-            {
+            //lock (data1)
+            //{
                 data1.Add(value);
-            }
+            //}
         }
 
 
@@ -76,6 +76,7 @@ namespace NeuroSky.MindView
         public void Clear()
         {
             data0.Clear();
+            data1.Clear();
 
             //Initialize Horizontal Scrollbar
             hScrollBar.Visible = false;
@@ -102,6 +103,7 @@ namespace NeuroSky.MindView
             
             if (BarReadType == ReadType.RawArray)
             {
+                #region Input for Raw array to drawing
                 lock (data0)
                 {
                     // Update the bin indices
@@ -131,9 +133,11 @@ namespace NeuroSky.MindView
                         DrawGraph(oldPwr, drawingSurface, myBrush);
                     }
                 }
-            }
+                #endregion
+          }
             else if(BarReadType == ReadType.FFTArray)
             {
+                #region Input for FFT array to drawing
                 lock (data1)
                 {
                     // Update the bin indices
@@ -141,28 +145,35 @@ namespace NeuroSky.MindView
 
                     // Set the number of data points needed to compute power spectrum
                     numberOfPoints = (int)(pwrSpecWindow * samplingRate);
-
+                    //numberOfPoints = data1.Count;
+                   
                     // Assure that there are enough data points to work with
-                    if ((data1 != null) && (data1.Count >0 ))
+                    if ((data1 != null) && (data1.Count > numberOfPoints-1))
                     {
+                        System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 11F);
+                        drawingSurface.DrawString("Start Drawing", myFont, myBrush, 20, 20);
+
                         // Trim excess values to minimize memory usage
                         hScrollBar.Visible = false;
-                        while (data1.Count > numberOfPoints)
-                        {
-                            data1.RemoveAt(0);
-                        }
-                        
+                        //while (data1.Count > numberOfPoints)
+                        //{
+                        //    data1.RemoveAt(0);
+                        //}
+                       
                         // If so, then go compute and disply the result
                         oldPwr = new float[numberOfPoints];
-                        Array.Copy(data1.ToArray(), oldPwr, data1.Count); 
+                        Array.Copy(data1.ToArray(), oldPwr, numberOfPoints); 
                         DrawGraph(oldPwr, drawingSurface, myBrush);
+                        Console.WriteLine("OnPaint fnction data.count="+data1.Count);
+                        data1.Clear();
                     }
-                    else if ((data1 != null) && (data1.Count >= numberOfPoints) && (oldPwr.Length >= numberOfPoints))
+                    else if ((data1 != null)  && (oldPwr.Length > numberOfPoints-1))
                     {
                         // Draw the old power spectrum
                         DrawGraph(oldPwr, drawingSurface, myBrush);
                     }
                 }
+                #endregion
             }
 
             // End repainting sequence.
@@ -245,14 +256,10 @@ namespace NeuroSky.MindView
                 Y = graphPoint.Y;
                 height = (float)((data[d] - yAxisMin) / (yAxisMax - yAxisMin + 1) * frameHeight);
                
-
-                Console.WriteLine("data[d]" + data[d] + ",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);               
-                if ((d%2)==0)
-                    drawingSurface.FillRectangle(myBrush, 20, 20, 10, 20);
-
-                float fd =  (float)((data[d] - yAxisMin) / (yAxisMax - yAxisMin ) * frameHeight);
-                //float fd = data[d] / Convert.ToSingle(yAxisMax);                   
-                drawingSurface.FillRectangle(myBrush, X, (frameHeight -fd), 5, fd);
+                //Console.WriteLine("data[d]" + data[d] + ",d ="+d+",binIndexLow:" + binIndexLow + ",binWidth:" + binWidth + ",X=" + X + ",Y=" + Y);                          
+                //float fd = (float)((data[d] - yAxisMin) / (yAxisMax - yAxisMin) * frameHeight);
+                //Y = frameHeight - fd;
+                drawingSurface.FillRectangle(myBrush, X,Y, 5,height);
 
                 //    // Draw the bar
                 //    drawingSurface.FillRectangle(myBrush, X, Y, (float)binWidth, height);
@@ -331,8 +338,9 @@ namespace NeuroSky.MindView
             Pen myPen = new Pen(Color.Black);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             System.Drawing.Font myFont = new System.Drawing.Font("Microsoft Sans Serif", 11F);
-            float Y = (float)((0 - yAxisMin) / (yAxisMax - yAxisMin ) * frameHeight);
-           
+
+             
+            float Y = (float)((0 - yAxisMin) / (yAxisMax - yAxisMin ) * frameHeight);           
             //Point p = new Point();
             //p = Point2Pixel(0, 0);
             drawingSurface.DrawLine(myPen, 0, frameHeight-Y, frameWidth, frameHeight-Y);
@@ -454,7 +462,6 @@ namespace NeuroSky.MindView
         {
             defaultSize = new Size(frameWidth, frameHeight);
             InitializeComponent();
-
             this.Size = defaultSize;
             this.BorderStyle = BorderStyle.FixedSingle;
             this.scrollBarTop = frameHeight - this.hScrollBar.Height;
@@ -479,7 +486,6 @@ namespace NeuroSky.MindView
          */
         public void MaxFrameRateTimer_Tick(object sender, EventArgs e)
         {
-            Console.WriteLine("MaxFrameRateTimer Tick");
             if(!isStopDrawing)
                 this.Invalidate();
         }

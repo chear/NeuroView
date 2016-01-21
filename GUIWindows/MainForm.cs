@@ -3,14 +3,12 @@ using System.Drawing;
 using System.Collections;
 using System.ComponentModel;
 using System.Windows.Forms;
-
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Media;
-
 using NeuroSky.ThinkGear;
 using NeuroSky.ThinkGear.Algorithms;
 using System.Text;
@@ -18,10 +16,10 @@ using System.Text;
 
 //comment here
 
-namespace NeuroSky.MindView {
-    public class MainForm : System.Windows.Forms.Form {
-
-
+namespace NeuroSky.MindView
+{
+    public class MainForm : System.Windows.Forms.Form
+    {
         private SaveFileGUI saveFileGUI;        //for saving the EEG data
         private UserAgeInputGUI heartAgeInputGUI;  //for inputing age and file name
         private RelaxationLevel relaxationLevel;
@@ -34,6 +32,7 @@ namespace NeuroSky.MindView {
         private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
 
         public GraphPanel rawGraphPanel;
+        public GraphPanel graphPanel1;
         public TextBox portText;
         private Label statusLabel;
         private Label fileLabel;
@@ -45,31 +44,23 @@ namespace NeuroSky.MindView {
 
         private System.Windows.Forms.Button inputAgeAndFileNameButton;
         private System.ComponentModel.Container components = null;
-
         public int timeStampIndex = 0;
         public bool recordFlag;
-
         public DateTime RecordStartTime;
         public DateTime RecordStopTime;
-
         public Label averageHeartRateLabel;
-
-
         public double poorQuality;
         public byte TrimByte;
         private int ADCValue;
-
         private double tempADCValue;
         private int tempIntADCValue;
         private String[] newHighLowByte;
 
         public double ASICHBValue;     //actual value coming out of the chip
-
         public double realTimeHBValue;
         private int realTimeHBBufferLength;
         private int realTimeHBCounter;
         private double[] realTimeHBValueBuffer;
-
         public double avgHBValue;
         private int avgHBBufferLength;
         private int avgHBCounter;
@@ -95,19 +86,16 @@ namespace NeuroSky.MindView {
         private Button stopFatigueButton;
         private PictureBox energyPictureBox;
         public SoundPlayer player;
-
         private Bitmap emptyImage;
         private Bitmap lowImage;
         private Bitmap mediumImage;
         private Label HRVLabelIndicator;
         public Label HRVLabel;
         private Bitmap fullImage;
-
         private Label respirationRateLabel;
         public Label respirationRateIndicator;
         private Label heartAgeLabel;
         public Label heartAgeIndicator;
-
         public Button Replay;
         public string loadedFileData;
         public Button stopReplay;
@@ -257,7 +245,6 @@ namespace NeuroSky.MindView {
         private TextBox Write_Byte1_Box;
         private Button button3;
         public Boolean replayEnable;
-
         public bool UART_ENABLED = false;
         public bool SPI_ENABLED = false;
         private Button button4;
@@ -313,11 +300,11 @@ namespace NeuroSky.MindView {
         private Label label90;
         public bool I2C_ENABLED = false;
         private Button identificationButton;
-        private GraphPanel graphPanel1;
         private Button newUserButton;
 
 
-        public MainForm() {
+        public MainForm()
+        {
             saveFileGUI = new SaveFileGUI();
             saveFileGUI.SaveButtonClicked += new EventHandler(OnSaveButtonClicked);
             saveFileGUI.DiscardButtonClicked += new EventHandler(OnDiscardButtonClicked);
@@ -356,10 +343,8 @@ namespace NeuroSky.MindView {
 
             disconnectButton.Visible = false;
             disconnectButton.Enabled = false;
-
             stopButton.Visible = false;
             stopButton.Enabled = false;
-
             ASICHBValue = 0;
 
             avgHBValue = 0;
@@ -394,7 +379,26 @@ namespace NeuroSky.MindView {
 
             System.IO.Stream fullStream = a.GetManifestResourceStream("NeuroSky.ThinkGear.Resources.full.gif");
             fullImage = new Bitmap(fullStream);
+
+            #region Initialize FFT Drawing
+            graphPanel1.samplingRate = 512;
+            graphPanel1.xAxisMax = 512;
+            graphPanel1.xAxisMin = 0;
+            graphPanel1.yAxisMax = 200;
+            graphPanel1.yAxisMin = 0;
+            graphPanel1.Text = "FFT";
+            graphPanel1.EnableValueDisplay();
+            //graphPanel1.OptimizeScrollBar();
+            //graphPanel1.DataSavingFinished += new EventHandler(OnDataSavingFinished);
+            graphPanel1.BarGraph.BarReadType = ReadType.FFTArray;
+            if (graphPanel1.PlotType == PlotType.Bar)
+            {
+                graphPanel1.BarGraph.pwrSpecWindow = 1;
+                graphPanel1.BarGraph.BarReadType = ReadType.RawArray;
+            }
+            #endregion
         }
+
         //transfer user input parameters
         void OnConfirmButtonClicked(object sender, EventArgs e)
         {
@@ -416,10 +420,13 @@ namespace NeuroSky.MindView {
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        protected override void Dispose(bool disposing) {
+        protected override void Dispose(bool disposing)
+        {
             Console.WriteLine("Disposing MainForm.");
-            if(disposing) {
-                if(components != null) {
+            if (disposing)
+            {
+                if (components != null)
+                {
                     components.Dispose();
                 }
 
@@ -651,7 +658,7 @@ namespace NeuroSky.MindView {
             this.button15 = new System.Windows.Forms.Button();
             this.button16 = new System.Windows.Forms.Button();
             this.label90 = new System.Windows.Forms.Label();
-            this.graphPanel1 = new NeuroSky.MindView.GraphPanel();
+            this.graphPanel1 = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
             this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
@@ -714,8 +721,6 @@ namespace NeuroSky.MindView {
             this.portText.Size = new System.Drawing.Size(80, 21);
             this.portText.TabIndex = 2;
             this.portText.Text = "Auto";
-            this.portText.TextChanged += new System.EventHandler(this.portText_TextChanged);
-            this.portText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.portText_KeyPress);
             // 
             // statusLabel
             // 
@@ -1008,7 +1013,6 @@ namespace NeuroSky.MindView {
             this.textBox2.Size = new System.Drawing.Size(42, 21);
             this.textBox2.TabIndex = 42;
             this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
             // textBox3
             // 
@@ -1019,7 +1023,6 @@ namespace NeuroSky.MindView {
             this.textBox3.Size = new System.Drawing.Size(40, 21);
             this.textBox3.TabIndex = 43;
             this.textBox3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox3.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
             // 
             // textBox4
             // 
@@ -1030,7 +1033,6 @@ namespace NeuroSky.MindView {
             this.textBox4.Size = new System.Drawing.Size(43, 21);
             this.textBox4.TabIndex = 44;
             this.textBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
             // 
             // textBox5
             // 
@@ -1041,7 +1043,6 @@ namespace NeuroSky.MindView {
             this.textBox5.Size = new System.Drawing.Size(46, 21);
             this.textBox5.TabIndex = 45;
             this.textBox5.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox5.TextChanged += new System.EventHandler(this.textBox5_TextChanged);
             // 
             // textBox6
             // 
@@ -1052,7 +1053,6 @@ namespace NeuroSky.MindView {
             this.textBox6.Size = new System.Drawing.Size(42, 21);
             this.textBox6.TabIndex = 46;
             this.textBox6.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox6.TextChanged += new System.EventHandler(this.textBox6_TextChanged);
             // 
             // textBox7
             // 
@@ -1063,7 +1063,6 @@ namespace NeuroSky.MindView {
             this.textBox7.Size = new System.Drawing.Size(46, 21);
             this.textBox7.TabIndex = 47;
             this.textBox7.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox7.TextChanged += new System.EventHandler(this.textBox7_TextChanged);
             // 
             // textBox8
             // 
@@ -1074,7 +1073,6 @@ namespace NeuroSky.MindView {
             this.textBox8.Size = new System.Drawing.Size(47, 21);
             this.textBox8.TabIndex = 48;
             this.textBox8.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox8.TextChanged += new System.EventHandler(this.textBox8_TextChanged);
             // 
             // textBox9
             // 
@@ -1163,7 +1161,6 @@ namespace NeuroSky.MindView {
             this.label3.Size = new System.Drawing.Size(48, 14);
             this.label3.TabIndex = 57;
             this.label3.Text = "conOut0";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label4
             // 
@@ -1378,7 +1375,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte11_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte11_Box.TabIndex = 78;
             this.Write_Byte11_Box.Text = "01";
-            this.Write_Byte11_Box.TextChanged += new System.EventHandler(this.Write_Byte11_Box_TextChanged);
             // 
             // Write_Byte12_Box
             // 
@@ -1388,7 +1384,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte12_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte12_Box.TabIndex = 82;
             this.Write_Byte12_Box.Text = "E0";
-            this.Write_Byte12_Box.TextChanged += new System.EventHandler(this.Write_Byte12_Box_TextChanged);
             // 
             // textBox23
             // 
@@ -1420,7 +1415,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte13_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte13_Box.TabIndex = 86;
             this.Write_Byte13_Box.Text = "43";
-            this.Write_Byte13_Box.TextChanged += new System.EventHandler(this.Write_Byte13_Box_TextChanged);
             // 
             // Write_Byte2_Box
             // 
@@ -1430,7 +1424,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte2_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte2_Box.TabIndex = 85;
             this.Write_Byte2_Box.Text = "80";
-            this.Write_Byte2_Box.TextChanged += new System.EventHandler(this.Write_Byte2_Box_TextChanged);
             // 
             // textBox27
             // 
@@ -1462,7 +1455,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte14_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte14_Box.TabIndex = 90;
             this.Write_Byte14_Box.Text = "00";
-            this.Write_Byte14_Box.TextChanged += new System.EventHandler(this.Write_Byte14_Box_TextChanged);
             // 
             // Write_Byte3_Box
             // 
@@ -1472,7 +1464,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte3_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte3_Box.TabIndex = 89;
             this.Write_Byte3_Box.Text = "F8";
-            this.Write_Byte3_Box.TextChanged += new System.EventHandler(this.Write_Byte3_Box_TextChanged);
             // 
             // textBox31
             // 
@@ -1504,7 +1495,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte15_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte15_Box.TabIndex = 94;
             this.Write_Byte15_Box.Text = "02";
-            this.Write_Byte15_Box.TextChanged += new System.EventHandler(this.Write_Byte15_Box_TextChanged);
             // 
             // Write_Byte4_Box
             // 
@@ -1514,7 +1504,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte4_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte4_Box.TabIndex = 93;
             this.Write_Byte4_Box.Text = "E0";
-            this.Write_Byte4_Box.TextChanged += new System.EventHandler(this.Write_Byte4_Box_TextChanged);
             // 
             // textBox35
             // 
@@ -1546,7 +1535,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte16_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte16_Box.TabIndex = 98;
             this.Write_Byte16_Box.Text = "C1";
-            this.Write_Byte16_Box.TextChanged += new System.EventHandler(this.Write_Byte16_Box_TextChanged);
             // 
             // Write_Byte5_Box
             // 
@@ -1556,7 +1544,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte5_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte5_Box.TabIndex = 97;
             this.Write_Byte5_Box.Text = "80";
-            this.Write_Byte5_Box.TextChanged += new System.EventHandler(this.Write_Byte5_Box_TextChanged);
             // 
             // textBox39
             // 
@@ -1588,7 +1575,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte17_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte17_Box.TabIndex = 102;
             this.Write_Byte17_Box.Text = "C8";
-            this.Write_Byte17_Box.TextChanged += new System.EventHandler(this.Write_Byte17_Box_TextChanged);
             // 
             // Write_Byte6_Box
             // 
@@ -1598,7 +1584,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte6_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte6_Box.TabIndex = 101;
             this.Write_Byte6_Box.Text = "00";
-            this.Write_Byte6_Box.TextChanged += new System.EventHandler(this.Write_Byte6_Box_TextChanged);
             // 
             // textBox43
             // 
@@ -1630,7 +1615,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte18_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte18_Box.TabIndex = 106;
             this.Write_Byte18_Box.Text = "24";
-            this.Write_Byte18_Box.TextChanged += new System.EventHandler(this.Write_Byte18_Box_TextChanged);
             // 
             // Write_Byte7_Box
             // 
@@ -1640,7 +1624,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte7_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte7_Box.TabIndex = 105;
             this.Write_Byte7_Box.Text = "00";
-            this.Write_Byte7_Box.TextChanged += new System.EventHandler(this.Write_Byte7_Box_TextChanged);
             // 
             // textBox47
             // 
@@ -1672,7 +1655,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte19_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte19_Box.TabIndex = 110;
             this.Write_Byte19_Box.Text = "0C";
-            this.Write_Byte19_Box.TextChanged += new System.EventHandler(this.Write_Byte19_Box_TextChanged);
             // 
             // Write_Byte8_Box
             // 
@@ -1682,7 +1664,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte8_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte8_Box.TabIndex = 109;
             this.Write_Byte8_Box.Text = "00";
-            this.Write_Byte8_Box.TextChanged += new System.EventHandler(this.Write_Byte8_Box_TextChanged);
             // 
             // textBox51
             // 
@@ -1714,7 +1695,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte20_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte20_Box.TabIndex = 114;
             this.Write_Byte20_Box.Text = "24";
-            this.Write_Byte20_Box.TextChanged += new System.EventHandler(this.Write_Byte20_Box_TextChanged);
             // 
             // Write_Byte9_Box
             // 
@@ -1724,7 +1704,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte9_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte9_Box.TabIndex = 113;
             this.Write_Byte9_Box.Text = "00";
-            this.Write_Byte9_Box.TextChanged += new System.EventHandler(this.Write_Byte9_Box_TextChanged);
             // 
             // textBox55
             // 
@@ -1756,7 +1735,6 @@ namespace NeuroSky.MindView {
             this.Write_Byte10_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte10_Box.TabIndex = 117;
             this.Write_Byte10_Box.Text = "00";
-            this.Write_Byte10_Box.TextChanged += new System.EventHandler(this.Write_Byte10_Box_TextChanged);
             // 
             // textBox60
             // 
@@ -2267,7 +2245,6 @@ namespace NeuroSky.MindView {
             this.Signal_QualityBox.Size = new System.Drawing.Size(101, 23);
             this.Signal_QualityBox.TabIndex = 165;
             this.Signal_QualityBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.Signal_QualityBox.TextChanged += new System.EventHandler(this.Signal_QualityBox_TextChanged);
             // 
             // label66
             // 
@@ -2828,7 +2805,7 @@ namespace NeuroSky.MindView {
             // 
             this.label88.AutoSize = true;
             this.label88.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label88.Location = new System.Drawing.Point(29, 168);
+            this.label88.Location = new System.Drawing.Point(29, 162);
             this.label88.Name = "label88";
             this.label88.Size = new System.Drawing.Size(61, 15);
             this.label88.TabIndex = 227;
@@ -2838,7 +2815,7 @@ namespace NeuroSky.MindView {
             // 
             this.label89.AutoSize = true;
             this.label89.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label89.Location = new System.Drawing.Point(29, 269);
+            this.label89.Location = new System.Drawing.Point(29, 249);
             this.label89.Name = "label89";
             this.label89.Size = new System.Drawing.Size(50, 15);
             this.label89.TabIndex = 228;
@@ -2969,7 +2946,6 @@ namespace NeuroSky.MindView {
             this.rawGraphPanel.xAxisMin = 0D;
             this.rawGraphPanel.yAxisMax = 0D;
             this.rawGraphPanel.yAxisMin = 0D;
-            this.rawGraphPanel.Load += new System.EventHandler(this.rawGraphPanel_Load);
             // 
             // MainForm
             // 
@@ -3204,9 +3180,11 @@ namespace NeuroSky.MindView {
         }
         #endregion
 
-        private void portText_KeyPress(object sender, KeyPressEventArgs e) {
+        private void portText_KeyPress(object sender, KeyPressEventArgs e)
+        {
             // If the key pressed was "Enter"
-            if(e.KeyChar == (char)13) {
+            if (e.KeyChar == (char)13)
+            {
                 //suppress the beep sounds by setting e.Handled = true
                 e.Handled = true;
                 connectButton_Click(sender, e);
@@ -3214,7 +3192,8 @@ namespace NeuroSky.MindView {
         }
 
         /*Connect Button Clicked*/
-        private void connectButton_Click(object sender, System.EventArgs e) {
+        private void connectButton_Click(object sender, System.EventArgs e)
+        {
 #if true
             this.connectButton.Enabled = false;
             this.portText.Enabled = false;
@@ -3240,36 +3219,39 @@ namespace NeuroSky.MindView {
         }
 
         //disconnect button clicked
-        private void disconnect_Click(object sender, System.EventArgs e) {
+        private void disconnect_Click(object sender, System.EventArgs e)
+        {
             this.respirationRateIndicator.Text = "0";
             this.heartAgeIndicator.Text = "0";
             this.fatigueLabelIndicator.Visible = false;
             this.fatigueLabel.Text = "";
             DisconnectButtonClicked(this, EventArgs.Empty);
 
-            rawGraphPanel.LineGraph.Clear();
-
+            rawGraphPanel.LineGraph.Clear();            
             timeStampIndex = 0;
-
             rawGraphPanel.LineGraph.Invalidate();
+
+            ///Clear the FFT drawing
+            graphPanel1.BarGraph.Clear();
+            graphPanel1.BarGraph.Invalidate();
 
             HBR_Box.Text = "";
             Interval_textBox.Text = "";
             Signal_QualityBox.Text = "";
         }
 
-        
-
         //if there has been an R peak, play a "beep"
-        public void playBeep() {
-            if(soundCheckBox.Checked) {
-               
+        public void playBeep()
+        {
+            if (soundCheckBox.Checked)
+            {
                 player.Play();
             }
         }
 
         /*Clear Button Clicked*/
-        private void clearButton_Click(object sender, System.EventArgs e) {
+        private void clearButton_Click(object sender, System.EventArgs e)
+        {
             rawGraphPanel.LineGraph.Clear();
 
             timeStampIndex = 0;
@@ -3281,17 +3263,15 @@ namespace NeuroSky.MindView {
             Signal_QualityBox.Text = "";
         }
 
-
-     
-
         //fatigue button clicked. set up stuff
-        private void fatigueButton_Click(object sender, EventArgs e) {
+        private void fatigueButton_Click(object sender, EventArgs e)
+        {
             updateFatigueLevelLabel("Calculating...");
             toggleFatigueLevelLabel(true);
             toggleFatigueLevelLabelIndicator(true);
             toggleRecordButton(false);
             toggleEnergyPictureBox(false);
-            
+
             fatigueResult = 0;
 
             //reset the meter
@@ -3307,31 +3287,29 @@ namespace NeuroSky.MindView {
             //start the fatigue meter
             runFatigueMeter = true;
         }
-
-
+        
         //stop fatigue button clicked
-        private void stopFatigueMeter_Click(object sender, EventArgs e) {
+        private void stopFatigueMeter_Click(object sender, EventArgs e)
+        {
             runFatigueMeter = false;
-
             //reset the meter
             fatigueResult = relaxationLevel.addInterval(0, 0);
-
             outputFatigueResults(fatigueResult);
         }
 
-
-
-
         //calculate the fatigue value based on RR interval
-        public void calculateFatigue(int RRvalue) {
+        public void calculateFatigue(int RRvalue)
+        {
             //if the Fatigue Meter button has been pressed
-            if(runFatigueMeter) {
+            if (runFatigueMeter)
+            {
                 //if the energy level is less than 1
-                if(fatigueResult < 1) {
-
+                if (fatigueResult < 1)
+                {
                     fatigueResult = relaxationLevel.addInterval((int)((RRvalue * 1000.0) / 512.0), (byte)poorQuality);
-
-                } else {
+                }
+                else
+                {
                     //else energy level is now greater than 0. or, the user has pressed the stop button. write it out to a text file
                     runFatigueMeter = false;
                     outputFatigueResults(fatigueResult);
@@ -3339,36 +3317,42 @@ namespace NeuroSky.MindView {
 
             }
         }
-        
-
-
 
         //save the output of the fatigue meter
-        public void outputFatigueResults(int fatigueLevel) {
-
-
-            if(fatigueLevel > 0) {    //if we actually got a fatigue level
+        public void outputFatigueResults(int fatigueLevel)
+        {
+            if (fatigueLevel > 0)
+            {    //if we actually got a fatigue level
                 updateFatigueLevelLabel(fatigueLevel.ToString());
                 updateStatusLabel("Energy recording complete.");
 
-                if(fatigueLevel < 25) {
+                if (fatigueLevel < 25)
+                {
                     setEnergyPictureBox(emptyImage);
-                } else if(fatigueLevel < 50) {
+                }
+                else if (fatigueLevel < 50)
+                {
                     setEnergyPictureBox(lowImage);
-                } else if(fatigueLevel < 75) {
+                }
+                else if (fatigueLevel < 75)
+                {
                     setEnergyPictureBox(mediumImage);
-                } else if(fatigueLevel <= 100) {
+                }
+                else if (fatigueLevel <= 100)
+                {
                     setEnergyPictureBox(fullImage);
                 }
                 toggleEnergyPictureBox(false);
 
-            } else {    //fatigue result = -1, because the user stopped it early
+            }
+            else
+            {    //fatigue result = -1, because the user stopped it early
                 updateFatigueLevelLabel("");
                 toggleFatigueLevelLabelIndicator(true);
                 toggleFatigueLevelLabel(true);
                 updateStatusLabel("Data recording ended early. Please try recording again.");
             }
-            
+
             //stop the fatigue meter
             runFatigueMeter = false;
 
@@ -3379,9 +3363,9 @@ namespace NeuroSky.MindView {
 
         }
 
-
         /*Record Button Clicked*/
-        private void recordButton_Click(object sender, System.EventArgs e) {
+        private void recordButton_Click(object sender, System.EventArgs e)
+        {
             recordButton.Enabled = false;
             recordButton.Visible = false;
             fatigueStartButton(false);
@@ -3403,7 +3387,7 @@ namespace NeuroSky.MindView {
             dataLogOutFile = "dataLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
             dataLogOutFile = Path.Combine(currentPath, dataLogOutFile);
-            
+
             ECGLogOutFile = "ECGLog-" + DateTime.Now.Year.ToString() + "-" + DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Hour.ToString() + "-"
             + DateTime.Now.Minute.ToString() + "-" + DateTime.Now.Second.ToString() + ".txt";
             ECGLogOutFile = Path.Combine(currentPath, ECGLogOutFile);
@@ -3412,52 +3396,49 @@ namespace NeuroSky.MindView {
             this.dataLogStream = new System.IO.StreamWriter(dataLogOutFile, true);
             this.ECGLogStream = new System.IO.StreamWriter(ECGLogOutFile, true);
 
-            if(dataLogStream != null) {
+            if (dataLogStream != null)
+            {
                 this.dataLogStream.WriteLine("timestamp: CODE VALUEBYTE(S)");
             }
 
-            if(ECGLogStream != null) {
+            if (ECGLogStream != null)
+            {
                 this.ECGLogStream.WriteLine("timestamp: ADC");
             }
 
             recordFlag = true;
         }
 
-
         //stop button clicked
-        private void stopButton_Click(object sender, System.EventArgs e) {
+        private void stopButton_Click(object sender, System.EventArgs e)
+        {
             rawGraphPanel.LineGraph.SaveDataFlag = true;
             rawGraphPanel.LineGraph.RecordDataFlag = false;
             updateStatusLabel("Recording complete.");
-
             recordFlag = false;
-
             stopButton.Enabled = false;
             stopButton.Visible = false;
-
             fatigueStartButton(true);
-
             recordButton.Enabled = true;
             recordButton.Visible = true;
-
             RecordStopTime = DateTime.Now;
-
             dataLogStream.Close();
             ECGLogStream.Close();
-
             saveFileGUI.updateDataLogTextBox(Path.GetFileName(dataLogOutFile));
             saveFileGUI.updateECGLogTextBox(Path.GetFileName(ECGLogOutFile));
             saveFileGUI.updatefolderPathTextBox(Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString());
             saveFileGUI.Location = new Point((this.Width - saveFileGUI.Width) / 2 + this.Location.X, (this.Height - saveFileGUI.Height) / 2 + this.Location.Y);
-
             saveFileGUI.Show();
         }
 
         //when the save button is clicked in the save dialog
-        void OnSaveButtonClicked(object sender, EventArgs e) {
+        void OnSaveButtonClicked(object sender, EventArgs e)
+        {
 
-            try {
-                if(!System.IO.Directory.Exists(saveFileGUI.folderPathTextBox.Text)) {
+            try
+            {
+                if (!System.IO.Directory.Exists(saveFileGUI.folderPathTextBox.Text))
+                {
                     System.IO.Directory.CreateDirectory(saveFileGUI.folderPathTextBox.Text);
                 }
 
@@ -3468,7 +3449,9 @@ namespace NeuroSky.MindView {
                 System.IO.File.Delete(ECGLogOutFile);
 
                 saveFileGUI.Hide();
-            } catch(Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 MessageBox.Show("To save data in this directory, please exit the application and run as Administrator.", "Warning",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
             }
@@ -3476,17 +3459,20 @@ namespace NeuroSky.MindView {
         }
 
         //when the browse button is clicked in the save dialog
-        void OnBrowseButtonClicked(object sender, EventArgs e) {
+        void OnBrowseButtonClicked(object sender, EventArgs e)
+        {
 
             //show the folder browser box
             FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-            if(folderBrowserDialog.ShowDialog() == DialogResult.OK) {
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
                 saveFileGUI.updatefolderPathTextBox(folderBrowserDialog.SelectedPath);
             }
         }
 
         //when the browse button is clicked in the save dialog
-        void OnDiscardButtonClicked(object sender, EventArgs e) {
+        void OnDiscardButtonClicked(object sender, EventArgs e)
+        {
 
             System.IO.File.Delete(System.IO.Path.Combine(currentPath, dataLogOutFile));
             System.IO.File.Delete(System.IO.Path.Combine(currentPath, ECGLogOutFile));
@@ -3494,17 +3480,21 @@ namespace NeuroSky.MindView {
             saveFileGUI.Hide();
         }
 
-        public void updateAverageHeartBeatValue(double heartBeatValue) {
+        public void updateAverageHeartBeatValue(double heartBeatValue)
+        {
             //if it's a good signal
-            if(poorQuality == 200) {
+            if (poorQuality == 200)
+            {
                 //if the buffer isnt full yet, add to the buffer. return the average heartbeat value based on however
                 //much data is in the buffer currently
-                if(avgHBCounter < avgHBBufferLength) {
+                if (avgHBCounter < avgHBBufferLength)
+                {
                     avgHBValueBuffer[avgHBCounter] = heartBeatValue;
                     avgHBCounter++;
 
                     avgHBValue = 0;
-                    for(int i = 0; i < avgHBCounter; i++) {
+                    for (int i = 0; i < avgHBCounter; i++)
+                    {
                         avgHBValue += avgHBValueBuffer[i];
                     }
                     avgHBValue = avgHBValue / avgHBCounter;
@@ -3512,13 +3502,15 @@ namespace NeuroSky.MindView {
                     //update the label
                     updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString() + " bpm");
                 }
-                    //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
-                else {
+                //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
+                else
+                {
                     //set the counter to the length of the index, to make sure that it doesn't become huge after looping so many times
                     avgHBCounter = avgHBBufferLength;
 
                     //shift the buffer
-                    for(int i = 0; i < avgHBBufferLength - 1; i++) {
+                    for (int i = 0; i < avgHBBufferLength - 1; i++)
+                    {
                         avgHBValueBuffer[i] = avgHBValueBuffer[i + 1];
                     }
                     avgHBValueBuffer[avgHBBufferLength - 1] = heartBeatValue;
@@ -3526,7 +3518,8 @@ namespace NeuroSky.MindView {
                     //calculate the average
                     //reset
                     avgHBValue = 0;
-                    for(int i = 0; i < avgHBBufferLength; i++) {
+                    for (int i = 0; i < avgHBBufferLength; i++)
+                    {
                         avgHBValue += (avgHBValueBuffer[i]);
                     }
                     avgHBValue = (avgHBValue / avgHBBufferLength);
@@ -3535,8 +3528,9 @@ namespace NeuroSky.MindView {
                     updateAverageHeartRateLabel(Math.Round(avgHBValue).ToString() + " bpm");
                 }
             }
-                //else poor signal
-            else {
+            //else poor signal
+            else
+            {
                 //set the counter back to zero. when its good signal again, it will refill the 30 seconds of new data before outputting average value
                 avgHBCounter = 0;
 
@@ -3548,17 +3542,21 @@ namespace NeuroSky.MindView {
             }
         }
 
-        public void updateRealTimeHeartBeatValue(double heartBeatValue) {
+        public void updateRealTimeHeartBeatValue(double heartBeatValue)
+        {
             //if it's a good signal
-            if(poorQuality == 0) {
+            if (poorQuality == 0)
+            {
                 //if the buffer isnt full yet, add to the buffer. return the average heartbeat value based on however
                 //much data is in the buffer currently
-                if(realTimeHBCounter < realTimeHBBufferLength) {
+                if (realTimeHBCounter < realTimeHBBufferLength)
+                {
                     realTimeHBValueBuffer[realTimeHBCounter] = heartBeatValue;
                     realTimeHBCounter++;
 
                     realTimeHBValue = 0;
-                    for(int i = 0; i < realTimeHBCounter; i++) {
+                    for (int i = 0; i < realTimeHBCounter; i++)
+                    {
                         realTimeHBValue += realTimeHBValueBuffer[i];
                     }
                     realTimeHBValue = realTimeHBValue / realTimeHBCounter;
@@ -3566,13 +3564,15 @@ namespace NeuroSky.MindView {
                     //update the label
                     updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString() + " bpm");
                 }
-                    //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
-                else {
+                //else shift the buffer and add the most recent value to the end, calculate the average, and return the average value
+                else
+                {
                     //set the counter to the length of the index, to make sure that it doesn't become huge after looping so many times
                     realTimeHBCounter = realTimeHBBufferLength;
 
                     //shift the buffer
-                    for(int i = 0; i < realTimeHBBufferLength - 1; i++) {
+                    for (int i = 0; i < realTimeHBBufferLength - 1; i++)
+                    {
                         realTimeHBValueBuffer[i] = realTimeHBValueBuffer[i + 1];
                     }
                     realTimeHBValueBuffer[realTimeHBBufferLength - 1] = heartBeatValue;
@@ -3580,7 +3580,8 @@ namespace NeuroSky.MindView {
                     //calculate the average
                     //reset
                     realTimeHBValue = 0;
-                    for(int i = 0; i < realTimeHBBufferLength; i++) {
+                    for (int i = 0; i < realTimeHBBufferLength; i++)
+                    {
                         realTimeHBValue += (realTimeHBValueBuffer[i]);
                     }
                     realTimeHBValue = (realTimeHBValue / realTimeHBBufferLength);
@@ -3589,8 +3590,9 @@ namespace NeuroSky.MindView {
                     updateRealTimeHeartRateLabel(Math.Round(realTimeHBValue).ToString() + " bpm");
                 }
             }
-                //else poor signal
-            else {
+            //else poor signal
+            else
+            {
                 //set the counter back to zero. when its good signal again, it will refill the 30 seconds of new data before outputting average value
                 realTimeHBCounter = 0;
 
@@ -3599,37 +3601,43 @@ namespace NeuroSky.MindView {
 
                 //since poor signal, display 0 as average heartbeat
                 updateRealTimeHeartRateLabel("0");
-               
+
             }
         }
-
 
         /**
         * Record out the received data to a dataLog file
         * Record the RAW ECG value and heartbeat to an ECGLog file
         */
-        public void recordData(ThinkGear.DataRow[] dataRowArray) {
-            if((dataLogStream != null) && (ECGLogStream != null)) {
-                foreach(DataRow dr in dataRowArray) {
+        public void recordData(ThinkGear.DataRow[] dataRowArray)
+        {
+            if ((dataLogStream != null) && (ECGLogStream != null))
+            {
+                foreach (DataRow dr in dataRowArray)
+                {
                     //suppress the EGODebug1, EGODebug2, and EGODebug3 outputs
-                    if((dr.Type.GetHashCode() != 0x84) && (dr.Type.GetHashCode() != 0x08) && (dr.Type.GetHashCode() != 0x85)) {
+                    if ((dr.Type.GetHashCode() != 0x84) && (dr.Type.GetHashCode() != 0x08) && (dr.Type.GetHashCode() != 0x85))
+                    {
                         //write the timestamp
                         dataLogStream.Write(dr.Time.ToString("#0.000") + ": " + (dr.Type.GetHashCode().ToString("X").PadLeft(2, '0')) + " ");
 
                         //print out the hex values into datalog
-                        foreach(byte b in dr.Data) {
+                        foreach (byte b in dr.Data)
+                        {
                             dataLogStream.Write(b.ToString("X").PadLeft(2, '0') + " ");
                         }
                         dataLogStream.Write(dataLogStream.NewLine);
                     }
 
                     //also print to the ECGLog
-                    if(dr.Type.GetHashCode() == 0x95) {
+                    if (dr.Type.GetHashCode() == 0x95)
+                    {
                         //write the timestamp
                         ECGLogStream.Write(dr.Time.ToString("#0.000") + ": ");
 
                         //print out the ECG waveform, ASIC heartbeat value, and "real time" heartbeat value into EGCLog
-                        if(dr.Type.GetHashCode() == 0x95) {
+                        if (dr.Type.GetHashCode() == 0x95)
+                        {
                             ADCValue = (short)((dr.Data[0] << 8) + dr.Data[1]);
                             ECGLogStream.Write(ADCValue.ToString().PadLeft(6, ' '));
                             ECGLogStream.Write(ECGLogStream.NewLine);
@@ -3639,21 +3647,26 @@ namespace NeuroSky.MindView {
             }
         }
 
-
         //when data saving is done
-        void OnDataSavingFinished(object sender, EventArgs e) {
+        void OnDataSavingFinished(object sender, EventArgs e)
+        {
             //no need for this currently
         }
 
 
         //update the connect button status
         delegate void updateConnectButtonDelegate(bool connected);
-        public void updateConnectButton(bool connected) {
-            if(this.InvokeRequired) {
+        public void updateConnectButton(bool connected)
+        {
+            if (this.InvokeRequired)
+            {
                 updateConnectButtonDelegate del = new updateConnectButtonDelegate(updateConnectButton);
                 this.Invoke(del, new object[] { connected });
-            } else {
-                if(connected) {
+            }
+            else
+            {
+                if (connected)
+                {
                     this.connectButton.Enabled = false;
                     this.connectButton.Visible = false;
 
@@ -3663,16 +3676,18 @@ namespace NeuroSky.MindView {
                     this.disconnectButton.Visible = true;
 
                     //when connected, enable identification and add new user
-                 //   this.identificationButton.Enabled = true;
-                 //   this.identificationButton.Visible = true;
+                    //   this.identificationButton.Enabled = true;
+                    //   this.identificationButton.Visible = true;
 
-                  //  this.newUserButton.Enabled = true;
-                //    this.newUserButton.Visible = true;
+                    //  this.newUserButton.Enabled = true;
+                    //    this.newUserButton.Visible = true;
 
                     this.Replay.Enabled = true;
                     this.Replay.Visible = true;
 
-                } else {
+                }
+                else
+                {
                     this.disconnectButton.Enabled = false;
                     this.disconnectButton.Visible = false;
 
@@ -3682,11 +3697,11 @@ namespace NeuroSky.MindView {
                     this.connectButton.Visible = true;
 
                     //when disconnected, disable identification and add new user
-             //       this.identificationButton.Enabled = false;
-                //    this.identificationButton.Visible = false;
+                    //       this.identificationButton.Enabled = false;
+                    //    this.identificationButton.Visible = false;
 
-                   // this.newUserButton.Enabled = false;
-                  //  this.newUserButton.Visible = false;
+                    // this.newUserButton.Enabled = false;
+                    //  this.newUserButton.Visible = false;
 
                     this.Replay.Enabled = false;
                     this.Replay.Visible = false;
@@ -3698,80 +3713,109 @@ namespace NeuroSky.MindView {
 
         //show/hide the engergy picture box
         delegate void ToggleEnergyPictureBoxDelegate(bool visible);
-        public void toggleEnergyPictureBox(bool visible) {
-            if(this.InvokeRequired) {
+        public void toggleEnergyPictureBox(bool visible)
+        {
+            if (this.InvokeRequired)
+            {
                 ToggleEnergyPictureBoxDelegate del = new ToggleEnergyPictureBoxDelegate(toggleEnergyPictureBox);
                 this.Invoke(del, new object[] { visible });
-            } else {
+            }
+            else
+            {
                 this.energyPictureBox.Visible = visible;
             }
         }
 
         //show a certain image on the picture box
         delegate void SetEnergyPictureBoxDelegate(Bitmap image);
-        public void setEnergyPictureBox(Bitmap image) {
-            if(this.InvokeRequired) {
+        public void setEnergyPictureBox(Bitmap image)
+        {
+            if (this.InvokeRequired)
+            {
                 SetEnergyPictureBoxDelegate del = new SetEnergyPictureBoxDelegate(setEnergyPictureBox);
                 this.Invoke(del, new object[] { image });
-            } else {
+            }
+            else
+            {
                 this.energyPictureBox.Image = image;
             }
         }
 
-
         //update the fatigue start button
         delegate void ToggleFatigueStartButtonDelegate(bool visible);
-        public void toggleFatigueStartButton(bool visible) {
-            if(this.InvokeRequired) {
+        public void toggleFatigueStartButton(bool visible)
+        {
+            if (this.InvokeRequired)
+            {
                 ToggleFatigueStartButtonDelegate del = new ToggleFatigueStartButtonDelegate(toggleFatigueStartButton);
                 this.Invoke(del, new object[] { visible });
-            } else {
-            //    this.startFatigueButton.Visible = visible;
+            }
+            else
+            {
+                //    this.startFatigueButton.Visible = visible;
             }
         }
 
         //disable/enable the fatigue start button
         delegate void FatigueStartButtonDelegate(bool enabled);
-        public void fatigueStartButton(bool enabled) {
-            if(this.InvokeRequired) {
+        public void fatigueStartButton(bool enabled)
+        {
+            if (this.InvokeRequired)
+            {
                 FatigueStartButtonDelegate del = new FatigueStartButtonDelegate(fatigueStartButton);
                 this.Invoke(del, new object[] { enabled });
-            } else {
-          //      this.startFatigueButton.Enabled = enabled;
+            }
+            else
+            {
+                //      this.startFatigueButton.Enabled = enabled;
             }
         }
 
         //update the fatigue stop button
         delegate void ToggleFatigueStopButtonDelegate(bool visible);
-        public void toggleFatigueStopButton(bool visible) {
-            if(this.InvokeRequired) {
+        public void toggleFatigueStopButton(bool visible)
+        {
+            if (this.InvokeRequired)
+            {
                 ToggleFatigueStopButtonDelegate del = new ToggleFatigueStopButtonDelegate(toggleFatigueStopButton);
                 this.Invoke(del, new object[] { visible });
-            } else {
-               // this.stopFatigueButton.Visible = visible;
+            }
+            else
+            {
+                // this.stopFatigueButton.Visible = visible;
             }
         }
 
-
         //update the fatigue level
         delegate void UpdateFatigueLabelDelegate(string tempString);
-        public void updateFatigueLevelLabel(string tempString) {
-            if((!this.Disposing) && (!this.IsDisposed)) {
-                if(this.InvokeRequired) {
+        public void updateFatigueLevelLabel(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
                     //try catch necessary for handling case when form is disposing
-                    try {
+                    try
+                    {
                         UpdateFatigueLabelDelegate del = new UpdateFatigueLabelDelegate(updateFatigueLevelLabel);
                         this.Invoke(del, new object[] { tempString });
-                    } catch(Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Console.WriteLine("Caught exception at updateFatigueLevelLabel: " + e.Message);
                     }
 
-                } else {
+                }
+                else
+                {
 
                     //if the status is "calculating...", change the font to something smaller
-                    if(String.Equals("Calculating...", tempString)) {
+                    if (String.Equals("Calculating...", tempString))
+                    {
                         fatigueLabel.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-                    } else {
+                    }
+                    else
+                    {
                         fatigueLabel.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
                     }
 
@@ -3780,75 +3824,100 @@ namespace NeuroSky.MindView {
             }
         }
 
-
         //make the fatigue label visible/invisible
         delegate void ToggleFatigueLabelDelegate(bool visible);
-        public void toggleFatigueLevelLabel(bool visible) {
-            if(this.InvokeRequired) {
+        public void toggleFatigueLevelLabel(bool visible)
+        {
+            if (this.InvokeRequired)
+            {
                 //try catch necessary for handling case when form is disposing
-                try {
+                try
+                {
                     ToggleFatigueLabelDelegate del = new ToggleFatigueLabelDelegate(toggleFatigueLevelLabel);
                     this.Invoke(del, new object[] { visible });
-                } catch(Exception e) {
+                }
+                catch (Exception e)
+                {
                     Console.WriteLine("Caught exception at toggleFatigueLevelLabel: " + e.Message);
                 }
 
-            } else {
+            }
+            else
+            {
                 this.fatigueLabel.Visible = visible;
             }
         }
 
-
         //make the fatigue label indicator visible/invisible
         delegate void ToggleFatigueLabelIndicatorDelegate(bool visible);
-        public void toggleFatigueLevelLabelIndicator(bool visible) {
-            if(this.InvokeRequired) {
+        public void toggleFatigueLevelLabelIndicator(bool visible)
+        {
+            if (this.InvokeRequired)
+            {
                 //try catch necessary for handling case when form is disposing
-                try {
+                try
+                {
                     ToggleFatigueLabelIndicatorDelegate del = new ToggleFatigueLabelIndicatorDelegate(toggleFatigueLevelLabelIndicator);
                     this.Invoke(del, new object[] { visible });
-                } catch(Exception e) {
+                }
+                catch (Exception e)
+                {
                     Console.WriteLine("Caught exception at toggleFatigueLevelLabelIndicator: " + e.Message);
                 }
 
-            } else {
+            }
+            else
+            {
                 this.fatigueLabelIndicator.Visible = visible;
             }
         }
 
-        
         //make the record button enabled/disabled
         delegate void ToggleRecordButtonDelegate(bool enabled);
-        public void toggleRecordButton(bool enabled) {
-            if(this.InvokeRequired) {
+        public void toggleRecordButton(bool enabled)
+        {
+            if (this.InvokeRequired)
+            {
                 //try catch necessary for handling case when form is disposing
-                try {
+                try
+                {
                     ToggleRecordButtonDelegate del = new ToggleRecordButtonDelegate(toggleRecordButton);
                     this.Invoke(del, new object[] { enabled });
-                } catch(Exception e) {
+                }
+                catch (Exception e)
+                {
                     Console.WriteLine("Caught exception at toggleRecordButton: " + e.Message);
                 }
 
-            } else {
+            }
+            else
+            {
                 this.recordButton.Enabled = enabled;
             }
         }
 
-
         //update the realtime heart rate label status
         delegate void UpdateRealTimeHeartRateLabelDelegate(string tempString);
-        public void updateRealTimeHeartRateLabel(string tempString) {
-            if((!this.Disposing) && (!this.IsDisposed)) {
-                if(this.InvokeRequired) {
+        public void updateRealTimeHeartRateLabel(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
                     //try catch necessary for handling case when form is disposing
-                    try {
+                    try
+                    {
                         UpdateRealTimeHeartRateLabelDelegate del = new UpdateRealTimeHeartRateLabelDelegate(updateRealTimeHeartRateLabel);
                         this.Invoke(del, new object[] { tempString });
-                    } catch(Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Console.WriteLine("Caught exception at updateRealTimeHeartRateLabel: " + e.Message);
                     }
 
-                } else {
+                }
+                else
+                {
                     this.realtimeHeartRateLabel.Text = tempString;
                 }
             }
@@ -3880,7 +3949,6 @@ namespace NeuroSky.MindView {
                 }
             }
         }
-
 
         //update the Interval box
         delegate void UpdateIntervalBoxDelegate(string tempString);
@@ -4334,7 +4402,7 @@ namespace NeuroSky.MindView {
                 }
             }
         }
-    
+
         delegate void UpdateSPI_I2CRegisterDelegate5(string tempString);
         public void updateSPI_I2CRegisterBox5(string tempString)
         {
@@ -4739,7 +4807,7 @@ namespace NeuroSky.MindView {
                 }
             }
         }
-                
+
         delegate void UpdateSPI_I2CRegisterDelegate20(string tempString);
         public void updateSPI_I2CRegisterBox20(string tempString)
         {
@@ -4790,25 +4858,33 @@ namespace NeuroSky.MindView {
                 else
                 {
                     this.Write_Byte0_Box.Text = tempString;
-                    
+
                 }
             }
         }
 
         //update the average heart rate label status
         delegate void UpdateAverageHeartRateLabelDelegate(string tempString);
-        public void updateAverageHeartRateLabel(string tempString) {
-            if((!this.Disposing) && (!this.IsDisposed)) {
-                if(this.InvokeRequired) {
+        public void updateAverageHeartRateLabel(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
                     //try catch necessary for handling case when form is disposing
-                    try {
+                    try
+                    {
                         UpdateAverageHeartRateLabelDelegate del = new UpdateAverageHeartRateLabelDelegate(updateAverageHeartRateLabel);
                         this.Invoke(del, new object[] { tempString });
-                    } catch(Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Console.WriteLine("Caught exception at updateAverageHeartRateLabel: " + e.Message);
                     }
 
-                } else {
+                }
+                else
+                {
                     this.averageHeartRateLabel.Text = tempString;
                 }
             }
@@ -4817,30 +4893,73 @@ namespace NeuroSky.MindView {
 
         //update the HRV label
         delegate void UpdateHRVLabelDelegate(string tempString);
-        public void updateHRVLabel(string tempString) {
-            if((!this.Disposing) && (!this.IsDisposed)) {
-                if(this.InvokeRequired) {
-                    try {
+        public void updateHRVLabel(string tempString)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
+                    try
+                    {
                         UpdateHRVLabelDelegate del = new UpdateHRVLabelDelegate(updateHRVLabel);
                         this.Invoke(del, new object[] { tempString });
-                    } catch(Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Console.WriteLine("caught exception at UpdateHRVLabel: " + e.Message);
                     }
-                } else {
+                }
+                else
+                {
                     this.HRVLabel.Text = tempString;
                 }
             }
         }
 
+        delegate void UpdateDataForGraphicDelegate(double raw);
+        public void UpdateDataForGraphic(double raw)
+        {
 
+            if (this.InvokeRequired)
+            {
+                UpdateDataForGraphicDelegate del = new UpdateDataForGraphicDelegate(UpdateDataForGraphic);
+                this.Invoke(del, new object[] { raw });
+            }
+            else
+            {
+
+                if (graphPanel1.BarGraph.BarReadType == ReadType.RawArray)
+                {
+                    Console.WriteLine("update BarGraph data:" + raw);
+
+                    /// TODO: Input 'Raw' from ThinkGear SDK or text ,then BarGraph.cs should be caculate the FFT with 
+                    /// AForge.Math.FourierTransform.FFT(Complex[] , AForge.Math.FourierTransform.Direction.Forward).
+                    AForge.Math.Complex d = new AForge.Math.Complex(raw, 0);
+                    graphPanel1.BarGraph.Add(d);
+                }
+                else if (graphPanel1.BarGraph.BarReadType == ReadType.FFTArray)
+                {
+
+                    float f = Convert.ToSingle(raw);
+                    /// TODO: Input data for FFT array,
+                    graphPanel1.BarGraph.AddFFT(f);
+                    Console.WriteLine("update float data:" + f + ",raw:" + raw);
+                }
+            }
+        }
 
         delegate void UpdateStatusLabelDelegate(string tempText);
-        public void updateStatusLabel(string tempText) {
-            if((!this.Disposing) && (!this.IsDisposed)) {
-                if(this.InvokeRequired) {
+        public void updateStatusLabel(string tempText)
+        {
+            if ((!this.Disposing) && (!this.IsDisposed))
+            {
+                if (this.InvokeRequired)
+                {
                     UpdateStatusLabelDelegate del = new UpdateStatusLabelDelegate(updateStatusLabel);
                     this.Invoke(del, new object[] { tempText });
-                } else {
+                }
+                else
+                {
                     this.statusLabel.Text = tempText;
                 }
             }
@@ -4897,10 +5016,11 @@ namespace NeuroSky.MindView {
                 }
             }
         }
-        
-       
-       
-        protected override void OnSizeChanged(EventArgs e) {
+
+
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
 
             realtimeHeartRateLabelIndicator.Location = new System.Drawing.Point(this.Width - 262, realtimeHeartRateLabelIndicator.Location.Y);
             realtimeHeartRateLabel.Location = new System.Drawing.Point(this.Width - 112, realtimeHeartRateLabel.Location.Y);
@@ -4916,52 +5036,59 @@ namespace NeuroSky.MindView {
             fatigueLabelIndicator.Location = new System.Drawing.Point(this.Width - 501, energyPictureBox.Location.Y + energyPictureBox.Height + 8);
             fatigueLabel.Location = new System.Drawing.Point(this.Width - 399, energyPictureBox.Location.Y + energyPictureBox.Height + 6);
 
-           // statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
+            // statusLabel.Location = new System.Drawing.Point(statusLabel.Location.X, this.Height - 54);
 
             //recordButton.Location = new System.Drawing.Point(this.Width - 240, this.Height - 73);
             //stopButton.Location = new System.Drawing.Point(this.Width - 240, this.Height - 73);
 
             //clearButton.Location = new System.Drawing.Point(this.Width - 140, this.Height - 73);
 
-      //      startFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
-         //   stopFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
+            //      startFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
+            //   stopFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
 
             //rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, HRVLabelIndicator.Location.Y + HRVLabelIndicator.Height + 9);
             //rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
             //rawGraphPanel.Width = this.Width - 10;
 
-          //  inputAgeAndFileNameButton.Location = new System.Drawing.Point(this.Width - 480, this.Height - 73);
+            //  inputAgeAndFileNameButton.Location = new System.Drawing.Point(this.Width - 480, this.Height - 73);
 
-           // identificationButton.Location = new System.Drawing.Point(this.Width - 600, this.Height - 73);
-        //    newUserButton.Location = new System.Drawing.Point(this.Width - 720, this.Height - 73);
+            // identificationButton.Location = new System.Drawing.Point(this.Width - 600, this.Height - 73);
+            //    newUserButton.Location = new System.Drawing.Point(this.Width - 720, this.Height - 73);
             base.OnSizeChanged(e);
         }
 
-        private void MainForm_Load(object sender, EventArgs e) {
+        private void MainForm_Load(object sender, EventArgs e)
+        {
 
         }
 
-        private void realtimeHeartRateLabel_Click(object sender, EventArgs e) {
+        private void realtimeHeartRateLabel_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void averageHeartRateLabel_Click(object sender, EventArgs e) {
+        private void averageHeartRateLabel_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void HRVLabel_Click(object sender, EventArgs e) {
+        private void HRVLabel_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void averageHeartRateLabelIndicator_Click(object sender, EventArgs e) {
+        private void averageHeartRateLabelIndicator_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void realtimeHeartRateLabelIndicator_Click(object sender, EventArgs e) {
+        private void realtimeHeartRateLabelIndicator_Click(object sender, EventArgs e)
+        {
 
         }
 
-        private void HRVLabelIndicator_Click(object sender, EventArgs e) {
+        private void HRVLabelIndicator_Click(object sender, EventArgs e)
+        {
 
         }
 
@@ -4977,7 +5104,7 @@ namespace NeuroSky.MindView {
             {
                 heartAgeInputGUI.Visible = true;
             }
-            
+
         }
 
         private void identificationButton_Click(object sender, EventArgs e)
@@ -4989,19 +5116,19 @@ namespace NeuroSky.MindView {
 
         }
 
-       /* private void newUserButton_Click(object sender, EventArgs e)
-        {
-            addNewUerGUI.Show();
-            addNewUerGUI.TopMost = true;
-            if (addNewUerGUI.WindowState != FormWindowState.Normal)
-            {
-                addNewUerGUI.WindowState = FormWindowState.Normal;
-            }
-            if (addNewUerGUI.Visible == false)
-            {
-                addNewUerGUI.Visible = true;
-            }
-        }*/
+        /* private void newUserButton_Click(object sender, EventArgs e)
+         {
+             addNewUerGUI.Show();
+             addNewUerGUI.TopMost = true;
+             if (addNewUerGUI.WindowState != FormWindowState.Normal)
+             {
+                 addNewUerGUI.WindowState = FormWindowState.Normal;
+             }
+             if (addNewUerGUI.Visible == false)
+             {
+                 addNewUerGUI.Visible = true;
+             }
+         }*/
 
         private void Replay_Click(object sender, EventArgs e)
         {
@@ -5020,7 +5147,7 @@ namespace NeuroSky.MindView {
                     loadedFileData = File.ReadAllText(file);
                     replayEnable = true;
                 }
-                catch(IOException)
+                catch (IOException)
                 {
                 }
 
@@ -5085,7 +5212,7 @@ namespace NeuroSky.MindView {
 
             I2C_Open_Button.Enabled = true;
             SPI_Open_Button.Enabled = true;
-     
+
         }
 
         //public event deleupdateSPICmdToBMD sendSPIOpenCmdEvent;
@@ -5193,9 +5320,9 @@ namespace NeuroSky.MindView {
         }
 
 
-        public  void textBox10_TextChanged(object sender, EventArgs e)
+        public void textBox10_TextChanged(object sender, EventArgs e)
         {
-           
+
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -5215,9 +5342,9 @@ namespace NeuroSky.MindView {
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-          
 
-         
+
+
         }
 
         private void soundCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -5227,7 +5354,7 @@ namespace NeuroSky.MindView {
 
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void textBox59_TextChanged(object sender, EventArgs e)
@@ -5263,7 +5390,7 @@ namespace NeuroSky.MindView {
 
         private void Write_Byte0_Box_TextChanged(object sender, EventArgs e)
         {
-            string  Value;
+            string Value;
             Value = Write_Byte0_Box.Text;
         }
 
@@ -5272,16 +5399,16 @@ namespace NeuroSky.MindView {
         {
             string[] str = new string[21];
 
-            str[0]  = Write_Byte0_Box.Text.ToString();
-            str[1]  = Write_Byte1_Box.Text.ToString();
-            str[2]  = Write_Byte2_Box.Text.ToString();
-            str[3]  = Write_Byte3_Box.Text.ToString();
-            str[4]  = Write_Byte4_Box.Text.ToString();
-            str[5]  = Write_Byte5_Box.Text.ToString();
-            str[6]  = Write_Byte6_Box.Text.ToString();
-            str[7]  = Write_Byte7_Box.Text.ToString();
-            str[8]  = Write_Byte8_Box.Text.ToString();
-            str[9]  = Write_Byte9_Box.Text.ToString();
+            str[0] = Write_Byte0_Box.Text.ToString();
+            str[1] = Write_Byte1_Box.Text.ToString();
+            str[2] = Write_Byte2_Box.Text.ToString();
+            str[3] = Write_Byte3_Box.Text.ToString();
+            str[4] = Write_Byte4_Box.Text.ToString();
+            str[5] = Write_Byte5_Box.Text.ToString();
+            str[6] = Write_Byte6_Box.Text.ToString();
+            str[7] = Write_Byte7_Box.Text.ToString();
+            str[8] = Write_Byte8_Box.Text.ToString();
+            str[9] = Write_Byte9_Box.Text.ToString();
             str[10] = Write_Byte15_Box.Text.ToString();
             str[11] = Write_Byte16_Box.Text.ToString();
             str[12] = Write_Byte17_Box.Text.ToString();
@@ -5301,7 +5428,7 @@ namespace NeuroSky.MindView {
             string[] header = new string[3];
             string[] cs = new string[1];
 
-            byte [] checkSum = new byte[1];
+            byte[] checkSum = new byte[1];
             int i;
 
             checkSum[0] = 0x00;
@@ -5321,7 +5448,7 @@ namespace NeuroSky.MindView {
                 }
                 checkSum[0] = (byte)(~checkSum[0]);
 
-                cs[0] = BitConverter.ToString(checkSum); 
+                cs[0] = BitConverter.ToString(checkSum);
 
                 byte[] commandToSend = StringToByteArray(header[0] + header[1] + header[2] + str[0] + str[1] + str[2] + str[3] + str[4] + str[5] + str[6] + str[7]
                                            + str[8] + str[9] + str[10] + str[11] + str[12] + str[13] + str[14] + str[15]
@@ -5344,7 +5471,7 @@ namespace NeuroSky.MindView {
                 }
                 checkSum[0] = (byte)(~checkSum[0]);
 
-                cs[0] = BitConverter.ToString(checkSum); 
+                cs[0] = BitConverter.ToString(checkSum);
 
                 byte[] commandToSend = StringToByteArray(header[0] + header[1] + header[2] + str[0] + str[1] + str[2] + str[3] + str[4] + str[5] + str[6] + str[7]
                                            + str[8] + str[9] + str[10] + str[11] + str[12] + str[13] + str[14] + str[15]
@@ -5361,49 +5488,49 @@ namespace NeuroSky.MindView {
 
         private void Write_Byte1_Box_TextChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void textBox9_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
-           // Value = textBox9.Text;
+            // string Value;
+            // Value = textBox9.Text;
         }
 
         private void textBox11_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
-           // Value = textBox11.Text;
+            // string Value;
+            // Value = textBox11.Text;
         }
 
         private void textBox12_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
+            // string Value;
             //Value = textBox12.Text;
         }
 
         private void textBox13_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
-           // Value = textBox13.Text;
+            // string Value;
+            // Value = textBox13.Text;
         }
 
         private void textBox14_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
-           // Value = textBox14.Text;
+            // string Value;
+            // Value = textBox14.Text;
         }
 
         private void textBox15_TextChanged(object sender, EventArgs e)
         {
-          //  string Value;
-          //  Value = textBox15.Text;
+            //  string Value;
+            //  Value = textBox15.Text;
         }
 
         private void textBox16_TextChanged(object sender, EventArgs e)
         {
-           // string Value;
-           // Value = textBox16.Text;
+            // string Value;
+            // Value = textBox16.Text;
         }
 
         public event deleupdateUARTWriteDateTOBMD sendUARTWriteDateEvent;
@@ -5447,7 +5574,7 @@ namespace NeuroSky.MindView {
                 bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
                 //Console.WriteLine("single byte: " + bytes[i / 2]);
             }
-                
+
             return bytes;
         }
 
@@ -5730,120 +5857,6 @@ namespace NeuroSky.MindView {
             //TrimByteReadFromBMDEVENT(commandToSend);
         }
 
-        private void Write_Byte11_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte9_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte18_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte17_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte2_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte3_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte4_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte5_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte6_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte7_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte8_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte15_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte16_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte19_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte20_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte10_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte14_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte13_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Write_Byte12_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox8_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox4_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void rawGraphPanel_Load(object sender, EventArgs e)
-        {
-
-        }
 
         public event deleefuseProgram efuseProgramEvent;
         private void button4_Click_1(object sender, EventArgs e)
@@ -5877,7 +5890,7 @@ namespace NeuroSky.MindView {
             int i;
 
             checkSum[0] = 0x00;
- 
+
             checkSum[0] += 0x11;
             checkSum[0] += 0x50;
 
@@ -5991,7 +6004,7 @@ namespace NeuroSky.MindView {
 
         private void textBox19_TextChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void label70_Click(object sender, EventArgs e)
@@ -6012,35 +6025,7 @@ namespace NeuroSky.MindView {
             this.textBox19.Text = "";
             this.Trim_ByteBox.Text = "";
         }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
-        private void textBox3_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox5_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox6_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
-        private void textBox7_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
+        
         private void button6_Click_1(object sender, EventArgs e)
         {
             this.textBox17.Text = "";
@@ -6066,11 +6051,6 @@ namespace NeuroSky.MindView {
             this.textBox55.Text = "";
             this.textBox19.Text = "";
             this.Trim_ByteBox.Text = "";
-        }
-
-        private void Signal_QualityBox_TextChanged(object sender, EventArgs e)
-        {
-
         }
 
         public event deleupdateSPICmdToBMD sendSPIOpenCmdEvent;
@@ -6115,28 +6095,20 @@ namespace NeuroSky.MindView {
         {
             byte[] commandToSend = { 0x77, 0x02, 0x61, 0x01, 0x9B };
             sendI2COpenCmdEvent(commandToSend);
-        }
-
-        private void portText_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-       
-
+        }      
     }
-     //  public event deleupdateUARTCmdToBMD sendUARTCloseCmdByteEvent;
+    //  public event deleupdateUARTCmdToBMD sendUARTCloseCmdByteEvent;
     public delegate void deleupdateUARTCmdToBMD(byte[] tempString);
-    public delegate void deleupdateSPICmdToBMD(byte [] tempString);
-    public delegate void deleupdateI2CCmdToBMD(byte [] tempString);
-    public delegate void deleupdateUARTWriteDateTOBMD(byte [] tempString);
+    public delegate void deleupdateSPICmdToBMD(byte[] tempString);
+    public delegate void deleupdateI2CCmdToBMD(byte[] tempString);
+    public delegate void deleupdateUARTWriteDateTOBMD(byte[] tempString);
     public delegate void deleupdateSPI_I2CWriteDateTOBMD(byte[] tempString);
     public delegate void deleupdateClockFrequencyTOBMD(byte[] tempString);
     public delegate void deleupdateSamplingRateToBMD(byte[] tempString);
-    public delegate void deleupdateUARTReadFromBMD(byte [] tempString);
-    public delegate void deleupdateReadSPICmdFromBMD(byte [] tempString);
-    public delegate void deleupdateReadTrimByteFromBMD(byte [] tempString);
-    public delegate void deleefuseProgram(byte [] tempString);
+    public delegate void deleupdateUARTReadFromBMD(byte[] tempString);
+    public delegate void deleupdateReadSPICmdFromBMD(byte[] tempString);
+    public delegate void deleupdateReadTrimByteFromBMD(byte[] tempString);
+    public delegate void deleefuseProgram(byte[] tempString);
 
     /*End of MainForm*/
     public class HeartAgeEventArgs : EventArgs

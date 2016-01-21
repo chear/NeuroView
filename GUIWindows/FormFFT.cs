@@ -52,10 +52,7 @@ namespace NeuroSky.MindView
                 rawGraphPanel.BarGraph.pwrSpecWindow = 1;
                 rawGraphPanel.BarGraph.BarReadType = ReadType.RawArray;
             }
-            double a = 699454.0;
-            float f =(float)31.1835938;
-            float d= (float)((double)f /a);
-            Console.WriteLine("ddddd="+d);
+            
         }
 
         //when data saving is done
@@ -93,8 +90,8 @@ namespace NeuroSky.MindView
                     
                     float f = Convert.ToSingle(raw);
                     /// TODO: Input data for FFT array,
-                    rawGraphPanel.BarGraph.AddFFT(f);
-                    Console.WriteLine("update float data:" + f+",raw:"+raw);  
+                    rawGraphPanel.BarGraph.AddFFT(f);                    
+                    Console.WriteLine("update float data:" + f + ",raw:" + raw);
                 }
             }        
         }
@@ -142,7 +139,7 @@ namespace NeuroSky.MindView
                     strArray.Add(line);                   
                 }
                 Console.WriteLine("Read finish!");
-                rawGraphPanel.BarGraph.StopDrawing();
+                //rawGraphPanel.BarGraph.StopDrawing();
 
                 /// test code for 'AForge.Math.FourierTransform.FFT' function
                 //try

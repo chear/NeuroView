@@ -135,8 +135,8 @@ namespace NeuroSky.MindView
         [STAThread]
         static void Main()
         {
-            //Application.Run(new Launcher());
-            Application.Run(new FormFFT());
+            Application.Run(new Launcher());
+            //Application.Run(new FormFFT());
         }
 
         public Launcher()
@@ -362,13 +362,9 @@ namespace NeuroSky.MindView
         void OnDeviceDisconnected(object sender, EventArgs e)
         {
             Connector.DeviceEventArgs de = (Connector.DeviceEventArgs)e;
-
             mainForm.updateStatusLabel("Disconnected from a device on " + de.Device.PortName + ".");
-
             mainForm.updateConnectButton(false);
-
         }
-
 
 
         void OnDataReceived(object sender, EventArgs e)
@@ -387,8 +383,6 @@ namespace NeuroSky.MindView
              };
 
 
-            //
-
             ThinkGear.DataRow[] tempDataRowArray = de.DataRowArray;
 
             TGParser thinkGearParser = new TGParser();
@@ -406,7 +400,6 @@ namespace NeuroSky.MindView
             /* Loop through new parsed data */
             for (int i = 0; i < thinkGearParser.ParsedData.Length; i++)
             {
-
                 //save the poorsignal value. this is always updated
                 if (thinkGearParser.ParsedData[i].ContainsKey("PoorSignal"))
                 {
@@ -416,8 +409,6 @@ namespace NeuroSky.MindView
                     mainForm.identificationRecordingGUI.poorSignal = thinkGearParser.ParsedData[i]["PoorSignal"];
 
                 }
-
-
                 //update heart age
                 if (thinkGearParser.ParsedData[i].ContainsKey("HeartAge"))
                 {
@@ -963,11 +954,8 @@ namespace NeuroSky.MindView
                     mainForm.updateSPI_I2CRegisterBox20(RegisterBox_hexf);
                     //Console.WriteLine("ConfigF is " + RegisterBox_hexf);
                 }
-
-
 #if false
                 if(thinkGearParser.ParsedData[i].ContainsKey("Raw")) {
-
                     if (mainForm.replayEnable == true)
                     {
                         /*
@@ -1132,10 +1120,8 @@ namespace NeuroSky.MindView
 #if true
                 if (thinkGearParser.ParsedData[i].ContainsKey("Raw200"))
                 {
-
                     if (mainForm.replayEnable == true)
                     {
-
                         //update the buffer with loaded data
                         if (loadedIndex < loadedList.Count)
                         {
@@ -1169,11 +1155,8 @@ namespace NeuroSky.MindView
                                 //shift buffer window 
                                 tempLoadedDataBuffer.RemoveAt(0);
                             }
-
                         }
-
                     }
-
                     else if (mainForm.replayEnable == false)
                     {
                         //if signal is good
@@ -1217,10 +1200,11 @@ namespace NeuroSky.MindView
                                     //}
                                     fft_amp = fft.amplitude(Complex, 512); //FFT后的幅值
                                     Console.WriteLine("The amp value will be output:");
-                                    for (int k = 1; k <= 512; k++)
+                                    for (int k = 0; k < 512; k++)
                                     {
-                                        ///chear: output the data to drawing FFT graphic
-                                        Console.WriteLine(fft_amp[k - 1]);
+                                        ///chear: input the data to drawing FFT graphic  
+                                        Console.WriteLine("fft:" + fft_amp[k]);
+                                        mainForm.UpdateDataForGraphic(fft_amp[k]);
                                     }
                                 }
 
@@ -1256,9 +1240,7 @@ namespace NeuroSky.MindView
                                                {
                                                    ///chear: output the data to drawing FFT graphic
                                                    Console.WriteLine(fft_amp[k]);
-                                               }
-
-                                        
+                                               }                                        
                                            }
                                            Console.WriteLine("line is:" + line.ToString());
                                        
@@ -1277,11 +1259,8 @@ namespace NeuroSky.MindView
                                    }*/
 
                                 bw = baselineRemove((short)thinkGearParser.ParsedData[i]["Raw200"]);
-
                                 notched = powerLine60Hz(bw);
-
                                 filteredRui = cpf((short)notched);
-
                             }
 
                             //update the buffer with the latest eeg value
