@@ -1199,11 +1199,11 @@ namespace NeuroSky.MindView
                                     //    Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
                                     //}
                                     fft_amp = fft.amplitude(Complex, 512); //FFT后的幅值
-                                    Console.WriteLine("The amp value will be output:");
+                                    //Console.WriteLine("The amp value will be output:");
                                     for (int k = 0; k < 512; k++)
                                     {
                                         ///chear: input the data to drawing FFT graphic  
-                                        Console.WriteLine("fft:" + fft_amp[k]);
+                                        //Console.WriteLine("fft:" + fft_amp[k]);
                                         mainForm.UpdateDataForGraphic(fft_amp[k]);
                                     }
                                 }

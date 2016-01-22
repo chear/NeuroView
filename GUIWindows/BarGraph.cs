@@ -155,16 +155,12 @@ namespace NeuroSky.MindView
 
                         // Trim excess values to minimize memory usage
                         hScrollBar.Visible = false;
-                        //while (data1.Count > numberOfPoints)
-                        //{
-                        //    data1.RemoveAt(0);
-                        //}
                        
                         // If so, then go compute and disply the result
                         oldPwr = new float[numberOfPoints];
                         Array.Copy(data1.ToArray(), oldPwr, numberOfPoints); 
                         DrawGraph(oldPwr, drawingSurface, myBrush);
-                        Console.WriteLine("OnPaint fnction data.count="+data1.Count);
+                        //Console.WriteLine("OnPaint fnction data.count="+data1.Count);
                         data1.Clear();
                     }
                     else if ((data1 != null)  && (oldPwr.Length > numberOfPoints-1))
@@ -185,7 +181,7 @@ namespace NeuroSky.MindView
             DrawYAxis(drawingSurface);
 
             // Drawing base line
-            //DrawBaseLine(drawingSurface);
+            DrawBaseLine(drawingSurface);
 
             // Draw helper lines
             // Green line at 20, stay above this

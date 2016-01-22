@@ -712,10 +712,10 @@ namespace NeuroSky.MindView {
                 this.Controls.Add(this.LineGraph);
             } else if(plotType == PlotType.Bar) {
                 this.Controls.Add(this.BarGraph);
-                this.Controls.Add(this.Label15);
-                this.Controls.Add(this.Value15);
-                this.Controls.Add(this.Label60);
-                this.Controls.Add(this.Value60);
+                //this.Controls.Add(this.Label15);
+                //this.Controls.Add(this.Value15);
+                //this.Controls.Add(this.Label60);
+                //this.Controls.Add(this.Value60);
             }
 
             this.ResumeLayout(false);

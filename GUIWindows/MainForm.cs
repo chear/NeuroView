@@ -32,7 +32,7 @@ namespace NeuroSky.MindView
         private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
 
         public GraphPanel rawGraphPanel;
-        public GraphPanel graphPanel1;
+        public GraphPanel graphPanel1;// = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
         public TextBox portText;
         private Label statusLabel;
         private Label fileLabel;
@@ -441,6 +441,7 @@ namespace NeuroSky.MindView
         /// </summary>
         private void InitializeComponent()
         {
+            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.connectButton = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.recordButton = new System.Windows.Forms.Button();
@@ -659,9 +660,21 @@ namespace NeuroSky.MindView
             this.button16 = new System.Windows.Forms.Button();
             this.label90 = new System.Windows.Forms.Label();
             this.graphPanel1 = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
-            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
+            // 
+            // rawGraphPanel
+            // 
+            this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rawGraphPanel.Location = new System.Drawing.Point(1, 95);
+            this.rawGraphPanel.Name = "rawGraphPanel";
+            this.rawGraphPanel.samplingRate = 10;
+            this.rawGraphPanel.Size = new System.Drawing.Size(1040, 227);
+            this.rawGraphPanel.TabIndex = 0;
+            this.rawGraphPanel.xAxisMax = 0D;
+            this.rawGraphPanel.xAxisMin = 0D;
+            this.rawGraphPanel.yAxisMax = 0D;
+            this.rawGraphPanel.yAxisMin = 0D;
             // 
             // connectButton
             // 
@@ -1344,7 +1357,6 @@ namespace NeuroSky.MindView
             this.textBox17.Size = new System.Drawing.Size(54, 21);
             this.textBox17.TabIndex = 75;
             this.textBox17.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox17.TextChanged += new System.EventHandler(this.textBox17_TextChanged);
             // 
             // textBox18
             // 
@@ -1355,7 +1367,6 @@ namespace NeuroSky.MindView
             this.textBox18.Size = new System.Drawing.Size(54, 21);
             this.textBox18.TabIndex = 76;
             this.textBox18.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox18.TextChanged += new System.EventHandler(this.textBox18_TextChanged);
             // 
             // Write_Byte0_Box
             // 
@@ -1394,7 +1405,6 @@ namespace NeuroSky.MindView
             this.textBox23.Size = new System.Drawing.Size(54, 21);
             this.textBox23.TabIndex = 80;
             this.textBox23.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox23.TextChanged += new System.EventHandler(this.textBox23_TextChanged);
             // 
             // textBox24
             // 
@@ -1405,7 +1415,6 @@ namespace NeuroSky.MindView
             this.textBox24.Size = new System.Drawing.Size(54, 21);
             this.textBox24.TabIndex = 79;
             this.textBox24.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox24.TextChanged += new System.EventHandler(this.textBox24_TextChanged);
             // 
             // Write_Byte13_Box
             // 
@@ -1434,7 +1443,6 @@ namespace NeuroSky.MindView
             this.textBox27.Size = new System.Drawing.Size(54, 21);
             this.textBox27.TabIndex = 84;
             this.textBox27.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox27.TextChanged += new System.EventHandler(this.textBox27_TextChanged);
             // 
             // textBox28
             // 
@@ -1445,7 +1453,6 @@ namespace NeuroSky.MindView
             this.textBox28.Size = new System.Drawing.Size(54, 21);
             this.textBox28.TabIndex = 83;
             this.textBox28.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox28.TextChanged += new System.EventHandler(this.textBox28_TextChanged);
             // 
             // Write_Byte14_Box
             // 
@@ -1474,7 +1481,6 @@ namespace NeuroSky.MindView
             this.textBox31.Size = new System.Drawing.Size(54, 21);
             this.textBox31.TabIndex = 88;
             this.textBox31.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox31.TextChanged += new System.EventHandler(this.textBox31_TextChanged);
             // 
             // textBox32
             // 
@@ -1485,7 +1491,6 @@ namespace NeuroSky.MindView
             this.textBox32.Size = new System.Drawing.Size(54, 21);
             this.textBox32.TabIndex = 87;
             this.textBox32.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox32.TextChanged += new System.EventHandler(this.textBox32_TextChanged);
             // 
             // Write_Byte15_Box
             // 
@@ -1514,7 +1519,6 @@ namespace NeuroSky.MindView
             this.textBox35.Size = new System.Drawing.Size(54, 21);
             this.textBox35.TabIndex = 92;
             this.textBox35.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox35.TextChanged += new System.EventHandler(this.textBox35_TextChanged);
             // 
             // textBox36
             // 
@@ -1525,7 +1529,6 @@ namespace NeuroSky.MindView
             this.textBox36.Size = new System.Drawing.Size(54, 21);
             this.textBox36.TabIndex = 91;
             this.textBox36.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox36.TextChanged += new System.EventHandler(this.textBox36_TextChanged);
             // 
             // Write_Byte16_Box
             // 
@@ -1554,7 +1557,6 @@ namespace NeuroSky.MindView
             this.textBox39.Size = new System.Drawing.Size(54, 21);
             this.textBox39.TabIndex = 96;
             this.textBox39.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox39.TextChanged += new System.EventHandler(this.textBox39_TextChanged);
             // 
             // textBox40
             // 
@@ -1565,7 +1567,6 @@ namespace NeuroSky.MindView
             this.textBox40.Size = new System.Drawing.Size(54, 21);
             this.textBox40.TabIndex = 95;
             this.textBox40.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox40.TextChanged += new System.EventHandler(this.textBox40_TextChanged);
             // 
             // Write_Byte17_Box
             // 
@@ -1594,7 +1595,6 @@ namespace NeuroSky.MindView
             this.textBox43.Size = new System.Drawing.Size(54, 21);
             this.textBox43.TabIndex = 100;
             this.textBox43.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox43.TextChanged += new System.EventHandler(this.textBox43_TextChanged);
             // 
             // textBox44
             // 
@@ -1605,7 +1605,6 @@ namespace NeuroSky.MindView
             this.textBox44.Size = new System.Drawing.Size(54, 21);
             this.textBox44.TabIndex = 99;
             this.textBox44.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox44.TextChanged += new System.EventHandler(this.textBox44_TextChanged);
             // 
             // Write_Byte18_Box
             // 
@@ -1634,7 +1633,6 @@ namespace NeuroSky.MindView
             this.textBox47.Size = new System.Drawing.Size(54, 21);
             this.textBox47.TabIndex = 104;
             this.textBox47.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox47.TextChanged += new System.EventHandler(this.textBox47_TextChanged);
             // 
             // textBox48
             // 
@@ -1645,7 +1643,6 @@ namespace NeuroSky.MindView
             this.textBox48.Size = new System.Drawing.Size(54, 21);
             this.textBox48.TabIndex = 103;
             this.textBox48.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox48.TextChanged += new System.EventHandler(this.textBox48_TextChanged);
             // 
             // Write_Byte19_Box
             // 
@@ -1674,7 +1671,6 @@ namespace NeuroSky.MindView
             this.textBox51.Size = new System.Drawing.Size(54, 21);
             this.textBox51.TabIndex = 108;
             this.textBox51.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox51.TextChanged += new System.EventHandler(this.textBox51_TextChanged);
             // 
             // textBox52
             // 
@@ -1685,7 +1681,6 @@ namespace NeuroSky.MindView
             this.textBox52.Size = new System.Drawing.Size(54, 21);
             this.textBox52.TabIndex = 107;
             this.textBox52.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox52.TextChanged += new System.EventHandler(this.textBox52_TextChanged);
             // 
             // Write_Byte20_Box
             // 
@@ -1714,7 +1709,6 @@ namespace NeuroSky.MindView
             this.textBox55.Size = new System.Drawing.Size(54, 21);
             this.textBox55.TabIndex = 112;
             this.textBox55.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox55.TextChanged += new System.EventHandler(this.textBox55_TextChanged);
             // 
             // textBox56
             // 
@@ -1725,7 +1719,6 @@ namespace NeuroSky.MindView
             this.textBox56.Size = new System.Drawing.Size(54, 21);
             this.textBox56.TabIndex = 111;
             this.textBox56.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox56.TextChanged += new System.EventHandler(this.textBox56_TextChanged);
             // 
             // Write_Byte10_Box
             // 
@@ -1745,7 +1738,6 @@ namespace NeuroSky.MindView
             this.textBox60.Size = new System.Drawing.Size(54, 21);
             this.textBox60.TabIndex = 115;
             this.textBox60.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox60.TextChanged += new System.EventHandler(this.textBox60_TextChanged);
             // 
             // label21
             // 
@@ -2203,7 +2195,6 @@ namespace NeuroSky.MindView
             this.HBR_Box.Size = new System.Drawing.Size(85, 23);
             this.HBR_Box.TabIndex = 161;
             this.HBR_Box.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.HBR_Box.TextChanged += new System.EventHandler(this.HBR_Box_TextChanged);
             // 
             // Interval_textBox
             // 
@@ -2255,7 +2246,6 @@ namespace NeuroSky.MindView
             this.label66.Size = new System.Drawing.Size(79, 14);
             this.label66.TabIndex = 166;
             this.label66.Text = "eFuse1 [39:32]";
-            this.label66.Click += new System.EventHandler(this.label66_Click);
             // 
             // Trim_ByteBox
             // 
@@ -2548,7 +2538,6 @@ namespace NeuroSky.MindView
             this.textBox26.Size = new System.Drawing.Size(54, 21);
             this.textBox26.TabIndex = 191;
             this.textBox26.Text = "E4";
-            this.textBox26.TextChanged += new System.EventHandler(this.textBox26_TextChanged);
             // 
             // textBox29
             // 
@@ -2559,7 +2548,6 @@ namespace NeuroSky.MindView
             this.textBox29.Size = new System.Drawing.Size(54, 21);
             this.textBox29.TabIndex = 190;
             this.textBox29.Text = "00";
-            this.textBox29.TextChanged += new System.EventHandler(this.textBox29_TextChanged);
             // 
             // textBox30
             // 
@@ -2570,7 +2558,6 @@ namespace NeuroSky.MindView
             this.textBox30.Size = new System.Drawing.Size(54, 21);
             this.textBox30.TabIndex = 189;
             this.textBox30.Text = "90";
-            this.textBox30.TextChanged += new System.EventHandler(this.textBox30_TextChanged);
             // 
             // textBox33
             // 
@@ -2581,7 +2568,6 @@ namespace NeuroSky.MindView
             this.textBox33.Size = new System.Drawing.Size(54, 21);
             this.textBox33.TabIndex = 188;
             this.textBox33.Text = "E0";
-            this.textBox33.TextChanged += new System.EventHandler(this.textBox33_TextChanged);
             // 
             // textBox34
             // 
@@ -2592,7 +2578,6 @@ namespace NeuroSky.MindView
             this.textBox34.Size = new System.Drawing.Size(54, 21);
             this.textBox34.TabIndex = 187;
             this.textBox34.Text = "24";
-            this.textBox34.TextChanged += new System.EventHandler(this.textBox34_TextChanged);
             // 
             // textBox37
             // 
@@ -2603,7 +2588,6 @@ namespace NeuroSky.MindView
             this.textBox37.Size = new System.Drawing.Size(54, 21);
             this.textBox37.TabIndex = 186;
             this.textBox37.Text = "43";
-            this.textBox37.TextChanged += new System.EventHandler(this.textBox37_TextChanged);
             // 
             // textBox38
             // 
@@ -2614,7 +2598,6 @@ namespace NeuroSky.MindView
             this.textBox38.Size = new System.Drawing.Size(54, 21);
             this.textBox38.TabIndex = 185;
             this.textBox38.Text = "C0";
-            this.textBox38.TextChanged += new System.EventHandler(this.textBox38_TextChanged);
             // 
             // textBox41
             // 
@@ -2624,7 +2607,6 @@ namespace NeuroSky.MindView
             this.textBox41.Name = "textBox41";
             this.textBox41.Size = new System.Drawing.Size(54, 21);
             this.textBox41.TabIndex = 184;
-            this.textBox41.TextChanged += new System.EventHandler(this.textBox41_TextChanged);
             // 
             // textBox42
             // 
@@ -2635,7 +2617,6 @@ namespace NeuroSky.MindView
             this.textBox42.Size = new System.Drawing.Size(54, 21);
             this.textBox42.TabIndex = 183;
             this.textBox42.Text = "D2";
-            this.textBox42.TextChanged += new System.EventHandler(this.textBox42_TextChanged);
             // 
             // textBox45
             // 
@@ -2646,7 +2627,6 @@ namespace NeuroSky.MindView
             this.textBox45.Size = new System.Drawing.Size(54, 21);
             this.textBox45.TabIndex = 182;
             this.textBox45.Text = "0E";
-            this.textBox45.TextChanged += new System.EventHandler(this.textBox45_TextChanged);
             // 
             // textBox46
             // 
@@ -2657,7 +2637,6 @@ namespace NeuroSky.MindView
             this.textBox46.Size = new System.Drawing.Size(54, 21);
             this.textBox46.TabIndex = 181;
             this.textBox46.Text = "80";
-            this.textBox46.TextChanged += new System.EventHandler(this.textBox46_TextChanged);
             // 
             // textBox49
             // 
@@ -2667,7 +2646,6 @@ namespace NeuroSky.MindView
             this.textBox49.Name = "textBox49";
             this.textBox49.Size = new System.Drawing.Size(54, 21);
             this.textBox49.TabIndex = 180;
-            this.textBox49.TextChanged += new System.EventHandler(this.textBox49_TextChanged);
             // 
             // textBox50
             // 
@@ -2678,7 +2656,6 @@ namespace NeuroSky.MindView
             this.textBox50.Size = new System.Drawing.Size(54, 21);
             this.textBox50.TabIndex = 179;
             this.textBox50.Text = "93";
-            this.textBox50.TextChanged += new System.EventHandler(this.textBox50_TextChanged);
             // 
             // textBox53
             // 
@@ -2689,7 +2666,6 @@ namespace NeuroSky.MindView
             this.textBox53.Size = new System.Drawing.Size(54, 21);
             this.textBox53.TabIndex = 178;
             this.textBox53.Text = "FF";
-            this.textBox53.TextChanged += new System.EventHandler(this.textBox53_TextChanged);
             // 
             // textBox54
             // 
@@ -2700,7 +2676,6 @@ namespace NeuroSky.MindView
             this.textBox54.Size = new System.Drawing.Size(54, 21);
             this.textBox54.TabIndex = 177;
             this.textBox54.Text = "FF";
-            this.textBox54.TextChanged += new System.EventHandler(this.textBox54_TextChanged);
             // 
             // textBox57
             // 
@@ -2712,7 +2687,6 @@ namespace NeuroSky.MindView
             this.textBox57.Size = new System.Drawing.Size(54, 21);
             this.textBox57.TabIndex = 176;
             this.textBox57.Text = "FF";
-            this.textBox57.TextChanged += new System.EventHandler(this.textBox57_TextChanged);
             // 
             // label67
             // 
@@ -2745,7 +2719,6 @@ namespace NeuroSky.MindView
             this.textBox19.Size = new System.Drawing.Size(55, 23);
             this.textBox19.TabIndex = 222;
             this.textBox19.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.textBox19.TextChanged += new System.EventHandler(this.textBox19_TextChanged);
             // 
             // label69
             // 
@@ -2756,7 +2729,6 @@ namespace NeuroSky.MindView
             this.label69.Size = new System.Drawing.Size(79, 14);
             this.label69.TabIndex = 221;
             this.label69.Text = "eFuse1 [21:17]";
-            this.label69.Click += new System.EventHandler(this.label69_Click);
             // 
             // label70
             // 
@@ -2768,7 +2740,6 @@ namespace NeuroSky.MindView
             this.label70.Size = new System.Drawing.Size(209, 14);
             this.label70.TabIndex = 223;
             this.label70.Text = "Note: conOut3 / Byte5 ==>eFuse1 [39:32] ";
-            this.label70.Click += new System.EventHandler(this.label70_Click);
             // 
             // label71
             // 
@@ -2924,7 +2895,7 @@ namespace NeuroSky.MindView
             // 
             // graphPanel1
             // 
-            this.graphPanel1.Location = new System.Drawing.Point(1, 436);
+            this.graphPanel1.Location = new System.Drawing.Point(1, 431);
             this.graphPanel1.Name = "graphPanel1";
             this.graphPanel1.samplingRate = 10;
             this.graphPanel1.Size = new System.Drawing.Size(1040, 227);
@@ -2934,22 +2905,9 @@ namespace NeuroSky.MindView
             this.graphPanel1.yAxisMax = 0D;
             this.graphPanel1.yAxisMin = 0D;
             // 
-            // rawGraphPanel
-            // 
-            this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rawGraphPanel.Location = new System.Drawing.Point(1, 95);
-            this.rawGraphPanel.Name = "rawGraphPanel";
-            this.rawGraphPanel.samplingRate = 10;
-            this.rawGraphPanel.Size = new System.Drawing.Size(1040, 227);
-            this.rawGraphPanel.TabIndex = 0;
-            this.rawGraphPanel.xAxisMax = 0D;
-            this.rawGraphPanel.xAxisMin = 0D;
-            this.rawGraphPanel.yAxisMax = 0D;
-            this.rawGraphPanel.yAxisMin = 0D;
-            // 
             // MainForm
             // 
-            this.ClientSize = new System.Drawing.Size(1362, 677);
+            this.ClientSize = new System.Drawing.Size(1362, 669);
             this.Controls.Add(this.label90);
             this.Controls.Add(this.button16);
             this.Controls.Add(this.button15);
@@ -5738,117 +5696,7 @@ namespace NeuroSky.MindView
             textbox8_hex = "0x" + textbox8_hex;
             textBox8.Text = textbox8_hex;           
             */
-        }
-
-        private void textBox17_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox18_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox24_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox28_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox32_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox36_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox40_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox44_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox48_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox52_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox56_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox60_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox23_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox27_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox31_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox35_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox39_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox43_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox47_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox51_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox55_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void HBR_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        }      
 
         public event deleupdateReadTrimByteFromBMD TrimByteReadFromBMDEVENT;
         private void TrimByte_Read_button_Click(object sender, EventArgs e)
@@ -5910,107 +5758,7 @@ namespace NeuroSky.MindView
                                         + str[8] + str[9] + str[10] + str[11] + str[12] + str[13] + str[14] + str[15] + cs[0]);
             efuseProgramEvent(commandToSend);
 
-        }
-
-        private void textBox57_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox53_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox49_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox45_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox41_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox37_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox33_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox29_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox54_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox50_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox46_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox42_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox38_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox34_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox30_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox26_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label66_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label69_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox19_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label70_Click(object sender, EventArgs e)
-        {
-
-        }
+        }      
 
         private void button5_Click_1(object sender, EventArgs e)
         {
