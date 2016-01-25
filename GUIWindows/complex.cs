@@ -17,7 +17,7 @@ namespace WIN_FFT
             b3.imag = b1.real * b2.imag + b1.imag * b2.real;
             return (b3);
         }
-
+        public event NeuroSky.MindView.UpdateDataForGraphicDelegate updateFFTGraphicEvent;
         public double[] amplitude(complex[] x, int n)
         {
 
@@ -27,6 +27,7 @@ namespace WIN_FFT
             {
                 temp = x[i].real * x[i].real + x[i].imag * x[i].imag;
                 amp[i] = Math.Sqrt(temp) / (n / 2);
+                updateFFTGraphicEvent(amp[i]);
             }
             return amp;
         }

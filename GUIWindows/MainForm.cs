@@ -765,7 +765,6 @@ namespace NeuroSky.MindView
             this.averageHeartRateLabel.Text = "0";
             this.averageHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.averageHeartRateLabel.Visible = false;
-            this.averageHeartRateLabel.Click += new System.EventHandler(this.averageHeartRateLabel_Click);
             // 
             // soundCheckBox
             // 
@@ -777,7 +776,6 @@ namespace NeuroSky.MindView
             this.soundCheckBox.TabIndex = 17;
             this.soundCheckBox.Text = "Enable Sound";
             this.soundCheckBox.UseVisualStyleBackColor = true;
-            this.soundCheckBox.CheckedChanged += new System.EventHandler(this.soundCheckBox_CheckedChanged);
             // 
             // fatigueLabelIndicator
             // 
@@ -824,7 +822,6 @@ namespace NeuroSky.MindView
             this.HRVLabelIndicator.Text = "R-R interval (SDK):";
             this.HRVLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.HRVLabelIndicator.Visible = false;
-            this.HRVLabelIndicator.Click += new System.EventHandler(this.HRVLabelIndicator_Click);
             // 
             // HRVLabel
             // 
@@ -837,7 +834,6 @@ namespace NeuroSky.MindView
             this.HRVLabel.Text = "0";
             this.HRVLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.HRVLabel.Visible = false;
-            this.HRVLabel.Click += new System.EventHandler(this.HRVLabel_Click);
             // 
             // respirationRateLabel
             // 
@@ -1015,7 +1011,6 @@ namespace NeuroSky.MindView
             this.textBox1.Size = new System.Drawing.Size(43, 21);
             this.textBox1.TabIndex = 41;
             this.textBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // textBox2
             // 
@@ -1104,7 +1099,6 @@ namespace NeuroSky.MindView
             this.textBox10.Name = "textBox10";
             this.textBox10.Size = new System.Drawing.Size(35, 21);
             this.textBox10.TabIndex = 50;
-            this.textBox10.TextChanged += new System.EventHandler(this.textBox10_TextChanged);
             // 
             // textBox11
             // 
@@ -1346,7 +1340,6 @@ namespace NeuroSky.MindView
             this.label20.Size = new System.Drawing.Size(134, 15);
             this.label20.TabIndex = 74;
             this.label20.Text = "SPI/I2C Register(Write)";
-            this.label20.Click += new System.EventHandler(this.label20_Click);
             // 
             // textBox17
             // 
@@ -2148,7 +2141,6 @@ namespace NeuroSky.MindView
             this.averageHeartRateLabelIndicator.Text = "Average Heart Rate:";
             this.averageHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.averageHeartRateLabelIndicator.Visible = false;
-            this.averageHeartRateLabelIndicator.Click += new System.EventHandler(this.averageHeartRateLabelIndicator_Click);
             // 
             // realtimeHeartRateLabel
             // 
@@ -2161,7 +2153,6 @@ namespace NeuroSky.MindView
             this.realtimeHeartRateLabel.Text = "0";
             this.realtimeHeartRateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.realtimeHeartRateLabel.Visible = false;
-            this.realtimeHeartRateLabel.Click += new System.EventHandler(this.realtimeHeartRateLabel_Click);
             // 
             // realtimeHeartRateLabelIndicator
             // 
@@ -2173,7 +2164,6 @@ namespace NeuroSky.MindView
             this.realtimeHeartRateLabelIndicator.Text = "Real Time HR (SDK):";
             this.realtimeHeartRateLabelIndicator.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.realtimeHeartRateLabelIndicator.Visible = false;
-            this.realtimeHeartRateLabelIndicator.Click += new System.EventHandler(this.realtimeHeartRateLabelIndicator_Click);
             // 
             // label63
             // 
@@ -2184,7 +2174,6 @@ namespace NeuroSky.MindView
             this.label63.Size = new System.Drawing.Size(69, 15);
             this.label63.TabIndex = 160;
             this.label63.Text = "HBR (bpm)";
-            this.label63.Click += new System.EventHandler(this.label63_Click);
             // 
             // HBR_Box
             // 
@@ -2205,7 +2194,6 @@ namespace NeuroSky.MindView
             this.Interval_textBox.Size = new System.Drawing.Size(97, 23);
             this.Interval_textBox.TabIndex = 162;
             this.Interval_textBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.Interval_textBox.TextChanged += new System.EventHandler(this.textBox59_TextChanged);
             // 
             // label64
             // 
@@ -2256,7 +2244,6 @@ namespace NeuroSky.MindView
             this.Trim_ByteBox.Size = new System.Drawing.Size(55, 23);
             this.Trim_ByteBox.TabIndex = 167;
             this.Trim_ByteBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.Trim_ByteBox.TextChanged += new System.EventHandler(this.Trim_ByteBox_TextChanged);
             // 
             // button9
             // 
@@ -2342,7 +2329,6 @@ namespace NeuroSky.MindView
             this.Write_Byte1_Box.Size = new System.Drawing.Size(54, 21);
             this.Write_Byte1_Box.TabIndex = 81;
             this.Write_Byte1_Box.Text = "00";
-            this.Write_Byte1_Box.TextChanged += new System.EventHandler(this.Write_Byte1_Box_TextChanged);
             // 
             // button3
             // 
@@ -3130,7 +3116,6 @@ namespace NeuroSky.MindView
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "BMD200 Test Software x64";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -4793,7 +4778,6 @@ namespace NeuroSky.MindView
             }
         }
 
-
         delegate void UpdateWrite_Byte0_BoxDelegate(string tempString);
         public void updateWrite_Byte0_F_Box(string tempString)
         {
@@ -4874,7 +4858,49 @@ namespace NeuroSky.MindView
             }
         }
 
-        delegate void UpdateDataForGraphicDelegate(double raw);
+
+        delegate void UpdateDataForGraphicThreadDelegate(object sender);
+        public void UpdateDataForGraphicThread(object sender)
+        {
+            if (this.InvokeRequired)
+            {
+                UpdateDataForGraphicThreadDelegate del = new UpdateDataForGraphicThreadDelegate(UpdateDataForGraphicThread);
+                this.Invoke(del, new object[] { sender });
+            }
+            else
+            {
+                double[] raw = sender as double[];
+                int length = raw.Length;
+                double[] result = new double[length];
+                Array.Copy(raw, result, length);
+                for (int i = 0; i < length; i++)
+                {
+                    double r = result[i];
+                    if (graphPanel1.BarGraph.BarReadType == ReadType.RawArray)
+                    {
+                        Console.WriteLine("update BarGraph data:" + raw);
+
+                        /// TODO: Input 'Raw' from ThinkGear SDK or text ,then BarGraph.cs should be caculate the FFT with 
+                        /// AForge.Math.FourierTransform.FFT(Complex[] , AForge.Math.FourierTransform.Direction.Forward).
+                        AForge.Math.Complex d = new AForge.Math.Complex(r, 0);
+                        graphPanel1.BarGraph.Add(d);
+                    }
+                    else if (graphPanel1.BarGraph.BarReadType == ReadType.FFTArray)
+                    {
+
+                        float f = Convert.ToSingle(r);
+                        /// TODO: Input data for FFT array,
+                        graphPanel1.BarGraph.AddFFT(f);
+                        Console.WriteLine("update float data:" + f + ",raw:" + raw);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// call for delegate 'UpdateDataForGraphicDelegate' 
+        /// </summary>
+        /// <param name="raw"></param>
         public void UpdateDataForGraphic(double raw)
         {
 
@@ -4885,7 +4911,6 @@ namespace NeuroSky.MindView
             }
             else
             {
-
                 if (graphPanel1.BarGraph.BarReadType == ReadType.RawArray)
                 {
                     Console.WriteLine("update BarGraph data:" + raw);
@@ -4901,7 +4926,7 @@ namespace NeuroSky.MindView
                     float f = Convert.ToSingle(raw);
                     /// TODO: Input data for FFT array,
                     graphPanel1.BarGraph.AddFFT(f);
-                    Console.WriteLine("update float data:" + f + ",raw:" + raw);
+                    //Console.WriteLine("update float data:" + f + ",raw:" + raw);
                 }
             }
         }
@@ -4975,8 +5000,6 @@ namespace NeuroSky.MindView
             }
         }
 
-
-
         protected override void OnSizeChanged(EventArgs e)
         {
 
@@ -5014,42 +5037,7 @@ namespace NeuroSky.MindView
             //    newUserButton.Location = new System.Drawing.Point(this.Width - 720, this.Height - 73);
             base.OnSizeChanged(e);
         }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void realtimeHeartRateLabel_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void averageHeartRateLabel_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void HRVLabel_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void averageHeartRateLabelIndicator_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void realtimeHeartRateLabelIndicator_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void HRVLabelIndicator_Click(object sender, EventArgs e)
-        {
-
-        }
-
+ 
         private void inputAgeAndFileNameButton_Click(object sender, EventArgs e)
         {
             heartAgeInputGUI.Show();
@@ -5277,49 +5265,6 @@ namespace NeuroSky.MindView
             SPI_Open_Button.Enabled = true;
         }
 
-
-        public void textBox10_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label20_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-
-
-
-        }
-
-        private void soundCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox59_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         public event deleupdateSamplingRateToBMD sendSamplingRate300CmdEvent;
         private void button11_Click(object sender, EventArgs e)
         {
@@ -5444,10 +5389,6 @@ namespace NeuroSky.MindView
             }
         }
 
-        private void Write_Byte1_Box_TextChanged(object sender, EventArgs e)
-        {
-
-        }
 
         private void textBox9_TextChanged(object sender, EventArgs e)
         {
@@ -5534,17 +5475,7 @@ namespace NeuroSky.MindView
             }
 
             return bytes;
-        }
-
-        private void Trim_ByteBox_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label63_Click(object sender, EventArgs e)
-        {
-
-        }
+        }       
 
         public event deleupdateReadSPICmdFromBMD SPIReadFromBMDEVENT;
         private void button9_Click(object sender, EventArgs e)
@@ -5857,6 +5788,7 @@ namespace NeuroSky.MindView
     public delegate void deleupdateReadSPICmdFromBMD(byte[] tempString);
     public delegate void deleupdateReadTrimByteFromBMD(byte[] tempString);
     public delegate void deleefuseProgram(byte[] tempString);
+    public delegate void UpdateDataForGraphicDelegate(double raw);
 
     /*End of MainForm*/
     public class HeartAgeEventArgs : EventArgs

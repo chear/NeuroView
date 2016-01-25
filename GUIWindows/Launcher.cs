@@ -148,7 +148,7 @@ namespace NeuroSky.MindView
             {
                 Complex[n] = new complex();
             }
-            fft = new complex();
+            fft = new complex();          
 
             tgHRV = new TGHrv();
             respRate = new RespiratoryRate();
@@ -186,6 +186,9 @@ namespace NeuroSky.MindView
             mainForm.SPIReadFromBMDEVENT += new deleupdateReadSPICmdFromBMD(SetSpiReadCmdByte);
             mainForm.TrimByteReadFromBMDEVENT += new deleupdateReadTrimByteFromBMD(SetTrimByteReadCmdByte);
             mainForm.efuseProgramEvent += new deleefuseProgram(seteFuseByte);
+
+            /// FFT drawing 
+            fft.updateFFTGraphicEvent += new UpdateDataForGraphicDelegate(mainForm.UpdateDataForGraphic);
 
             InitializeComponent();
             ResetRui();
@@ -366,7 +369,6 @@ namespace NeuroSky.MindView
             mainForm.updateConnectButton(false);
         }
 
-
         void OnDataReceived(object sender, EventArgs e)
         {
             Device d = (Device)sender;
@@ -374,7 +376,6 @@ namespace NeuroSky.MindView
             ProgressCallback callback =
              (value) =>
              {
-
                  sample_After[SampleCount++] = value;
                  if (SampleCount >= 512)
                      SampleCount = 0;
@@ -1067,7 +1068,7 @@ namespace NeuroSky.MindView
                                 {
                                     //mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filtered));
                                     //mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), filteredRui));
-                                    mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), (double)thinkGearParser.ParsedData[i]["Raw"]));
+                                     
                                     mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
                                     //Console.WriteLine("raw data = " + (double)thinkGearParser.ParsedData[i]["Raw"]);
                                 }
@@ -1160,25 +1161,16 @@ namespace NeuroSky.MindView
                     else if (mainForm.replayEnable == false)
                     {
                         //if signal is good
-                        //if (mainForm.poorQuality == 0)
-
-                        if (true)
+                        if (mainForm.poorQuality == 0)
                         {
                             rawCounter++;
                             nskECGreSamplerInit(600, 512);
-                            //double rr = respRate.calculateRespiratoryRate((short)thinkGearParser.ParsedData[i]["Raw200"], (byte)mainForm.poorQuality);
-                            //if (rr > 0)
-                            //{
-                            //    //display this
-                            //    mainForm.updateRespirationRateIndicator(((int)rr).ToString());
-                            //    Console.WriteLine("rr = " + rr);
-                            //}
-                            ///////////////////////////////////////////////////////////////////////smooth_raw_filters///////////////////////////////////////////////////////////////////////
-                            //resampled = interplated((short)thinkGearParser.ParsedData[i]["Raw200"]);
-
+                            bufferCounter_raw++;
+                            
                             if (resampled != -1000000)
                             {
                                 sample_Before[FFT_RAW++] = (double)thinkGearParser.ParsedData[i]["Raw200"];
+                                /// sample rate for BMD200 its 600 per second.
                                 if (FFT_RAW >= 600)
                                 {
                                     FFT_RAW = 0;
@@ -1199,79 +1191,21 @@ namespace NeuroSky.MindView
                                     //    Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
                                     //}
                                     fft_amp = fft.amplitude(Complex, 512); //FFT后的幅值
+                                                                     
                                     //Console.WriteLine("The amp value will be output:");
-                                    for (int k = 0; k < 512; k++)
-                                    {
-                                        ///chear: input the data to drawing FFT graphic  
-                                        //Console.WriteLine("fft:" + fft_amp[k]);
-                                        mainForm.UpdateDataForGraphic(fft_amp[k]);
-                                    }
+                                    //for (int k = 0; k < 512; k++)
+                                    //{
+                                    //    ///chear: input the data to drawing FFT graphic                                        
+                                    //    mainForm.UpdateDataForGraphic(fft_amp[k]);
+                                    //}
                                 }
-
-                                /*   string line;
-                                   int line_number=0;
-                                   double[] example = new double[1024];
-                                   while (true)
-                                   {
-                                   
-                                       System.IO.StreamReader file = new System.IO.StreamReader(@"stand_sin_ecg_1hz.txt");
-                                       while ((line = file.ReadLine()) != null)
-                                       {
-
-                                           line_number++;
-                                           example[line_number] = double.Parse(line);
-                                           if (line_number >= 1023)
-                                           {
-                                               line_number = 0;
-                                               for (int number = 0; number < 1024; number++)
-                                               {
-                                                   //初始化复数的实虚部.
-                                                   Complex[number].real = example[number];
-                                                   Complex[number].imag = 0;
-                                               }
-                                               fft.FFT(Complex, 1024);//开始FFT转换
-                                               for (int number = 0; number < 1024; number++)
-                                               {
-                                                   Console.WriteLine("number=" + number);
-                                                   Console.WriteLine("Complex.real" + Complex[number].real + "Complex.imag" + Complex[number].imag);
-                                               }
-                                               fft_amp = fft.amplitude(Complex, 1024); //FFT后的幅值
-                                               for (int k = 0; k < 1024; k++)
-                                               {
-                                                   ///chear: output the data to drawing FFT graphic
-                                                   Console.WriteLine(fft_amp[k]);
-                                               }                                        
-                                           }
-                                           Console.WriteLine("line is:" + line.ToString());
-                                       
-                                           try
-                                           {
-
-                                           }
-                                           catch (FormatException)
-                                           {
-                                               Console.ReadLine();
-                                           }
-                                       }
-
-                                       file.Close();
-
-                                   }*/
-
                                 bw = baselineRemove((short)thinkGearParser.ParsedData[i]["Raw200"]);
                                 notched = powerLine60Hz(bw);
                                 filteredRui = cpf((short)notched);
                             }
 
-                            //update the buffer with the latest eeg value
-                            //Array.Copy(eegBuffer_600, 1, tempeegBuffer_600, 0, bufferSize_hp_600 - 1);
-                            //tempeegBuffer_600[bufferSize_hp_600 - 1] = (double)thinkGearParser.ParsedData[i]["Raw200"];
-                            //Array.Copy(tempeegBuffer_600, eegBuffer_600, bufferSize_hp_600);
-                            //bufferCounter_raw++;
-
                             //if the eeg buffer is full, calculate the filtered data
-                            //if (bufferCounter_raw >= bufferSize_hp_600)
-                            if (false)
+                            if (bufferCounter_raw >= bufferSize_hp_600)                             
                             {
 
                                 //filter the data
@@ -1314,7 +1248,7 @@ namespace NeuroSky.MindView
                                 //raw buffer is not full yet. plot zero
                                 mainForm.rawGraphPanel.LineGraph.Add(new DataPair((mainForm.rawGraphPanel.LineGraph.timeStampIndex / (double)mainForm.rawGraphPanel.LineGraph.samplingRate), 0));
                                 mainForm.rawGraphPanel.LineGraph.timeStampIndex++;
-                            }
+                            }                      
 
                         }
                         else
@@ -1403,11 +1337,7 @@ namespace NeuroSky.MindView
                 /* End "Check for the data flag for each panel..." */
             }
         }
-
-
-
-
-
+        
         void OnConnectButtonClicked(object sender, EventArgs e)
         {
             string portName = mainForm.portText.Text.ToUpper();
@@ -1776,7 +1706,6 @@ namespace NeuroSky.MindView
 
         } // end reset
 
-
         // conditional partial filtering (cpf)
         private int cpf(short data) //(short data)
         {
@@ -1885,7 +1814,6 @@ namespace NeuroSky.MindView
                 y3[0] = y1[n1 / 2];
             }
 
-
             // y3 --> y5
             /*     for (int j = 0; j < n3 - 1; j++)
                  {
@@ -1905,8 +1833,6 @@ namespace NeuroSky.MindView
             {
                 y5[0] = y3[n3 / 2];
             }
-
-
             // y5 --> y7
             /*       for (int j = 0; j < n5 - 1; j++)
                    {
@@ -1927,9 +1853,6 @@ namespace NeuroSky.MindView
                 y7[0] = y5[n5 / 2];
 
             }
-
-
-
             // y7 --> y9
             /*       for (int j = 0; j < n7 - 1; j++)
                    {
@@ -1949,9 +1872,6 @@ namespace NeuroSky.MindView
             {
                 y9[0] = y7[n7 / 2];
             }
-
-
-
             // y9 --> fy
             /*       for (int j = 0; j < n9 - 1; j++)
                    {
@@ -1965,17 +1885,13 @@ namespace NeuroSky.MindView
                 {
                     sum9 += y9[k];
                 }
-
                 fy = (sum9 / m9);
             }
             else
             {
                 fy = y9[n9 / 2];
             }
-
             return fy;
-
-
         } // end cpf
 
         private int interplated(short data)
@@ -1985,12 +1901,9 @@ namespace NeuroSky.MindView
             // rfs: resample frequency
 
             int yo = -1000000;
-
             iy1 = iy2;
             iy2 = data;
-
             xi = 1 + (p - 1) * step;
-
             if (xi == 1)
             {
                 yo = (int)data;
@@ -2001,28 +1914,19 @@ namespace NeuroSky.MindView
             {
                 if (abs(xi - np) < abs(xi - (np + 1)))
                 {
-
                     yo = (int)(iy1 + (xi - np) * (iy2 - iy1));
                 }
                 else
                 {
-
                     yo = (int)(iy2 + (xi - (np + 1)) * (iy2 - iy1));
                 }
-
                 p = p + 1;
-
             }
             else
             {
                 yo = -1000000;
-
             }
-
-
             np++;
-
-
             return yo;
 
         }
