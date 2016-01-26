@@ -134,7 +134,7 @@ namespace NeuroSky.MindView
         /// </summary>
         [STAThread]
         static void Main()
-        {
+       {
             Application.Run(new Launcher());
             //Application.Run(new FormFFT());
         }

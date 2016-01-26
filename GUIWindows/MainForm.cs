@@ -31,8 +31,9 @@ namespace NeuroSky.MindView
         private int fatigueResult;              //output of the EnergyLevel algorithm
         private int fatigueTime;                //holds a record of how many seconds have passed since the RR recording began
 
+        private Size defGraphSize = new Size(1040, 227);
         public GraphPanel rawGraphPanel;
-        public GraphPanel graphPanel1;// = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
+        public GraphPanel graphPanel1; 
         public TextBox portText;
         private Label statusLabel;
         private Label fileLabel;
@@ -381,6 +382,8 @@ namespace NeuroSky.MindView
             fullImage = new Bitmap(fullStream);
 
             #region Initialize FFT Drawing
+            if(this.graphPanel1.BarGraph == null)
+                this.graphPanel1 = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
             graphPanel1.samplingRate = 512;
             graphPanel1.xAxisMax = 512;
             graphPanel1.xAxisMin = 0;
@@ -441,7 +444,6 @@ namespace NeuroSky.MindView
         /// </summary>
         private void InitializeComponent()
         {
-            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.connectButton = new System.Windows.Forms.Button();
             this.clearButton = new System.Windows.Forms.Button();
             this.recordButton = new System.Windows.Forms.Button();
@@ -659,22 +661,10 @@ namespace NeuroSky.MindView
             this.button15 = new System.Windows.Forms.Button();
             this.button16 = new System.Windows.Forms.Button();
             this.label90 = new System.Windows.Forms.Label();
+            this.rawGraphPanel = new NeuroSky.MindView.GraphPanel();
             this.graphPanel1 = new NeuroSky.MindView.GraphPanel(PlotType.Bar);
             ((System.ComponentModel.ISupportInitialize)(this.energyPictureBox)).BeginInit();
             this.SuspendLayout();
-            // 
-            // rawGraphPanel
-            // 
-            this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.rawGraphPanel.Location = new System.Drawing.Point(1, 95);
-            this.rawGraphPanel.Name = "rawGraphPanel";
-            this.rawGraphPanel.samplingRate = 10;
-            this.rawGraphPanel.Size = new System.Drawing.Size(1040, 227);
-            this.rawGraphPanel.TabIndex = 0;
-            this.rawGraphPanel.xAxisMax = 0D;
-            this.rawGraphPanel.xAxisMin = 0D;
-            this.rawGraphPanel.yAxisMax = 0D;
-            this.rawGraphPanel.yAxisMin = 0D;
             // 
             // connectButton
             // 
@@ -688,6 +678,7 @@ namespace NeuroSky.MindView
             // 
             // clearButton
             // 
+            this.clearButton.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.clearButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clearButton.Location = new System.Drawing.Point(948, 326);
             this.clearButton.Name = "clearButton";
@@ -698,6 +689,7 @@ namespace NeuroSky.MindView
             // 
             // recordButton
             // 
+            this.recordButton.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.recordButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.recordButton.Location = new System.Drawing.Point(963, 368);
             this.recordButton.Name = "recordButton";
@@ -718,6 +710,7 @@ namespace NeuroSky.MindView
             // 
             // stopButton
             // 
+            this.stopButton.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.stopButton.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.stopButton.Location = new System.Drawing.Point(963, 369);
             this.stopButton.Name = "stopButton";
@@ -737,6 +730,7 @@ namespace NeuroSky.MindView
             // 
             // statusLabel
             // 
+            this.statusLabel.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.statusLabel.BackColor = System.Drawing.Color.Transparent;
             this.statusLabel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.statusLabel.ForeColor = System.Drawing.Color.Crimson;
@@ -903,6 +897,7 @@ namespace NeuroSky.MindView
             // 
             // UART_Close_Button
             // 
+            this.UART_Close_Button.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.UART_Close_Button.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UART_Close_Button.Location = new System.Drawing.Point(522, 324);
             this.UART_Close_Button.Name = "UART_Close_Button";
@@ -914,6 +909,7 @@ namespace NeuroSky.MindView
             // 
             // UART_Open_Button
             // 
+            this.UART_Open_Button.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.UART_Open_Button.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UART_Open_Button.Location = new System.Drawing.Point(522, 324);
             this.UART_Open_Button.Name = "UART_Open_Button";
@@ -981,6 +977,7 @@ namespace NeuroSky.MindView
             // 
             // label1
             // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.ForeColor = System.Drawing.Color.Black;
@@ -992,6 +989,7 @@ namespace NeuroSky.MindView
             // 
             // label2
             // 
+            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Black;
@@ -1003,6 +1001,7 @@ namespace NeuroSky.MindView
             // 
             // textBox1
             // 
+            this.textBox1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox1.Enabled = false;
             this.textBox1.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox1.Location = new System.Drawing.Point(109, 363);
@@ -1014,6 +1013,7 @@ namespace NeuroSky.MindView
             // 
             // textBox2
             // 
+            this.textBox2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox2.Enabled = false;
             this.textBox2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox2.Location = new System.Drawing.Point(158, 363);
@@ -1024,6 +1024,7 @@ namespace NeuroSky.MindView
             // 
             // textBox3
             // 
+            this.textBox3.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox3.Enabled = false;
             this.textBox3.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox3.Location = new System.Drawing.Point(206, 363);
@@ -1034,6 +1035,7 @@ namespace NeuroSky.MindView
             // 
             // textBox4
             // 
+            this.textBox4.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox4.Enabled = false;
             this.textBox4.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox4.Location = new System.Drawing.Point(252, 363);
@@ -1044,6 +1046,7 @@ namespace NeuroSky.MindView
             // 
             // textBox5
             // 
+            this.textBox5.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox5.Enabled = false;
             this.textBox5.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox5.Location = new System.Drawing.Point(302, 363);
@@ -1054,6 +1057,7 @@ namespace NeuroSky.MindView
             // 
             // textBox6
             // 
+            this.textBox6.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox6.Enabled = false;
             this.textBox6.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox6.Location = new System.Drawing.Point(355, 363);
@@ -1064,6 +1068,7 @@ namespace NeuroSky.MindView
             // 
             // textBox7
             // 
+            this.textBox7.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox7.Enabled = false;
             this.textBox7.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox7.Location = new System.Drawing.Point(403, 362);
@@ -1074,6 +1079,7 @@ namespace NeuroSky.MindView
             // 
             // textBox8
             // 
+            this.textBox8.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox8.Enabled = false;
             this.textBox8.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox8.Location = new System.Drawing.Point(455, 363);
@@ -1084,6 +1090,7 @@ namespace NeuroSky.MindView
             // 
             // textBox9
             // 
+            this.textBox9.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox9.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox9.Location = new System.Drawing.Point(613, 363);
             this.textBox9.Name = "textBox9";
@@ -1094,6 +1101,7 @@ namespace NeuroSky.MindView
             // 
             // textBox10
             // 
+            this.textBox10.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox10.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox10.Location = new System.Drawing.Point(654, 363);
             this.textBox10.Name = "textBox10";
@@ -1102,6 +1110,7 @@ namespace NeuroSky.MindView
             // 
             // textBox11
             // 
+            this.textBox11.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox11.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox11.Location = new System.Drawing.Point(695, 363);
             this.textBox11.Name = "textBox11";
@@ -1112,6 +1121,7 @@ namespace NeuroSky.MindView
             // 
             // textBox12
             // 
+            this.textBox12.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox12.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox12.Location = new System.Drawing.Point(736, 363);
             this.textBox12.Name = "textBox12";
@@ -1122,6 +1132,7 @@ namespace NeuroSky.MindView
             // 
             // textBox13
             // 
+            this.textBox13.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox13.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox13.Location = new System.Drawing.Point(777, 363);
             this.textBox13.Name = "textBox13";
@@ -1132,6 +1143,7 @@ namespace NeuroSky.MindView
             // 
             // textBox14
             // 
+            this.textBox14.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox14.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox14.Location = new System.Drawing.Point(818, 363);
             this.textBox14.Name = "textBox14";
@@ -1141,6 +1153,7 @@ namespace NeuroSky.MindView
             // 
             // textBox15
             // 
+            this.textBox15.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox15.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox15.Location = new System.Drawing.Point(859, 363);
             this.textBox15.Name = "textBox15";
@@ -1151,6 +1164,7 @@ namespace NeuroSky.MindView
             // 
             // textBox16
             // 
+            this.textBox16.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.textBox16.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox16.Location = new System.Drawing.Point(900, 363);
             this.textBox16.Name = "textBox16";
@@ -1161,6 +1175,7 @@ namespace NeuroSky.MindView
             // 
             // label3
             // 
+            this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label3.Location = new System.Drawing.Point(109, 343);
@@ -1171,6 +1186,7 @@ namespace NeuroSky.MindView
             // 
             // label4
             // 
+            this.label4.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.Location = new System.Drawing.Point(156, 343);
@@ -1181,6 +1197,7 @@ namespace NeuroSky.MindView
             // 
             // label5
             // 
+            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(203, 343);
@@ -1191,6 +1208,7 @@ namespace NeuroSky.MindView
             // 
             // label6
             // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label6.Location = new System.Drawing.Point(251, 343);
@@ -1201,6 +1219,7 @@ namespace NeuroSky.MindView
             // 
             // label7
             // 
+            this.label7.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label7.Location = new System.Drawing.Point(303, 343);
@@ -1211,6 +1230,7 @@ namespace NeuroSky.MindView
             // 
             // label8
             // 
+            this.label8.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.Location = new System.Drawing.Point(351, 343);
@@ -1221,6 +1241,7 @@ namespace NeuroSky.MindView
             // 
             // label9
             // 
+            this.label9.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label9.Location = new System.Drawing.Point(402, 343);
@@ -1231,6 +1252,7 @@ namespace NeuroSky.MindView
             // 
             // label10
             // 
+            this.label10.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label10.AutoSize = true;
             this.label10.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label10.Location = new System.Drawing.Point(455, 344);
@@ -1241,6 +1263,7 @@ namespace NeuroSky.MindView
             // 
             // label11
             // 
+            this.label11.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label11.Location = new System.Drawing.Point(654, 344);
@@ -1251,6 +1274,7 @@ namespace NeuroSky.MindView
             // 
             // label12
             // 
+            this.label12.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label12.AutoSize = true;
             this.label12.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label12.Location = new System.Drawing.Point(695, 344);
@@ -1261,6 +1285,7 @@ namespace NeuroSky.MindView
             // 
             // label13
             // 
+            this.label13.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label13.AutoSize = true;
             this.label13.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label13.Location = new System.Drawing.Point(613, 344);
@@ -1271,6 +1296,7 @@ namespace NeuroSky.MindView
             // 
             // label14
             // 
+            this.label14.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label14.AutoSize = true;
             this.label14.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label14.Location = new System.Drawing.Point(736, 344);
@@ -1281,6 +1307,7 @@ namespace NeuroSky.MindView
             // 
             // label15
             // 
+            this.label15.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label15.AutoSize = true;
             this.label15.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label15.Location = new System.Drawing.Point(777, 343);
@@ -1291,6 +1318,7 @@ namespace NeuroSky.MindView
             // 
             // label16
             // 
+            this.label16.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label16.AutoSize = true;
             this.label16.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label16.Location = new System.Drawing.Point(818, 343);
@@ -1301,6 +1329,7 @@ namespace NeuroSky.MindView
             // 
             // label17
             // 
+            this.label17.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label17.AutoSize = true;
             this.label17.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label17.Location = new System.Drawing.Point(859, 344);
@@ -1311,6 +1340,7 @@ namespace NeuroSky.MindView
             // 
             // label18
             // 
+            this.label18.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label18.AutoSize = true;
             this.label18.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label18.Location = new System.Drawing.Point(898, 344);
@@ -2297,6 +2327,7 @@ namespace NeuroSky.MindView
             // 
             // button1
             // 
+            this.button1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button1.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.Black;
             this.button1.Location = new System.Drawing.Point(22, 358);
@@ -2310,6 +2341,7 @@ namespace NeuroSky.MindView
             // 
             // button2
             // 
+            this.button2.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button2.Enabled = false;
             this.button2.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button2.ForeColor = System.Drawing.Color.Black;
@@ -2718,6 +2750,7 @@ namespace NeuroSky.MindView
             // 
             // label70
             // 
+            this.label70.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label70.AutoSize = true;
             this.label70.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label70.ForeColor = System.Drawing.Color.Navy;
@@ -2729,10 +2762,11 @@ namespace NeuroSky.MindView
             // 
             // label71
             // 
+            this.label71.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label71.AutoSize = true;
             this.label71.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label71.ForeColor = System.Drawing.Color.Navy;
-            this.label71.Location = new System.Drawing.Point(643, 415);
+            this.label71.Location = new System.Drawing.Point(642, 414);
             this.label71.Name = "label71";
             this.label71.Size = new System.Drawing.Size(223, 14);
             this.label71.TabIndex = 224;
@@ -2740,6 +2774,7 @@ namespace NeuroSky.MindView
             // 
             // button5
             // 
+            this.button5.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.button5.Font = new System.Drawing.Font("Arial", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button5.Location = new System.Drawing.Point(422, 389);
             this.button5.Name = "button5";
@@ -2879,8 +2914,22 @@ namespace NeuroSky.MindView
             this.label90.TabIndex = 241;
             this.label90.Text = "Note: [23:22] == 10\r\n          [16] == 1";
             // 
+            // rawGraphPanel
+            // 
+            this.rawGraphPanel.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.rawGraphPanel.Location = new System.Drawing.Point(1, 95);
+            this.rawGraphPanel.Name = "rawGraphPanel";
+            this.rawGraphPanel.samplingRate = 10;
+            this.rawGraphPanel.Size = new System.Drawing.Size(1040, 227);
+            this.rawGraphPanel.TabIndex = 0;
+            this.rawGraphPanel.xAxisMax = 0D;
+            this.rawGraphPanel.xAxisMin = 0D;
+            this.rawGraphPanel.yAxisMax = 0D;
+            this.rawGraphPanel.yAxisMin = 0D;
+            // 
             // graphPanel1
             // 
+            this.graphPanel1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.graphPanel1.Location = new System.Drawing.Point(1, 431);
             this.graphPanel1.Name = "graphPanel1";
             this.graphPanel1.samplingRate = 10;
@@ -3140,9 +3189,7 @@ namespace NeuroSky.MindView
 #if true
             this.connectButton.Enabled = false;
             this.portText.Enabled = false;
-
             rawGraphPanel.LineGraph.Clear();
-
             ConnectButtonClicked(this, EventArgs.Empty);
 #else
             double tempData = 0;
@@ -5027,12 +5074,15 @@ namespace NeuroSky.MindView
             //      startFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
             //   stopFatigueButton.Location = new System.Drawing.Point(this.Width - 360, this.Height - 73);
 
-            //rawGraphPanel.Location = new Point(rawGraphPanel.Location.X, HRVLabelIndicator.Location.Y + HRVLabelIndicator.Height + 9);
-            //rawGraphPanel.Height = (int)(recordButton.Location.Y - rawGraphPanel.Location.Y - 15);
-            //rawGraphPanel.Width = this.Width - 10;
+
+            /// when frame size Maximized ,then set the 'rawGraphPanel' and 'graphPanel1' Height
+            int t = label1.Location.Y - rawGraphPanel.Location.Y - 2;
+            rawGraphPanel.Height = t;
+            graphPanel1.Top = label71.Location.Y + label71.Height;
+            graphPanel1.Height = t;
+
 
             //  inputAgeAndFileNameButton.Location = new System.Drawing.Point(this.Width - 480, this.Height - 73);
-
             // identificationButton.Location = new System.Drawing.Point(this.Width - 600, this.Height - 73);
             //    newUserButton.Location = new System.Drawing.Point(this.Width - 720, this.Height - 73);
             base.OnSizeChanged(e);
@@ -5774,7 +5824,8 @@ namespace NeuroSky.MindView
         {
             byte[] commandToSend = { 0x77, 0x02, 0x61, 0x01, 0x9B };
             sendI2COpenCmdEvent(commandToSend);
-        }      
+        }
+          
     }
     //  public event deleupdateUARTCmdToBMD sendUARTCloseCmdByteEvent;
     public delegate void deleupdateUARTCmdToBMD(byte[] tempString);
